@@ -9,6 +9,7 @@ import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { json, urlencoded } from 'express';
 import { AppModule } from './app.module.js';
+import { resolveApplicationPort } from './common/utils/port.util.js';
 
 /**
  * Inicializa y arranca la instancia del servidor HTTP NestJS.
@@ -42,9 +43,9 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const environmentPort = process.env.PORT;
-  const port = environmentPort ? Number(environmentPort) : 3000;
-  logger.log(`Enlazando servidor HTTP en 0.0.0.0:${port} (PORT env: ${environmentPort ?? 'no configurado, usando 3000'})...`);
+  const rawPort = process.env.PORT;
+  const port = resolveApplicationPort(rawPort);
+  logger.log(`Enlazando servidor HTTP en 0.0.0.0:${port} (PORT crudo recibido: "${rawPort ?? 'undefined'}")...`);
   await app.listen(port, '0.0.0.0');
   logger.log(`🚀 Backend server running on port ${port} (bound to 0.0.0.0/api/v1)`);
 }
