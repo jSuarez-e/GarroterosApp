@@ -73,20 +73,32 @@ export interface RedisTelemetryPayload {
 @Injectable()
 export class RedisService implements OnModuleDestroy {
   /**
-   *
+   * Instancia de registro para auditoría de Redis.
    */
   private readonly logger = new Logger(RedisService.name);
-  /**
-   *
-   */
-  private readonly client: Redis;
 
   /**
-   *
+   * Cliente de conexión con el motor Redis (opcional si opera en modo degradado).
    */
-  private readonly TTL_SECONDS = 600; // 10 minutos
+  private readonly client: Redis | null = null;
+
   /**
-   *
+   * Almacén en memoria como respaldo resiliente si Redis no está aprovisionado o está desconectado.
+   */
+  private readonly inMemoryStore = new Map<string, RedisTelemetryPayload>();
+
+  /**
+   * Bandera que determina si la conexión con Redis se encuentra activa y saludable.
+   */
+  private isConnected = false;
+
+  /**
+   * Tiempo de vida en segundos de la ubicación del usuario (10 minutos).
+   */
+  private readonly TTL_SECONDS = 600;
+
+  /**
+   * Clave geoespacial para indexar las posiciones de los usuarios activos.
    */
   private readonly GEO_KEY = 'live_locations';
 
@@ -99,37 +111,55 @@ export class RedisService implements OnModuleDestroy {
     const host = this.configService.get<string>('REDIS_HOST', 'localhost');
     const port = this.configService.get<number>('REDIS_PORT', 6379);
     const password = this.configService.get<string>('REDIS_PASSWORD');
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
 
     /**
-     * Estrategia de reconexion exponencial con tope en 3000ms.
+     * Estrategia de reconexion con tope de reintentos para no saturar registros.
      * @param times Numero de intentos acumulados.
-     * @returns Tiempo de espera en milisegundos.
+     * @returns Tiempo de espera en milisegundos o null para detener reintentos.
      */
-    const redisRetryStrategy = (times: number) => Math.min(times * 100, 3000);
+    const redisRetryStrategy = (times: number): number | null => {
+      if (times > 8) {
+        this.logger.warn('[RedisService] Límite de reconexión alcanzado. Continuando en modo de memoria.');
+        return null;
+      }
+      return Math.min(times * 300, 3000);
+    };
 
     if (redisUrl) {
       this.client = new Redis(redisUrl, {
         lazyConnect: false,
         retryStrategy: redisRetryStrategy,
+        maxRetriesPerRequest: 2,
       });
       this.logger.log('Inicializando conexión con Redis vía REDIS_URL...');
-    } else {
+    } else if (!isProduction) {
       this.client = new Redis({
         host,
         port,
         ...(password ? { password } : {}),
         lazyConnect: false,
         retryStrategy: redisRetryStrategy,
+        maxRetriesPerRequest: 2,
       });
+      this.logger.log(`Inicializando conexión con Redis local en ${host}:${port}...`);
+    } else {
+      this.logger.warn(
+        '[RedisService] REDIS_URL no está configurada en producción. Operando en modo degradado resiliente (In-Memory).',
+      );
     }
 
-    this.client.on('connect', () => {
-      this.logger.log(`Conexión establecida con Redis ${redisUrl ? '(Cloud/Render)' : `en ${host}:${port}`}`);
-    });
+    if (this.client) {
+      this.client.on('connect', () => {
+        this.isConnected = true;
+        this.logger.log(`Conexión establecida con Redis ${redisUrl ? '(Cloud/Render)' : `en ${host}:${port}`}`);
+      });
 
-    this.client.on('error', (err) => {
-      this.logger.error(`Error en cliente Redis: ${err.message}`);
-    });
+      this.client.on('error', (err) => {
+        this.isConnected = false;
+        this.logger.error(`Error en cliente Redis: ${err.message}`);
+      });
+    }
   }
 
   /**
@@ -137,17 +167,21 @@ export class RedisService implements OnModuleDestroy {
    * @param payload Datos de telemetria del usuario.
    */
   async saveUserLocation(payload: RedisTelemetryPayload): Promise<void> {
-    try {
-      const key = `user:location:${payload.userId}`;
-      const serialized = JSON.stringify(payload);
+    this.inMemoryStore.set(payload.userId, payload);
 
-      // Hot State: Guardar clave individual con TTL de 10 minutos
-      await this.client.set(key, serialized, 'EX', this.TTL_SECONDS);
+    if (this.client && this.isConnected) {
+      try {
+        const key = `user:location:${payload.userId}`;
+        const serialized = JSON.stringify(payload);
 
-      // Indice geoespacial en vivo: GEOADD live_locations <lng> <lat> <member>
-      await this.client.geoadd(this.GEO_KEY, payload.longitude, payload.latitude, payload.userId);
-    } catch (error) {
-      this.logger.error(`Error al persistir telemetria en Redis: ${(error as Error).message}`);
+        // Hot State: Guardar clave individual con TTL de 10 minutos
+        await this.client.set(key, serialized, 'EX', this.TTL_SECONDS);
+
+        // Indice geoespacial en vivo: GEOADD live_locations <lng> <lat> <member>
+        await this.client.geoadd(this.GEO_KEY, payload.longitude, payload.latitude, payload.userId);
+      } catch (error) {
+        this.logger.error(`Error al persistir telemetria en Redis: ${(error as Error).message}`);
+      }
     }
   }
 
@@ -156,30 +190,34 @@ export class RedisService implements OnModuleDestroy {
    * @returns Lista de telemetrias activas.
    */
   async getAllLiveLocations(): Promise<RedisTelemetryPayload[]> {
-    try {
-      const keys = await this.client.keys('user:location:*');
-      if (keys.length === 0) {
-        return [];
-      }
+    if (this.client && this.isConnected) {
+      try {
+        const keys = await this.client.keys('user:location:*');
+        if (keys.length === 0) {
+          return Array.from(this.inMemoryStore.values());
+        }
 
-      const rawValues = await this.client.mget(keys);
-      const results: RedisTelemetryPayload[] = [];
+        const rawValues = await this.client.mget(keys);
+        const results: RedisTelemetryPayload[] = [];
 
-      for (const val of rawValues) {
-        if (val) {
-          try {
-            results.push(JSON.parse(val) as RedisTelemetryPayload);
-          } catch {
-            // Omitir valor invalido
+        for (const val of rawValues) {
+          if (val) {
+            try {
+              results.push(JSON.parse(val) as RedisTelemetryPayload);
+            } catch {
+              // Omitir valor invalido
+            }
           }
         }
-      }
 
-      return results;
-    } catch (error) {
-      this.logger.error(`Error al obtener snapshot de ubicaciones en Redis: ${(error as Error).message}`);
-      return [];
+        return results;
+      } catch (error) {
+        this.logger.error(`Error al obtener snapshot de ubicaciones en Redis: ${(error as Error).message}`);
+        return Array.from(this.inMemoryStore.values());
+      }
     }
+
+    return Array.from(this.inMemoryStore.values());
   }
 
   /**
@@ -187,11 +225,15 @@ export class RedisService implements OnModuleDestroy {
    * @param userId UUID del usuario.
    */
   async removeUserLocation(userId: string): Promise<void> {
-    try {
-      await this.client.del(`user:location:${userId}`);
-      await this.client.zrem(this.GEO_KEY, userId);
-    } catch (error) {
-      this.logger.error(`Error al remover usuario de Redis: ${(error as Error).message}`);
+    this.inMemoryStore.delete(userId);
+
+    if (this.client && this.isConnected) {
+      try {
+        await this.client.del(`user:location:${userId}`);
+        await this.client.zrem(this.GEO_KEY, userId);
+      } catch (error) {
+        this.logger.error(`Error al remover usuario de Redis: ${(error as Error).message}`);
+      }
     }
   }
 
@@ -199,6 +241,8 @@ export class RedisService implements OnModuleDestroy {
    * Cierra ordenadamente la conexion con Redis al detener la aplicacion.
    */
   onModuleDestroy(): void {
-    this.client.disconnect();
+    if (this.client) {
+      this.client.disconnect();
+    }
   }
 }
