@@ -11,6 +11,7 @@ import { Injectable } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 /**
  * Servicio encargado de la orquestación nativa mediante Capacitor, protegiendo las vistas de rotaciones y solapamientos.
@@ -52,6 +53,19 @@ export class NativeBridgeService {
       await StatusBar.setBackgroundColor({ color: backgroundColor });
     } catch {
       // Ignorado en navegadores o entornos donde StatusBar no esté disponible
+    }
+  }
+
+  /**
+   * Oculta el splash screen nativo de Capacitor de forma suave y controlada.
+   */
+  public async hideSplashScreen(): Promise<void> {
+    try {
+      if (Capacitor.isPluginAvailable('SplashScreen')) {
+        await SplashScreen.hide({ fadeOutDuration: 500 });
+      }
+    } catch {
+      // Ignorado en plataformas web o entornos no nativos
     }
   }
 }

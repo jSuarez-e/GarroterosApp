@@ -20,11 +20,14 @@ trigger: always_on
 
 - **Execution Authority:** You are empowered to execute the Specify, Design, Direct, Review (EDDR) lifecycle autonomously within your specific domain. Do not wait for external approval unless crossing domain boundaries.
 - **Principles:** Strict adherence to Clean Architecture, Clean Code, SOLID, DRY, and KISS. Modules/Services must follow the Single Responsibility Principle (SRP).
-- **TypeScript/Strictness:** The use of `any` is STRICTLY FORBIDDEN across the entire monorepo. Use strict null checks. Prefer `unknown` or generics if dynamic types are unavoidable.
+- **Descriptive Naming (Strict):** Single-letter names like `v`, `p`, `x`, `e` for function parameters, variables, and methods are STRICTLY FORBIDDEN. Always use explicit, self-describing domain terms (e.g., `value`, `param`, `profile`, `event`, `index`), with exceptions reserved only for standard 2D/cartesian coordinates (`x`, `y`).
+- **Strict Typing (Zero Any / Restricted Unknown):** The use of `any` is STRICTLY FORBIDDEN across the entire monorepo. `unknown` is permitted ONLY as an absolute last resort when dealing with unvalidated external inputs before type narrowing. An explicit `interface`, `type`, or strict generic MUST always be defined first.
+- **Frontend Architecture & Dumb Shared Components:** All reusable components in `frontend/src/app/shared/components/` MUST be pure presentational ("dumb") components (data in via `input()` / signals, events out via `output()`). They MUST NEVER inject domain services. Inline styles (`style=""`) in HTML are STRICTLY FORBIDDEN; use strict BEM methodology (`.block__element--modifier`) and design tokens.
 - **Commits:** Strictly adhere to Conventional Commits (`feat:`, `fix:`, `refactor:`, `chore:`).
 
 ## 4. ERROR HANDLING, QA & SECURITY
 
+- **Immediate QA Testing Mandate:** QA tests MUST NOT be deferred. Every new or modified service, controller, utility, or smart component MUST have companion unit/integration tests (`.spec.ts`) generated immediately in the same cycle before closing the task.
 - **Backend/API Errors:** Follow a strict, unified JSON format (e.g., RFC 7807 Problem Details). NEVER expose raw database stack traces to the client.
 - **Frontend Errors:** Centralize via client-side network interceptors and global Error Handlers. No raw `console.log` for critical errors.
 - **Security:** Code must be SAST-ready (SonarQube/ESLint strict compliance). Zero tolerance for SQLi, XSS, or known vulnerabilities. Always validate unexpected inputs.

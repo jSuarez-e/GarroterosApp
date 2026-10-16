@@ -1,7 +1,7 @@
 /**
  * @sdd
  * [Objetivo]: Estilos BEM para la vista de emergencia SOS y boton de panico con animacion de pulso (SDD-003-TELEMETRY-REALTIME).
- * [I/O - Reusabilidad]: Clases sos-wrapper, sos-panic-btn, sos-alert-banner con tema oscuro y alto contraste.
+ * [I/O - Reusabilidad]: Clases sos-wrapper, sos-action-box, sos-panic-btn, sos-alert-banner, contact-item con diseño BEM.
  * [Edge Cases - UI]: Animacion de pulso con transform y box-shadow sin causar repaints excesivos.
  */
 
@@ -17,9 +17,9 @@
 }
 
 .sos-wrapper {
-  padding: 0 16px 24px;
+  padding: 0 16px 32px;
   max-width: 500px;
-  margin: -16px auto 0;
+  margin: 16px auto 0;
   position: relative;
   z-index: 3;
   display: flex;
@@ -29,16 +29,27 @@
 
 .sos-action-box {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 20px 0;
+  padding: 20px 12px 12px;
+  gap: 16px;
+
+  &__hint {
+    font-size: 13px;
+    color: var(--app-text-muted, #64748b);
+    text-align: center;
+    margin: 0;
+    line-height: 1.4;
+    max-width: 320px;
+  }
 }
 
 .sos-panic-btn {
   width: 170px;
   height: 170px;
   border-radius: 50%;
-  background: radial-gradient(circle, #EF4444 0%, #DC2626 100%);
+  background: radial-gradient(circle, #ef4444 0%, #dc2626 100%);
   border: 4px solid rgb(254 202 202 / 60%);
   box-shadow: 0 0 30px rgb(239 68 68 / 40%), 0 0 60px rgb(239 68 68 / 20%);
   display: flex;
@@ -65,7 +76,7 @@
   &__sub {
     font-size: 11px;
     font-weight: 700;
-    color: #FEE2E2;
+    color: #fee2e2;
     letter-spacing: 1px;
     margin-top: 6px;
   }
@@ -85,7 +96,7 @@
 }
 
 .sos-alert-banner {
-  background: #FEF2F2;
+  background: #fef2f2;
   border: 1px solid rgb(239 68 68 / 40%);
   border-radius: var(--app-radius-lg, 20px);
   padding: 18px;
@@ -102,20 +113,20 @@
 
   &__icon {
     font-size: 22px;
-    color: #EF4444;
+    color: #ef4444;
   }
 
   &__title {
     font-size: 16px;
     font-weight: 700;
-    color: #991B1B;
+    color: #991b1b;
     letter-spacing: 0.5px;
   }
 
   &__text {
     font-size: 13px;
     line-height: 1.5;
-    color: #B91C1C;
+    color: #b91c1c;
     margin: 0 0 14px;
   }
 
@@ -128,20 +139,20 @@
 
 .sos-card {
   border-radius: var(--app-radius-lg, 20px);
-  background: var(--app-surface-card, #FFF);
-  border: 1px solid var(--app-border-light, #E2E8F0);
+  background: var(--app-surface-card, #fff);
+  border: 1px solid var(--app-border-light, #e2e8f0);
   box-shadow: var(--app-shadow-card, 0 4px 16px rgb(59 91 219 / 8%));
   margin: 0;
 
   &__title {
     font-size: 16px;
     font-weight: 600;
-    color: var(--app-text-title, #1E293B);
+    color: var(--app-text-title, #1e293b);
   }
 
   &__subtitle {
     font-size: 12px;
-    color: var(--app-text-muted, #64748B);
+    color: var(--app-text-muted, #64748b);
   }
 }
 
@@ -154,57 +165,69 @@
 .contact-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  padding: 12px;
+  padding: 12px 14px;
   border-radius: var(--app-radius-md, 14px);
-  background: var(--app-surface-canvas, #F0F4FE);
-  border: 1px solid var(--app-border-light, #E2E8F0);
+  background: var(--app-surface-canvas, #f0f4fe);
+  border: 1px solid var(--app-border-light, #e2e8f0);
   text-decoration: none;
-  transition: background 0.15s ease-in-out, transform 0.15s ease-in-out;
+  transition: background 0.15s ease-in-out, transform 0.15s ease-in-out, border-color 0.15s ease-in-out;
+
+  &:hover {
+    border-color: var(--app-primary, #3b5bdb);
+  }
 
   &:active {
-    background: var(--app-primary-light, #EDF2FF);
+    background: var(--app-primary-light, #edf2ff);
     transform: scale(0.99);
+  }
+
+  &__main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
   &__icon-box {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: var(--app-radius-md, 14px);
+    background: var(--app-primary-light, #edf2ff);
+    color: #fff;
     font-size: 20px;
-
-    &--police {
-      background: var(--app-primary-light, #EDF2FF);
-      color: var(--app-primary, #3B5BDB);
-    }
-
-    &--fire {
-      background: #FFF7ED;
-      color: #EA580C;
-    }
-
-    &--medical {
-      background: #ECFDF5;
-      color: #10B981;
-    }
   }
 
   &__info {
     display: flex;
     flex-direction: column;
+    gap: 2px;
   }
 
   &__name {
     font-size: 14px;
-    font-weight: 600;
-    color: var(--app-text-title, #1E293B);
+    font-weight: 700;
+    color: var(--app-text-title, #1e293b);
   }
 
   &__number {
     font-size: 12px;
-    color: var(--app-text-muted, #64748B);
+    font-weight: 600;
+    color: var(--app-primary, #3b5bdb);
+  }
+
+  &__action-tag {
+    padding: 5px 12px;
+    border-radius: var(--app-radius-pill, 9999px);
+    background: #fff;
+    border: 1px solid var(--app-border-light, #e2e8f0);
+    color: var(--app-primary, #3b5bdb);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
   }
 }

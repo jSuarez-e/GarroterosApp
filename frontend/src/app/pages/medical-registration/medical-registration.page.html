@@ -62,7 +62,86 @@
         </div>
       </app-info-card>
 
-      <!-- Tarjeta 2: Datos de Salud y Alimentación -->
+      <!-- Tarjeta 2: Fotografía del Excursionista (Opcional) -->
+      <app-info-card
+        title="Fotografía del Excursionista"
+        subtitle="Registro visual para rápida identificación de los guías en la ruta (opcional)"
+        iconName="camera-outline"
+        variant="elevated"
+      >
+        <div class="photo-card">
+          <div class="photo-card__avatar-area">
+            @if (photoUrl()) {
+              <div class="photo-card__preview-wrapper">
+                <img
+                  [src]="photoUrl()"
+                  alt="Fotografía del excursionista"
+                  class="photo-card__preview"
+                />
+                <button
+                  type="button"
+                  class="photo-card__btn-delete"
+                  (click)="onRemovePhoto()"
+                  title="Eliminar foto"
+                  aria-label="Eliminar foto"
+                >
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+              </div>
+            } @else {
+              <div class="photo-card__placeholder">
+                <ion-icon name="person-outline" class="photo-card__placeholder-icon"></ion-icon>
+              </div>
+            }
+          </div>
+
+          <div class="photo-card__details">
+            <h4 class="photo-card__headline">
+              @if (photoUrl()) {
+                Fotografía cargada correctamente
+              } @else {
+                Sin fotografía registrada
+              }
+            </h4>
+            <p class="photo-card__caption">
+              Una foto clara de tu rostro ayuda al equipo de guías a reconocerte fácilmente durante el trayecto.
+            </p>
+
+            <div class="photo-card__actions">
+              <label class="photo-card__upload-btn" for="medical-photo-input">
+                @if (isProcessingPhoto()) {
+                  <ion-spinner name="crescent" class="photo-card__upload-spinner"></ion-spinner>
+                  <span>Procesando imagen...</span>
+                } @else {
+                  <ion-icon [name]="photoUrl() ? 'image-outline' : 'camera-outline'"></ion-icon>
+                  <span>{{ photoUrl() ? 'Cambiar fotografía' : 'Subir o tomar foto' }}</span>
+                }
+              </label>
+              <input
+                id="medical-photo-input"
+                type="file"
+                accept="image/*"
+                class="photo-card__hidden-input"
+                [disabled]="isProcessingPhoto()"
+                (change)="onFileSelected($event)"
+              />
+
+              @if (photoUrl()) {
+                <button
+                  type="button"
+                  class="photo-card__text-action"
+                  (click)="onRemovePhoto()"
+                >
+                  <ion-icon name="trash-outline"></ion-icon>
+                  <span>Quitar foto</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </app-info-card>
+
+      <!-- Tarjeta 3: Datos de Salud y Alimentación -->
       <app-info-card
         title="Información Médica y Dieta"
         subtitle="Datos críticos de primeros auxilios y logística de alimentación"
@@ -160,7 +239,7 @@
         </form>
       </app-info-card>
 
-      <!-- Tarjeta 3: Contacto de Emergencia -->
+      <!-- Tarjeta 4: Contacto de Emergencia -->
       <app-info-card
         title="Contacto de Emergencia"
         subtitle="Persona a contactar de inmediato en caso de eventualidad en ruta"

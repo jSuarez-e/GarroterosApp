@@ -1,0 +1,9 @@
+{
+  "git.autoRepositoryDetection": false,
+  "git.scanRepositories": [
+    "."
+  ],
+  "git.ignoredRepositories": [
+    "frontend"
+  ]
+}

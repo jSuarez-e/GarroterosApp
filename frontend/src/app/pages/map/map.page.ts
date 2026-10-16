@@ -46,6 +46,7 @@ import {
   personCircleOutline,
   layersOutline,
   informationCircleOutline,
+  alertCircleOutline,
 } from 'ionicons/icons';
 import { Map as MapLibreMap, Marker, NavigationControl, setWorkerUrl, type GeoJSONSource } from 'maplibre-gl';
 import { AuthService } from '../../core/services/auth.service';
@@ -97,6 +98,7 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
   public weatherData = signal<WeatherReportDto | null>(null);
   public activeRouteName = signal<string>('');
   public poiCount = signal<number>(-1);
+  public readonly activeSosAlert = this.telemetryService.activeSosAlert;
 
   // Coordenadas oficiales de Piedecuesta, Santander
   private readonly DEFAULT_CENTER: [number, number] = [-73.0501, 6.9877];
@@ -114,13 +116,17 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
       personCircleOutline,
       layersOutline,
       informationCircleOutline,
+      alertCircleOutline,
     });
 
-    // Escucha reactiva a cambios de coordenadas del GPS propio
+    // Escucha reactiva a cambios de coordenadas del GPS propio y estado SOS
     effect(() => {
       const loc = this.telemetryService.currentLocation();
+      const activeSos = this.telemetryService.activeSosAlert();
+      const currentUserId = this.authService.currentUser()?.id;
+      const isSos = !!activeSos && (!activeSos.userId || activeSos.userId === currentUserId);
       if (loc && this.map && this.isMapLoaded()) {
-        this.updateUserLocationMarker(loc);
+        this.updateUserLocationMarker(loc, isSos);
       }
     });
   }
@@ -149,7 +155,10 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
     void this.telemetryService.startTracking();
     void this.telemetryService.getCurrentPosition().then((loc) => {
       if (loc && this.map && this.isMapLoaded()) {
-        this.updateUserLocationMarker(loc);
+        const activeSos = this.telemetryService.activeSosAlert();
+        const currentUserId = this.authService.currentUser()?.id;
+        const isSos = !!activeSos && (!activeSos.userId || activeSos.userId === currentUserId);
+        this.updateUserLocationMarker(loc, isSos);
       }
     });
   }
@@ -367,6 +376,8 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
       if (this.participantMarkers.has(p.userId)) {
         const marker = this.participantMarkers.get(p.userId)!;
         marker.setLngLat([p.longitude, p.latitude]);
+        const markerElement = marker.getElement();
+        markerElement.classList.toggle('participant-marker--sos', !!p.isSos);
       } else {
         const el = document.createElement('div');
         const isGuide = p.role === 'ADMIN';
@@ -409,27 +420,35 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
 
   /**
    * Renderiza y actualiza la posicion GPS del usuario activo con un marcador radar diferenciado de los guias.
+   * Si el usuario activó la alerta SOS, el marcador cambia automáticamente a un rojo intenso y pulsante.
    * @param loc Coordenadas del sensor GPS del dispositivo.
+   * @param isSos Indica si el usuario actual tiene una alerta de emergencia SOS activa.
    */
-  private updateUserLocationMarker(loc: GpsLocation): void {
+  private updateUserLocationMarker(loc: GpsLocation, isSos = false): void {
     if (!this.map) return;
 
     if (this.userLocationMarker) {
       this.userLocationMarker.setLngLat([loc.longitude, loc.latitude]);
+      const markerElement = this.userLocationMarker.getElement();
+      markerElement.classList.toggle('user-gps-marker--sos', isSos);
+      const badge = markerElement.querySelector<HTMLSpanElement>('.user-gps-marker__badge');
+      if (badge) {
+        badge.textContent = isSos ? 'SOS ACTIVO' : 'Tú';
+      }
       return;
     }
 
-    const el = document.createElement('div');
-    el.className = 'user-gps-marker';
-    el.innerHTML = `
+    const markerElement = document.createElement('div');
+    markerElement.className = isSos ? 'user-gps-marker user-gps-marker--sos' : 'user-gps-marker';
+    markerElement.innerHTML = `
       <div class="user-gps-marker__radar-ring" aria-hidden="true"></div>
       <div class="user-gps-marker__core-dot">
         <div class="user-gps-marker__inner-white"></div>
       </div>
-      <span class="user-gps-marker__badge">Tú</span>
+      <span class="user-gps-marker__badge">${isSos ? 'SOS ACTIVO' : 'Tú'}</span>
     `;
 
-    this.userLocationMarker = new Marker({ element: el, anchor: 'center' })
+    this.userLocationMarker = new Marker({ element: markerElement, anchor: 'center' })
       .setLngLat([loc.longitude, loc.latitude])
       .addTo(this.map);
   }
@@ -489,6 +508,10 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
   }
 
   public navigateToRouteInfo(): void {
-    this.router.navigate(['/routes']);
+    void this.router.navigate(['/routes']);
+  }
+
+  public navigateToSos(): void {
+    void this.router.navigate(['/sos']);
   }
 }

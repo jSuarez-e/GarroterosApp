@@ -5,7 +5,7 @@
  * [Edge Cases]: Oculta opciones de administracion si el rol no es ADMIN, gestion de cierre de sesion seguro.
  */
 
-import { Component, inject } from '@angular/core';
+import { Component, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -47,6 +47,8 @@ import {
 import { AuthService } from './core/services/auth.service';
 import { MedicalService } from './core/services/medical.service';
 import { NativeBridgeService } from './core/services/native-bridge.service';
+import { SocketService } from './core/services/socket.service';
+import { LocalNotificationService } from './core/services/local-notification.service';
 
 export interface MenuItem {
   title: string;
@@ -83,6 +85,8 @@ export class AppComponent {
   private readonly authService = inject(AuthService);
   private readonly medicalService = inject(MedicalService);
   private readonly nativeBridge = inject(NativeBridgeService);
+  private readonly socketService = inject(SocketService);
+  private readonly localNotificationService = inject(LocalNotificationService);
 
   public currentUser = this.authService.currentUser;
   public isAdmin = this.authService.isAdmin;
@@ -140,6 +144,17 @@ export class AppComponent {
     if (this.authService.token()) {
       this.medicalService.checkAttendance().pipe(takeUntilDestroyed()).subscribe();
     }
+
+    // Gestionar ciclo de vida de WebSockets y notificaciones push locales según autenticación
+    effect(() => {
+      const activeToken = this.authService.token();
+      if (activeToken) {
+        this.socketService.connect(activeToken);
+        void this.localNotificationService.init();
+      } else {
+        this.socketService.disconnect();
+      }
+    });
   }
 
   /**

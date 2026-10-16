@@ -24,6 +24,17 @@ export interface SosAlertPayload {
     batteryLevel?: number | null;
     message: string;
     timestamp: number;
+    assignedGuideEmails?: string[];
+    assignedGuideUserIds?: string[];
+}
+export interface AttendanceConfirmedBroadcastPayload {
+    routeId: string;
+    routeName: string;
+    userId: string;
+    userFullName: string;
+    timestamp: number;
+    assignedGuideEmails: string[];
+    assignedGuideUserIds?: string[];
 }
 export interface MeetingPointInfo {
     name: string;
@@ -50,5 +61,6 @@ export declare enum TelemetrySocketEvents {
     LIVE_LOCATIONS_SNAPSHOT = "live_locations_snapshot",
     USER_LOCATION_BROADCAST = "user_location_broadcast",
     SOS_TRIGGER = "sos_trigger",
-    SOS_BROADCAST = "sos_broadcast"
+    SOS_BROADCAST = "sos_broadcast",
+    ATTENDANCE_CONFIRMED_BROADCAST = "attendance_confirmed_broadcast"
 }

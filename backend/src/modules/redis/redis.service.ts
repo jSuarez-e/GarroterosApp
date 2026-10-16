@@ -91,26 +91,40 @@ export class RedisService implements OnModuleDestroy {
   private readonly GEO_KEY = 'live_locations';
 
   /**
-   *
-   * @param configService
+   * Inicializa la conexion con la instancia de Redis local o en la nube (Render / Upstash).
+   * @param configService Servicio de configuracion de entorno.
    */
   constructor(private readonly configService: ConfigService) {
+    const redisUrl = this.configService.get<string>('REDIS_URL');
     const host = this.configService.get<string>('REDIS_HOST', 'localhost');
     const port = this.configService.get<number>('REDIS_PORT', 6379);
+    const password = this.configService.get<string>('REDIS_PASSWORD');
 
-    this.client = new Redis({
-      host,
-      port,
-      lazyConnect: false,
-      /**
-       *
-       * @param times
-       */
-      retryStrategy: (times) => Math.min(times * 100, 3000),
-    });
+    /**
+     * Estrategia de reconexion exponencial con tope en 3000ms.
+     * @param times Numero de intentos acumulados.
+     * @returns Tiempo de espera en milisegundos.
+     */
+    const redisRetryStrategy = (times: number) => Math.min(times * 100, 3000);
+
+    if (redisUrl) {
+      this.client = new Redis(redisUrl, {
+        lazyConnect: false,
+        retryStrategy: redisRetryStrategy,
+      });
+      this.logger.log('Inicializando conexión con Redis vía REDIS_URL...');
+    } else {
+      this.client = new Redis({
+        host,
+        port,
+        ...(password ? { password } : {}),
+        lazyConnect: false,
+        retryStrategy: redisRetryStrategy,
+      });
+    }
 
     this.client.on('connect', () => {
-      this.logger.log(`Conexión establecida con Redis en ${host}:${port}`);
+      this.logger.log(`Conexión establecida con Redis ${redisUrl ? '(Cloud/Render)' : `en ${host}:${port}`}`);
     });
 
     this.client.on('error', (err) => {

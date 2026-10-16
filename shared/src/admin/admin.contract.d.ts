@@ -124,3 +124,11 @@ export interface UpdateSosAlertStatusDto {
     status: SosAlertStatus;
     resolutionNote: string;
 }
+export interface CreateSosTriggerDto {
+    latitude: number;
+    longitude: number;
+    altitude?: number | null;
+    batteryLevel?: number | null;
+    message?: string;
+    timestamp?: number;
+}

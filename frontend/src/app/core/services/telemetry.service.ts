@@ -129,6 +129,9 @@ export class TelemetryService {
     // Difusion prioritaria de alerta SOS
     this.socketService.on<SosAlertPayload>('sos_broadcast', async (alert) => {
       this.activeSosAlert.set(alert);
+      const updatedLocations = new Map(this.liveLocations());
+      updatedLocations.set(alert.userId, alert);
+      this.liveLocations.set(updatedLocations);
       AppLogger.warn(`[SOS RECIBIDO] Emergencia de ${alert.fullName}: ${alert.message}`);
 
       try {

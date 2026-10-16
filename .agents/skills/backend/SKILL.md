@@ -18,8 +18,10 @@ description: Invoke this skill to design business logic, implement NestJS servic
 
 - **Modularity:** Build highly cohesive, loosely coupled NestJS modules.
 - **Strict Layering:** Controllers (REST) MUST ONLY handle input extraction and request/response context. ALL business logic MUST be injected and executed via dedicated Services (SRP).
-- **Data Validation:** Use strictly typed Data Transfer Objects (DTOs), `class-validator`, and NestJS Validation Pipes to sanitize ALL incoming inputs/mutations _before_ they reach the service layer.
+- **Descriptive Naming (Strict):** Single-letter identifiers (`v`, `p`, `x`, `e`) in methods, functions, variables, and parameters are STRICTLY FORBIDDEN. Always use explicit domain identifiers (`value`, `param`, `profile`, `dto`, `entity`, `index`, etc.).
+- **Strict Typing (Zero Any / Restricted Unknown):** Use strictly typed Data Transfer Objects (DTOs), `class-validator`, and explicit interfaces. The use of `any` is strictly prohibited. `unknown` is permitted only as an initial untrusted boundary before DTO/pipe validation; an explicit `interface` or DTO class MUST always be typed.
 - **Circular Dependency Prevention:** You MUST actively design modules to prevent circular dependencies. If two modules must depend on each other, you MUST use NestJS `forwardRef()` or abstract the shared logic into a separate core/util module.
+- **Immediate QA Companion:** Whenever implementing or modifying a NestJS Service, Controller, Guard, or Interceptor, immediately create or update its companion `.spec.ts` unit/integration test. Do not defer testing.
 
 ## 3. REST API, DATABASE & ORM (TYPEORM & MYSQL)
 

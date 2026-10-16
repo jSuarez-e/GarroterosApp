@@ -105,6 +105,48 @@ export interface SosAlertPayload {
    *
    */
   timestamp: number;
+  /**
+   * Correos de los guías asignados a la ruta activa autorizados para recibir la alerta.
+   */
+  assignedGuideEmails?: string[];
+  /**
+   * Identificadores de usuario de los guías asignados a la ruta activa.
+   */
+  assignedGuideUserIds?: string[];
+}
+
+/**
+ * Notificación en tiempo real cuando un excursionista confirma su asistencia a la ruta activa.
+ */
+export interface AttendanceConfirmedBroadcastPayload {
+  /**
+   * Identificador UUID de la ruta activa.
+   */
+  routeId: string;
+  /**
+   * Nombre de la ruta turística activa.
+   */
+  routeName: string;
+  /**
+   * Identificador del usuario que confirmó asistencia.
+   */
+  userId: string;
+  /**
+   * Nombre completo del usuario excursionista.
+   */
+  userFullName: string;
+  /**
+   * Marca de tiempo epoch en milisegundos.
+   */
+  timestamp: number;
+  /**
+   * Correos de los guías asignados a la ruta activa que deben recibir la notificación.
+   */
+  assignedGuideEmails: string[];
+  /**
+   * Identificadores de usuario de los guías asignados a la ruta activa.
+   */
+  assignedGuideUserIds?: string[];
 }
 
 /**
@@ -186,4 +228,5 @@ export enum TelemetrySocketEvents {
   USER_LOCATION_BROADCAST = 'user_location_broadcast',
   SOS_TRIGGER = 'sos_trigger',
   SOS_BROADCAST = 'sos_broadcast',
+  ATTENDANCE_CONFIRMED_BROADCAST = 'attendance_confirmed_broadcast',
 }

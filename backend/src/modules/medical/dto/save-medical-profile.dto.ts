@@ -77,4 +77,11 @@ export class SaveMedicalProfileDto {
   @IsOptional()
   @IsString()
   notes?: string | null;
+
+  /**
+   * Fotografia o avatar del usuario para registro visual (opcional).
+   */
+  @IsOptional()
+  @IsString()
+  photoUrl?: string | null;
 }

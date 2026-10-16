@@ -32,8 +32,8 @@ import { MedicalProfile } from './entities/medical-profile.entity.js';
 @UseGuards(JwtAuthGuard)
 export class MedicalController {
   /**
-   *
-   * @param medicalService
+   * Controlador para operaciones de fichas médicas.
+   * @param medicalService Servicio de fichas médicas inyectado.
    */
   constructor(private readonly medicalService: MedicalService) {}
 
@@ -58,7 +58,7 @@ export class MedicalController {
     @CurrentUser() user: User,
     @Body() dto: SaveMedicalProfileDto,
   ): Promise<MedicalProfile> {
-    return this.medicalService.saveProfile(user.id, dto);
+    return this.medicalService.saveProfile(user.id, dto, user.fullName);
   }
 
   /**

@@ -1,0 +1,287 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos visuales con estricto BEM y micro-animaciones para SplashScreen de GarroterosApp.
+ * [I/O - Reusabilidad]: Exporta clases de layout .splash-content, .splash-wrapper, .splash-hero y .splash-progress.
+ * [Edge Cases - UI]: Breakpoint responsive para tablets y moviles ultra-anchos, animaciones aceleradas por hardware GPU.
+ */
+
+.splash-content {
+  --background: #0f172a;
+
+  position: relative;
+  overflow: hidden;
+}
+
+.splash-background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+
+  &__circle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.35;
+
+    &--top {
+      top: -100px;
+      left: -50px;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, #2b4cbe 0%, transparent 70%);
+      animation: float-slow 8s ease-in-out infinite alternate;
+    }
+
+    &--bottom {
+      bottom: -120px;
+      right: -60px;
+      width: 360px;
+      height: 360px;
+      background: radial-gradient(circle, #d97706 0%, transparent 70%);
+      animation: float-slow 10s ease-in-out infinite alternate-reverse;
+    }
+  }
+}
+
+.splash-wrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 100%;
+  padding: clamp(2rem, 5vh, 4rem) 1.5rem 2rem;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.splash-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: auto;
+  margin-bottom: auto;
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.9rem;
+    margin-bottom: 1.5rem;
+    background: rgb(255 255 255 / 8%);
+    border: 1px solid rgb(255 255 255 / 15%);
+    border-radius: 9999px;
+    backdrop-filter: blur(12px);
+    color: #e2e8f0;
+    font-size: 0.825rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    animation: fade-in-down 0.8s ease-out;
+  }
+
+  &__badge-icon {
+    font-size: 1rem;
+    color: #f59e0b;
+  }
+
+  &__logo-box {
+    position: relative;
+    width: clamp(180px, 45vw, 240px);
+    height: clamp(180px, 45vw, 240px);
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-radius: 36px;
+    box-shadow: 0 20px 45px rgb(0 0 0 / 40%), 0 0 50px rgb(43 76 190 / 25%);
+    padding: 1.25rem;
+    animation: zoom-in-scale 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &__glow {
+    position: absolute;
+    inset: -12px;
+    border-radius: 44px;
+    background: linear-gradient(135deg, rgb(43 76 190 / 40%), rgb(217 119 6 / 30%));
+    z-index: -1;
+    filter: blur(16px);
+    animation: pulse-glow 3s ease-in-out infinite alternate;
+  }
+
+  &__logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 20px;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  &__text-block {
+    animation: fade-in-up 0.9s ease-out;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: clamp(2rem, 6vw, 2.75rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 30%, #cbd5e1 100%);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &__subtitle {
+    margin: 0.5rem 0 0;
+    font-size: clamp(0.95rem, 2.5vw, 1.125rem);
+    font-weight: 400;
+    color: #94a3b8;
+    letter-spacing: 0.02em;
+  }
+}
+
+.splash-footer {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: auto;
+  animation: fade-in-up 1s ease-out;
+}
+
+.splash-progress {
+  width: 100%;
+
+  &__label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  &__status {
+    color: #cbd5e1;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80%;
+  }
+
+  &__percent {
+    color: #f59e0b;
+    font-weight: 700;
+  }
+
+  &__bar {
+    --progress-background: rgb(255 255 255 / 10%);
+    --progress-color: #2b4cbe;
+
+    height: 6px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgb(255 255 255 / 10%);
+
+    &::part(progress) {
+      background: linear-gradient(90deg, #2b4cbe, #3b82f6, #f59e0b);
+      border-radius: 6px;
+      transition: width 0.1s linear;
+    }
+  }
+}
+
+.splash-footer__actions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.splash-footer__skip-btn {
+  --color: #94a3b8;
+  --color-hover: #fff;
+  --color-activated: #cbd5e1;
+
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  text-transform: none;
+
+  ion-icon {
+    font-size: 1.1rem;
+    margin-left: 0.25rem;
+  }
+}
+
+.splash-footer__tagline {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #64748b;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@keyframes zoom-in-scale {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0% {
+    opacity: 0.4;
+    transform: scale(0.98);
+  }
+
+  100% {
+    opacity: 0.8;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes fade-in-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float-slow {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    transform: translateY(20px) scale(1.08);
+  }
+}

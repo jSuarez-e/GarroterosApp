@@ -43,22 +43,35 @@
         </ion-button>
       </div>
     } @else {
-      <div class="sos-action-box">
-        <button
-          type="button"
-          class="sos-panic-btn"
-          [disabled]="isSending()"
-          (click)="sendSosAlert()"
-        >
-          @if (isSending()) {
-            <ion-spinner name="crescent" class="sos-panic-btn__spinner"></ion-spinner>
-            <span class="sos-panic-btn__text">EMITIENDO...</span>
-          } @else {
-            <span class="sos-panic-btn__label">SOS</span>
-            <span class="sos-panic-btn__sub">PEDIR AUXILIO</span>
-          }
-        </button>
-      </div>
+      <!-- Card del Botón de Pánico SOS -->
+      <app-info-card
+        title="Botón de Pánico y Auxilio"
+        subtitle="Presiona para transmitir tu geolocalización inmediata a los guías"
+        badge="Prioritario"
+        badgeColor="danger"
+        icon="alert-circle-outline"
+      >
+        <div class="sos-action-box">
+          <button
+            type="button"
+            class="sos-panic-btn"
+            [disabled]="isSending()"
+            (click)="sendSosAlert()"
+            aria-label="Botón de auxilio SOS para emergencias en ruta"
+          >
+            @if (isSending()) {
+              <ion-spinner name="crescent" class="sos-panic-btn__spinner"></ion-spinner>
+              <span class="sos-panic-btn__text">EMITIENDO...</span>
+            } @else {
+              <span class="sos-panic-btn__label">SOS</span>
+              <span class="sos-panic-btn__sub">PEDIR AUXILIO</span>
+            }
+          </button>
+          <p class="sos-action-box__hint">
+            Al activarse, los guías y administradores recibirán tu posición satelital y ficha médica de inmediato.
+          </p>
+        </div>
+      </app-info-card>
     }
 
     <!-- Tarjeta de Líneas Directas con InfoCard Compartido -->
@@ -71,33 +84,42 @@
     >
       <div class="emergency-contacts">
         <a href="tel:123" class="contact-item">
-          <div class="contact-item__icon-box contact-item__icon-box--police">
-            <ion-icon name="call-outline"></ion-icon>
+          <div class="contact-item__main">
+            <div class="contact-item__icon-box">
+              <ion-icon name="call-outline"></ion-icon>
+            </div>
+            <div class="contact-item__info">
+              <strong class="contact-item__name">Policía Nacional Piedecuesta</strong>
+              <span class="contact-item__number">Línea 123</span>
+            </div>
           </div>
-          <div class="contact-item__info">
-            <strong class="contact-item__name">Policía Nacional Piedecuesta</strong>
-            <span class="contact-item__number">Línea 123</span>
-          </div>
+          <span class="contact-item__action-tag">Llamar</span>
         </a>
 
         <a href="tel:119" class="contact-item">
-          <div class="contact-item__icon-box contact-item__icon-box--fire">
-            <ion-icon name="call-outline"></ion-icon>
+          <div class="contact-item__main">
+            <div class="contact-item__icon-box">
+              <ion-icon name="call-outline"></ion-icon>
+            </div>
+            <div class="contact-item__info">
+              <strong class="contact-item__name">Bomberos Piedecuesta</strong>
+              <span class="contact-item__number">Línea 119</span>
+            </div>
           </div>
-          <div class="contact-item__info">
-            <strong class="contact-item__name">Bomberos Piedecuesta</strong>
-            <span class="contact-item__number">Línea 119</span>
-          </div>
+          <span class="contact-item__action-tag">Llamar</span>
         </a>
 
         <a href="tel:132" class="contact-item">
-          <div class="contact-item__icon-box contact-item__icon-box--medical">
-            <ion-icon name="call-outline"></ion-icon>
+          <div class="contact-item__main">
+            <div class="contact-item__icon-box">
+              <ion-icon name="call-outline"></ion-icon>
+            </div>
+            <div class="contact-item__info">
+              <strong class="contact-item__name">Cruz Roja / Defensa Civil</strong>
+              <span class="contact-item__number">Línea 132</span>
+            </div>
           </div>
-          <div class="contact-item__info">
-            <strong class="contact-item__name">Cruz Roja / Defensa Civil</strong>
-            <span class="contact-item__number">Línea 132</span>
-          </div>
+          <span class="contact-item__action-tag">Llamar</span>
         </a>
       </div>
     </app-info-card>

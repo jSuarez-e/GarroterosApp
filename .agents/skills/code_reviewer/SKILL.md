@@ -41,10 +41,13 @@ Never trust the developer agent's syntax blindly.
 
 You have authorization to output corrected code to fix critical issues using the surgical replacement protocol (`// ... existing code`):
 
-- **Typing (`no-explicit-any`):** Eradicate all `any` types. Infer the correct interfaces, or use `unknown` and generics.
+- **Naming Hygiene (Descriptive Names):** Flag and refactor any single-letter function names, variables, or parameter identifiers (e.g., `v`, `p`, `x`, `e`). Require descriptive domain names (`value`, `param`, `profile`, `event`, etc.).
+- **Strict Typing (`no-explicit-any`):** Eradicate all `any` types. Reject unconstrained `unknown` types; enforce explicit `interface` or `type` definitions across all contracts, services, and components.
+- **Dumb Shared Components Check:** If auditing `frontend/src/app/shared/components/`, verify that components are purely presentational ("dumb"). They MUST NOT inject domain services (e.g. `MedicalService`, `AuthService`, `RoutesService`). Flag any service injections and refactor to use `input()` and `output()`.
+- **CSS Architecture & Zero Inline Styles:** Validate that no HTML elements use `style=""`. Ensure all stylesheet rules strictly follow BEM methodology (`.block__element--modifier`) and design tokens.
+- **Immediate QA Test Presence:** Verify that companion `.spec.ts` test files exist and cover any new or modified service, controller, or logic before giving final approval.
 - **Cognitive Complexity:** If a newly generated method exceeds 15 points, extract the inner logic into smaller, well-named `private` methods.
 - **Documentation (`require-jsdoc`):** Ensure all new classes and methods contain valid `/** ... */` JSDoc blocks with accurate `@param` and `@returns`.
-- **CSS Architecture:** Validate that all new styles follow the strict project pattern (e.g., BEM or scoped Angular encapsulation).
 
 ## 3. OUTPUT PROTOCOL
 

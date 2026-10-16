@@ -7,6 +7,7 @@
 
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module.js';
 
 /**
@@ -15,6 +16,10 @@ import { AppModule } from './app.module.js';
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
+
+  // Aumento de límite para cargas de fotos y telemetría
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ extended: true, limit: '10mb' }));
 
   // Prefijo global de API
   app.setGlobalPrefix('api/v1');
@@ -36,7 +41,7 @@ async function bootstrap() {
   });
 
   const port = process.env.PORT || 3000;
-  await app.listen(port);
-  logger.log(`Backend server running on http://localhost:${port}/api/v1`);
+  await app.listen(port, '0.0.0.0');
+  logger.log(`Backend server running on port ${port} (bound to 0.0.0.0/api/v1)`);
 }
 await bootstrap();

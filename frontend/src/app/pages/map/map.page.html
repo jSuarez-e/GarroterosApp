@@ -31,6 +31,17 @@
       </div>
     }
 
+    <!-- Banner flotante de SOS activo cuando la emergencia está disparada -->
+    @if (activeSosAlert()) {
+      <div class="map-sos-badge" (click)="navigateToSos()">
+        <ion-icon name="alert-circle-outline" class="map-sos-badge__icon"></ion-icon>
+        <div class="map-sos-badge__info">
+          <strong class="map-sos-badge__title">¡ESTADO SOS ACTIVO!</strong>
+          <span class="map-sos-badge__desc">Marcador de auxilio transmitiendo en vivo. Toca para ver canal SOS.</span>
+        </div>
+      </div>
+    }
+
     <!-- Badge Flotante de Clima en Tiempo Real -->
     @if (weatherData(); as weather) {
       <div class="weather-floating-badge" (click)="navigateToWeather()">

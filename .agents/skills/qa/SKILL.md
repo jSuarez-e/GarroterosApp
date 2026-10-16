@@ -20,7 +20,10 @@ description: Invoke this skill automatically to create unit tests (Jest), integr
 
 ## 3. UNIT TESTING & MOCKING MANDATE (CRITICAL SKILL)
 
+- **Immediate Test Generation Mandate:** You MUST generate or update unit and integration test suites (`.spec.ts`) IMMEDIATELY when any service, controller, utility, or smart component is created or modified. Testing cannot be deferred to future sprints or later turns.
 - **The AAA Pattern:** EVERY test you write MUST strictly follow the Arrange-Act-Assert pattern. Visually separate these sections with comments if necessary.
+- **Descriptive Naming in Tests:** Test names, mock variables, and callback parameters MUST use descriptive identifiers. Never use `v`, `p`, or single-letter identifiers in test fixtures or assertions.
+- **Strict Typing in Mocks:** Do not use `any` in test suites or mock setups. Model mocks using explicit `Partial<Interface>`, jest/vitest spies with typed parameters, and typed fixtures.
 - **Absolute Isolation:** Unit tests MUST NOT hit a real database or real network.
   - **Backend:** You MUST mock TypeORM repositories and external APIs. Do not assume Prisma.
   - **Frontend:** You MUST mock HTTP requests (using `provideHttpClientTesting` or custom HTTP mocks) and Ionic native plugins. Test Signal state changes synchronously.

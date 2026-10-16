@@ -49,7 +49,7 @@
 
   &__badge {
     --background: var(--app-primary-light, #EDF2FF);
-    --color: var(--app-primary, #3B5BDB);
+    --color: #fff;
 
     font-size: 0.75rem;
     font-weight: 700;
@@ -158,7 +158,7 @@
   }
 
   &__icon {
-    color: var(--app-primary, #3B5BDB);
+    color: #fff;
     font-size: 1.4rem;
   }
 

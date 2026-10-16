@@ -45,16 +45,35 @@ import { AdminModule } from './modules/admin/admin.module.js';
        * @param configService Servicio de configuracion de entorno.
        * @returns Opciones de conexion para TypeORM con PostgreSQL.
        */
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('DB_HOST', 'localhost'),
-        port: configService.get<number>('DB_PORT', 5432),
-        username: configService.get<string>('DB_USER', 'tour_admin'),
-        password: configService.get<string>('DB_PASSWORD') || '',
-        database: configService.get<string>('DB_NAME', 'guianza_turistica_db'),
-        entities: [User, Waypoint, TelemetryLog, MedicalProfile, RouteLogEntry, EventNote, Guide, Route, SosAlert],
-        synchronize: configService.get<string>('NODE_ENV') !== 'production',
-      }),
+      useFactory: (configService: ConfigService) => {
+        const databaseUrl = configService.get<string>('DATABASE_URL');
+        const isProduction = configService.get<string>('NODE_ENV') === 'production';
+        const useSsl = configService.get<string>('DATABASE_SSL') === 'true' || Boolean(databaseUrl);
+
+        const commonEntities = [User, Waypoint, TelemetryLog, MedicalProfile, RouteLogEntry, EventNote, Guide, Route, SosAlert];
+
+        if (databaseUrl) {
+          return {
+            type: 'postgres' as const,
+            url: databaseUrl,
+            ssl: useSsl ? { rejectUnauthorized: false } : false,
+            entities: commonEntities,
+            synchronize: !isProduction,
+          };
+        }
+
+        return {
+          type: 'postgres' as const,
+          host: configService.get<string>('DB_HOST', 'localhost'),
+          port: configService.get<number>('DB_PORT', 5432),
+          username: configService.get<string>('DB_USER', 'tour_admin'),
+          password: configService.get<string>('DB_PASSWORD') || '',
+          database: configService.get<string>('DB_NAME', 'guianza_turistica_db'),
+          ssl: useSsl ? { rejectUnauthorized: false } : false,
+          entities: commonEntities,
+          synchronize: !isProduction,
+        };
+      },
     }),
     UsersModule,
     AuthModule,

@@ -33,10 +33,11 @@ For every requirement, execute this sequence autonomously with your tools (no wa
 
 - Output a short checklist of implementation steps.
 - Read the applicable `SKILL.md` and implement within the domain boundaries. Respect Domain Isolation: if a task needs another domain, run that domain's skill next instead of mixing code.
+- **Immediate Companion Tests:** For any newly implemented or modified service, controller, utility, or smart component, create/update its companion unit test (`.spec.ts`) immediately in the same cycle.
 
 ### Phase 4: REVIEW
 
-- **Step A (QA/Logic):** review against Resilience, Security, Maintainability (`qa` / `code_reviewer` skills).
+- **Step A (QA/Logic & Code Review):** review against Resilience, Security, Maintainability (`qa` / `code_reviewer` skills). Verify self-descriptive naming (no `v`, `p`), dumb shared components purity, strict BEM/no-inline-styles, and strict types (`interface`/`type`, zero `any`, `unknown` as rare fallback).
 - **Step B (Syntax Gate):** run `npm run audit:all`, `npm run audit:rules` and `npm run test`. On failure, fix (`debugger` skill) and re-run until green.
 - **Step C (Sync):** run `npm run brain:sync`.
 

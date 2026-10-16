@@ -31,6 +31,7 @@
     justify-content: center;
     width: 40px;
     height: 40px;
+    flex-shrink: 0;
     border-radius: var(--app-radius-md);
     background: var(--app-primary-tint);
     color: var(--app-primary);
@@ -38,6 +39,9 @@
 
   &__icon {
     font-size: 22px;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
   }
 
   &__text-box {

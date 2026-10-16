@@ -32,6 +32,7 @@ export interface IMedicalProfile {
   emergencyContactPhone: string | null;
   bloodType?: string | null;
   notes?: string | null;
+  photoUrl?: string | null;
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
@@ -46,6 +47,7 @@ export interface SaveMedicalProfileDto {
   emergencyContactPhone?: string | null;
   bloodType?: string | null;
   notes?: string | null;
+  photoUrl?: string | null;
 }
 
 @Injectable({

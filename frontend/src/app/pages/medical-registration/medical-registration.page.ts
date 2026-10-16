@@ -44,6 +44,9 @@ import {
   restaurantOutline,
   saveOutline,
   shieldCheckmarkOutline,
+  cameraOutline,
+  trashOutline,
+  imageOutline,
 } from 'ionicons/icons';
 import {
   MedicalService,
@@ -91,11 +94,13 @@ export class MedicalRegistrationPage implements OnInit {
   public readonly currentUser = this.authService.currentUser;
   public readonly isLoading = signal<boolean>(true);
   public readonly isSaving = signal<boolean>(false);
+  public readonly isProcessingPhoto = signal<boolean>(false);
   public readonly showToast = signal<boolean>(false);
   public readonly toastMessage = signal<string>('');
 
   // Form Model con Signals
   public readonly attendanceConfirmed = signal<boolean>(true);
+  public readonly photoUrl = signal<string | null>(null);
   public readonly medicalConditions = signal<string>('');
   public readonly allergies = signal<string>('');
   public readonly medications = signal<string>('');
@@ -125,6 +130,9 @@ export class MedicalRegistrationPage implements OnInit {
       restaurantOutline,
       saveOutline,
       shieldCheckmarkOutline,
+      cameraOutline,
+      trashOutline,
+      imageOutline,
     });
   }
 
@@ -152,6 +160,7 @@ export class MedicalRegistrationPage implements OnInit {
             this.emergencyContactPhone.set(profile.emergencyContactPhone || '');
             this.bloodType.set(profile.bloodType || 'O+');
             this.notes.set(profile.notes || '');
+            this.photoUrl.set(profile.photoUrl || null);
           }
           this.isLoading.set(false);
         },
@@ -159,6 +168,75 @@ export class MedicalRegistrationPage implements OnInit {
           this.isLoading.set(false);
         },
       });
+  }
+
+  /**
+   * Procesa la selección de una fotografía del usuario, comprimiéndola en el cliente
+   * vía HTML5 Canvas para optimizar el tamaño de transferencia y almacenamiento.
+   * @param event Evento change del input file.
+   */
+  public onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
+
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+      this.toastMessage.set('Por favor selecciona un archivo de imagen válido.');
+      this.showToast.set(true);
+      return;
+    }
+
+    this.isProcessingPhoto.set(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const maxDimension = 800;
+        let { width, height } = img;
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          this.photoUrl.set(compressedDataUrl);
+        }
+        this.isProcessingPhoto.set(false);
+      };
+      img.onerror = () => {
+        this.isProcessingPhoto.set(false);
+        this.toastMessage.set('No se pudo procesar la imagen seleccionada.');
+        this.showToast.set(true);
+      };
+      img.src = reader.result as string;
+    };
+    reader.onerror = () => {
+      this.isProcessingPhoto.set(false);
+      this.toastMessage.set('Error al leer el archivo seleccionado.');
+      this.showToast.set(true);
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  }
+
+  /**
+   * Remueve la fotografía actual de la ficha médica.
+   */
+  public onRemovePhoto(): void {
+    this.photoUrl.set(null);
   }
 
   /**
@@ -200,6 +278,7 @@ export class MedicalRegistrationPage implements OnInit {
       emergencyContactPhone: this.emergencyContactPhone() || null,
       bloodType: this.bloodType() || null,
       notes: this.notes() || null,
+      photoUrl: this.photoUrl() || null,
     };
 
     this.medicalService

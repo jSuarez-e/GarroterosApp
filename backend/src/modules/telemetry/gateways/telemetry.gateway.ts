@@ -21,6 +21,28 @@ import { ConfigService } from '@nestjs/config';
 import { TelemetryService } from '../telemetry.service.js';
 import { RedisTelemetryPayload } from '../../redis/redis.service.js';
 import { AdminAlertsService } from '../../admin/services/admin-alerts.service.js';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Route } from '../../routes/entities/route.entity.js';
+/**
+ * Payload para difusión de asistencia confirmada a los guías de la ruta activa.
+ */
+export interface AttendanceConfirmedBroadcastPayload {
+  /** Identificador de la ruta activa */
+  routeId: string;
+  /** Nombre de la ruta turística */
+  routeName: string;
+  /** UUID del usuario que confirmó asistencia */
+  userId: string;
+  /** Nombre completo del usuario */
+  userFullName: string;
+  /** Marca de tiempo epoch en milisegundos */
+  timestamp: number;
+  /** Correos electrónicos de los guías asignados a la ruta */
+  assignedGuideEmails: string[];
+  /** Identificadores de usuario de los guías asignados a la ruta */
+  assignedGuideUserIds?: string[];
+}
 
 /**
  * Datos del usuario decodificados del token adjunto al socket.
@@ -135,12 +157,15 @@ export class TelemetryGateway implements OnGatewayConnection, OnGatewayDisconnec
    * @param configService Servicio de configuracion de entorno.
    * @param telemetryService Servicio de procesamiento de ubicaciones.
    * @param adminAlertsService Servicio para persistencia y auditoria de alertas SOS.
+   * @param routeRepository Repositorio de rutas para consultar guías asignados a la ruta activa.
    */
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly telemetryService: TelemetryService,
     private readonly adminAlertsService: AdminAlertsService,
+    @InjectRepository(Route)
+    private readonly routeRepository: Repository<Route>,
   ) {}
 
   /**
@@ -292,11 +317,34 @@ export class TelemetryGateway implements OnGatewayConnection, OnGatewayDisconnec
       timestamp: data.timestamp || Date.now(),
     });
 
+    // Consultar la ruta activa y sus guías asignados
+    const activeRoute = await this.routeRepository.findOne({
+      where: { isActive: true },
+      relations: { guides: true },
+    });
+
+    const assignedGuideEmails = activeRoute?.guides
+      ? activeRoute.guides.map((guide) => guide.email.toLowerCase())
+      : [];
+    const assignedGuideUserIds = activeRoute?.guides
+      ? (activeRoute.guides.map((guide) => guide.userId).filter((id): id is string => Boolean(id)))
+      : [];
+
     // Emision con canal prioritario a toda la sala
     this.server.emit('sos_broadcast', {
       ...payload,
       id: alertRecord.id,
       message: sanitizedMessage,
+      assignedGuideEmails,
+      assignedGuideUserIds,
     });
+  }
+
+  /**
+   * Difunde la notificación de confirmación de asistencia en tiempo real a los guías asignados a la ruta activa.
+   * @param payload Datos de la confirmación de asistencia y destinatarios autorizados.
+   */
+  broadcastAttendanceConfirmed(payload: AttendanceConfirmedBroadcastPayload): void {
+    this.server.emit('attendance_confirmed_broadcast', payload);
   }
 }

@@ -7,24 +7,36 @@
 
 // backend/src/modules/medical/medical.service.ts
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MedicalProfile } from './entities/medical-profile.entity.js';
 import { SaveMedicalProfileDto } from './dto/save-medical-profile.dto.js';
+import { Route } from '../routes/entities/route.entity.js';
+import { TelemetryGateway } from '../telemetry/gateways/telemetry.gateway.js';
 
 /**
- *
+ * Servicio encargado de gestionar fichas medicas y confirmacion de asistencia de excursionistas.
  */
 @Injectable()
 export class MedicalService {
   /**
-   *
-   * @param medicalProfileRepository
+   * Instancia de registro para auditoría de fichas médicas y notificaciones.
+   */
+  private readonly logger = new Logger(MedicalService.name);
+
+  /**
+   * Repositorio TypeORM inyectado para fichas medicas, rutas y gateway de telemetría.
+   * @param medicalProfileRepository Repositorio de la entidad MedicalProfile.
+   * @param routeRepository Repositorio de rutas para consultar guías de la ruta activa.
+   * @param telemetryGateway Gateway WebSocket para emisión en tiempo real.
    */
   constructor(
     @InjectRepository(MedicalProfile)
     private readonly medicalProfileRepository: Repository<MedicalProfile>,
+    @InjectRepository(Route)
+    private readonly routeRepository: Repository<Route>,
+    private readonly telemetryGateway: TelemetryGateway,
   ) {}
 
   /**
@@ -42,9 +54,14 @@ export class MedicalService {
    * Guarda o actualiza la ficha médica de un usuario de forma idempotente.
    * @param userId Identificador UUID del usuario.
    * @param dto Datos médicos y de asistencia validados.
+   * @param userFullName Nombre completo opcional del excursionista para notificaciones.
    * @returns Ficha médica creada o actualizada.
    */
-  async saveProfile(userId: string, dto: SaveMedicalProfileDto): Promise<MedicalProfile> {
+  async saveProfile(
+    userId: string,
+    dto: SaveMedicalProfileDto,
+    userFullName?: string,
+  ): Promise<MedicalProfile> {
     let profile = await this.medicalProfileRepository.findOne({
       where: { userId },
     });
@@ -64,8 +81,58 @@ export class MedicalService {
       profile.emergencyContactPhone = dto.emergencyContactPhone ?? null;
       profile.bloodType = dto.bloodType ?? null;
       profile.notes = dto.notes ?? null;
+      if (dto.photoUrl !== undefined) {
+        profile.photoUrl = dto.photoUrl;
+      }
     }
 
-    return this.medicalProfileRepository.save(profile);
+    const savedProfile = await this.medicalProfileRepository.save(profile);
+
+    if (dto.attendanceConfirmed) {
+      await this.notifyAssignedGuidesOfRegistration(userId, userFullName);
+    }
+
+    return savedProfile;
+  }
+
+  /**
+   * Notifica a los guías asignados a la ruta activa sobre la confirmación de asistencia.
+   * @param userId UUID del excursionista.
+   * @param userFullName Nombre completo del excursionista.
+   */
+  private async notifyAssignedGuidesOfRegistration(userId: string, userFullName?: string): Promise<void> {
+    try {
+      const activeRoute = await this.routeRepository.findOne({
+        where: { isActive: true },
+        relations: { guides: true },
+      });
+
+      if (!activeRoute) {
+        return;
+      }
+
+      const assignedGuideEmails = activeRoute.guides
+        ? activeRoute.guides.map((guide) => guide.email.toLowerCase())
+        : [];
+      const assignedGuideUserIds = activeRoute.guides
+        ? (activeRoute.guides.map((guide) => guide.userId).filter((id): id is string => Boolean(id)))
+        : [];
+
+      this.telemetryGateway.broadcastAttendanceConfirmed({
+        routeId: activeRoute.id,
+        routeName: activeRoute.name,
+        userId,
+        userFullName: userFullName || 'Excursionista',
+        timestamp: Date.now(),
+        assignedGuideEmails,
+        assignedGuideUserIds,
+      });
+
+      this.logger.log(
+        `[Notificación Guías] Asistencia confirmada por ${userFullName || userId} para ruta ${activeRoute.name}. Notificados ${assignedGuideEmails.length} guías.`,
+      );
+    } catch (error) {
+      this.logger.error(`Error emitiendo notificación de asistencia a guías: ${(error as Error).message}`);
+    }
   }
 }

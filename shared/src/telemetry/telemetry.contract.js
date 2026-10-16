@@ -8,5 +8,6 @@ var TelemetrySocketEvents;
     TelemetrySocketEvents["USER_LOCATION_BROADCAST"] = "user_location_broadcast";
     TelemetrySocketEvents["SOS_TRIGGER"] = "sos_trigger";
     TelemetrySocketEvents["SOS_BROADCAST"] = "sos_broadcast";
+    TelemetrySocketEvents["ATTENDANCE_CONFIRMED_BROADCAST"] = "attendance_confirmed_broadcast";
 })(TelemetrySocketEvents || (exports.TelemetrySocketEvents = TelemetrySocketEvents = {}));
 //# sourceMappingURL=telemetry.contract.js.map

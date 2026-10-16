@@ -97,6 +97,12 @@ export class MedicalProfile {
   notes: string | null;
 
   /**
+   * Fotografia o avatar del usuario para identificacion visual en ruta.
+   */
+  @Column({ type: 'text', nullable: true })
+  photoUrl: string | null;
+
+  /**
    *
    */
   @CreateDateColumn({ type: 'timestamptz' })

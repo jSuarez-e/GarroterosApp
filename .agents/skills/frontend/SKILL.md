@@ -34,12 +34,15 @@ description: Invoke this skill to create modern Angular (Control Flow, Signals) 
 - **Signal Primitives:** Use `input()`, `output()`, and `model()` APIs for component communication. Use `computed()` for derived state.
 - **Reactivity:** All forms MUST be built using Signals Forms. Use `ngModel` ONLY for isolated, single-input structural states.
 - **Architecture:** Strictly use Standalone Components with `ChangeDetectionStrategy.OnPush`. No exceptions.
+- **Descriptive Naming (Strict):** Function and parameter names like `v` or `p` are STRICTLY FORBIDDEN. Always use clear, self-describing identifiers (`value`, `param`, `profile`, `event`, `index`, etc.).
+- **Strict Typing (Zero Any / Restricted Unknown):** The use of `any` is STRICTLY FORBIDDEN. `unknown` is an absolute last resort only for unvalidated raw boundaries; an explicit `interface` or `type` MUST always be defined.
 
 ## 3. DESIGN SYSTEM & UI ARCHITECTURE
 
 - **Global Theme:** Rely on the established corporate palette (`#88DCCC`, `#4C6793`, `#5C2E7E`, `#1E1E1E`).
 - **Ionic Framework (v9+):** Strictly use official Ionic components (`ion-button`, `ion-card`). Use standard HTML tags (`div`, `span`) ONLY for semantic layout containers.
-- **Styling constraints:** Zero inline styles (`style=""`). Use strict BEM methodology (`.block__element--modifier`) in dedicated `.scss`/`.css` files.
+- **Dumb Shared Components (`frontend/src/app/shared/components/`):** All components in this directory MUST be purely presentational ("dumb" components). They MUST NOT inject domain services (e.g. `MedicalService`, `AuthService`, `RoutesService`). All data MUST flow in via `input()` / signals, and all actions flow out via `output()`. Business logic and domain service orchestration belong exclusively in Smart Pages/Containers.
+- **Styling constraints:** Zero inline styles (`style=""`). Use strict BEM methodology (`.block__element--modifier`) in dedicated `.scss` files with design system tokens.
 - **Shadow DOM:** If you need to style internal parts of an Ionic web component, you are authorized to use the `::part()` pseudo-element combined with BEM.
 
 ## 4. STATE MANAGEMENT & DATA FLOW
@@ -47,6 +50,7 @@ description: Invoke this skill to create modern Angular (Control Flow, Signals) 
 - **Global State:** Use centralized NgRx SignalStore or Signal-based Services. Keep UI components "dumb".
 - **The RxJS-to-Signal Bridge:** Convert HTTP request streams to Signals using Angular's `toSignal()` or `rxMethod` at the service level. DO NOT use manual `.subscribe()` in components for data fetching.
 - **Caching:** Implement in-memory Signal caching at the service level to intercept API requests and prevent redundant backend calls.
+- **Immediate QA Companion:** Whenever creating or updating a frontend service or smart component, write or update its companion `.spec.ts` unit test immediately in the same cycle.
 
 ## 5. OFFLINE-FIRST & SQLITE PATTERN
 

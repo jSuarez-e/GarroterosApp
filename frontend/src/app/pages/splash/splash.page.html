@@ -1,0 +1,62 @@
+<!--
+  @sdd
+  [Objetivo]: Estructura visual de la pantalla de bienvenida SplashScreen con logotipo de GarroterosApp y barra de carga.
+  [I/O - Reusabilidad]: Expone senales progress, statusMessage, isReady y evento navigateNext.
+  [Edge Cases - UI]: Centrado adaptativo para pantallas moviles de diferente aspecto (16:9, 18:9, 20:9), contraste WCAG AAA.
+-->
+<ion-content class="splash-content" [fullscreen]="true">
+  <div class="splash-background" aria-hidden="true">
+    <div class="splash-background__circle splash-background__circle--top"></div>
+    <div class="splash-background__circle splash-background__circle--bottom"></div>
+  </div>
+
+  <main class="splash-wrapper">
+    <header class="splash-hero">
+      <div class="splash-hero__badge">
+        <ion-icon name="compass-outline" class="splash-hero__badge-icon" aria-hidden="true"></ion-icon>
+        <span class="splash-hero__badge-text">Piedecuesta • Santander</span>
+      </div>
+
+      <div class="splash-hero__logo-box">
+        <div class="splash-hero__glow" aria-hidden="true"></div>
+        <img
+          src="assets/logo/garroteros-logo.png"
+          alt="Logotipo GarroterosApp - Ruta Turística Piedecuesta"
+          class="splash-hero__logo"
+        />
+      </div>
+
+      <div class="splash-hero__text-block">
+        <h1 class="splash-hero__title">GarroterosApp</h1>
+        <p class="splash-hero__subtitle">Ruta Turística y Guianza de Aventura</p>
+      </div>
+    </header>
+
+    <footer class="splash-footer">
+      <div class="splash-progress">
+        <div class="splash-progress__label-row">
+          <span class="splash-progress__status">{{ statusMessage() }}</span>
+          <span class="splash-progress__percent">{{ (progress() * 100) | number:'1.0-0' }}%</span>
+        </div>
+        <ion-progress-bar
+          [value]="progress()"
+          class="splash-progress__bar"
+        ></ion-progress-bar>
+      </div>
+
+      <div class="splash-footer__actions">
+        <ion-button
+          fill="clear"
+          size="default"
+          class="splash-footer__skip-btn"
+          (click)="navigateNext()"
+        >
+          <span>Empezar Recorrido</span>
+          <ion-icon name="arrow-forward-outline" slot="end" aria-hidden="true"></ion-icon>
+        </ion-button>
+      </div>
+
+      <p class="splash-footer__tagline">Senderos • Historia • Naturaleza</p>
+    </footer>
+  </main>
+</ion-content>

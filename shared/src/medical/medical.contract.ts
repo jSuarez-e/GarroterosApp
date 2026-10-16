@@ -39,6 +39,8 @@ export interface IMedicalProfile {
   bloodType?: string | null;
   /** Observaciones adicionales */
   notes?: string | null;
+  /** Fotografía del usuario para registro e identificación visual (opcional) */
+  photoUrl?: string | null;
   /** Fecha de creacion */
   createdAt?: string | Date;
   /** Fecha de actualizacion */
@@ -67,4 +69,6 @@ export interface SaveMedicalProfileDto {
   bloodType?: string | null;
   /** Notas */
   notes?: string | null;
+  /** Fotografía del usuario para registro e identificación visual (opcional) */
+  photoUrl?: string | null;
 }
