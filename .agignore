@@ -1,0 +1,102 @@
+# ==============================================================================
+# ARCHIVO DE EXCLUSIÓN PARA ANTIGRAVITY (.agignore)
+# Propósito: Evitar que el Agente AI analice archivos generados, binarios o 
+# dependencias, ahorrando tokens y mejorando la precisión del contexto.
+# Monorepo: NestJS + Angular/Ionic + Kotlin + Capacitor
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. IDEs y Sistema Operativo
+# ------------------------------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ------------------------------------------------------------------------------
+# 2. Dependencias y Manejadores de Paquetes
+# ------------------------------------------------------------------------------
+node_modules/
+.npm/
+.yarn/
+.pnpm-store/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+# (Opcional: puedes comentar los archivos .lock si quieres que evalúe dependencias exactas, 
+# pero generalmente es mejor ignorarlos por su tamaño).
+
+# ------------------------------------------------------------------------------
+# 3. Backend: NestJS & Node.js
+# ------------------------------------------------------------------------------
+dist/
+out/
+build/
+.nest/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+coverage/
+.nyc_output/
+
+# ------------------------------------------------------------------------------
+# 4. Frontend & Mobile UI: Angular 21 + Ionic 9
+# ------------------------------------------------------------------------------
+.angular/
+www/
+.sourcemaps/
+.ionic/
+capacitor.config.json.orig
+
+# ------------------------------------------------------------------------------
+# 5. Mobile Core & Puente: Kotlin + Android Nativo + Capacitor
+# ------------------------------------------------------------------------------
+.gradle/
+app/build/
+android/app/build/
+android/.gradle/
+android/app/src/main/assets/public/
+ios/App/App/build/
+ios/App/App/public/
+*.apk
+*.aab
+*.dex
+*.class
+*.keystore
+local.properties
+# (Nota: Ignoramos carpetas de build nativas, pero dejamos el código fuente nativo de Capacitor/Kotlin)
+
+# ------------------------------------------------------------------------------
+# 6. Bases de Datos, Redis y Caché (SQLite / Room)
+# ------------------------------------------------------------------------------
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.rdb
+# Si tienes carpetas de volúmenes de Docker para DB locales:
+docker/data/
+docker/postgres-data/
+docker/redis-data/
+
+# ------------------------------------------------------------------------------
+# 7. Variables de Entorno y Secretos
+# ------------------------------------------------------------------------------
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert

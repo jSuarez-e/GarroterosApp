@@ -1,0 +1,144 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM para la vista de diagnóstico de permisos (SDD-005-USER-MODULES-AND-ADMIN).
+ * [I/O - Reusabilidad]: Clases permissions-wrapper, permission-badge, btn-permit y permission-tip.
+ * [Edge Cases - UI]: Modificadores semánticos para estados de permisos (concedido, denegado, pendiente).
+ */
+
+// frontend/src/app/pages/permissions/permissions.page.scss
+
+@use "../../../theme/variables.scss" as *;
+
+.permissions-toolbar {
+  --background: linear-gradient(135deg, var(--app-primary, #3B5BDB) 0%, var(--app-primary-dark, #2B44B3) 100%);
+  --color: #fff;
+}
+
+.permissions-content {
+  --background: var(--app-bg-canvas, #F0F4FE);
+}
+
+.permissions-wrapper {
+  padding: 0 16px 32px;
+  max-width: 600px;
+  margin: -16px auto 0;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.permission-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &__status {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__desc {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--app-text-muted, #64748B);
+  }
+
+  &__action {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+.permission-badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--app-radius-pill, 9999px);
+
+  &__icon {
+    font-size: 14px;
+  }
+
+  &--granted {
+    background: #ECFDF5;
+    color: #047857;
+    border: 1px solid rgb(16 185 129 / 30%);
+
+    .permission-badge__icon {
+      color: #10B981;
+    }
+  }
+
+  &--denied {
+    background: #FEF2F2;
+    color: #B91C1C;
+    border: 1px solid rgb(239 68 68 / 30%);
+
+    .permission-badge__icon {
+      color: #EF4444;
+    }
+  }
+
+  &--prompt {
+    background: #FFFBEB;
+    color: #B45309;
+    border: 1px solid rgb(245 158 11 / 30%);
+
+    .permission-badge__icon {
+      color: #F59E0B;
+    }
+  }
+}
+
+.btn-permit {
+  --background: linear-gradient(135deg, var(--app-primary, #3B5BDB) 0%, var(--app-primary-dark, #2B44B3) 100%);
+  --border-radius: var(--app-radius-md, 14px);
+  --box-shadow: 0 2px 8px rgb(59 91 219 / 20%);
+
+  font-weight: 600;
+  margin: 0;
+}
+
+.permission-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--app-surface-card, #FFF);
+  border: 1px solid var(--app-border-light, #E2E8F0);
+  border-radius: var(--app-radius-md, 14px);
+  padding: 14px;
+  box-shadow: var(--app-shadow-card, 0 4px 16px rgb(59 91 219 / 8%));
+
+  &__icon {
+    font-size: 24px;
+    color: var(--app-primary, #3B5BDB);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--app-text-title, #1E293B);
+  }
+
+  &__text {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--app-text-muted, #64748B);
+    margin: 0;
+  }
+}

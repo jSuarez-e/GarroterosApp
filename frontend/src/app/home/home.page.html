@@ -1,0 +1,255 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla redisenada de inicio inspirada en travel/mobility UI (SDD-005-UI-REDESIGN).
+  [I/O - Reusabilidad]: Integra HeroBannerComponent, SegmentedPillComponent, InfoCardComponent y StatBadgeComponent.
+  [Edge Cases - UI]: Control flow nativo @if/@switch, sin estilos inline, interactividad 100% responsiva.
+-->
+
+<ion-header [translucent]="true" class="home-header">
+  <ion-toolbar class="home-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button class="home-toolbar__menu-btn"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="home-toolbar__title">Ruta Garroteros</ion-title>
+    <ion-buttons slot="end">
+      <ion-button routerLink="/sos" class="home-toolbar__sos-btn" aria-label="Alerta de emergencia SOS">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="home-content">
+  <!-- Banner Curvo Hero estilo Mockup -->
+  <app-hero-banner
+    [title]="'¡Hola, ' + (currentUser()?.fullName || 'Visitante') + '!'"
+    subtitle="Descubre la riqueza histórica y cultural de Piedecuesta"
+    [badgeText]="routePath() ? 'Guianza Activa' : 'Explora Piedecuesta'"
+    iconName="trail-sign-outline"
+  >
+    <div class="home-hero-stats">
+      <span class="home-hero-stats__chip">
+        <ion-icon name="compass-outline" class="home-hero-stats__icon"></ion-icon>
+        <span class="home-hero-stats__text">{{ routeTitle() }}</span>
+      </span>
+      <span class="home-hero-stats__role" [class.home-hero-stats__role--admin]="isAdmin()">
+        {{ currentUser()?.role || 'TURISTA' }}
+      </span>
+    </div>
+  </app-hero-banner>
+
+  <main class="home-body">
+    <!-- Selector de Píldoras Segmentadas (VIP / Economy style) -->
+    <section class="home-selector-wrapper">
+      <app-segmented-pill
+        [options]="tabOptions"
+        [(selectedId)]="activeTab"
+        (selectionChange)="onTabChange($event)"
+      ></app-segmented-pill>
+    </section>
+
+    <!-- Contenido dinamico segun la pestaña seleccionada -->
+    @switch (activeTab()) {
+      @case ('recorrido') {
+        <!-- Tarjeta de Metricas Rapidas (Grid 2 columnas) -->
+        <section class="gt-grid-two-cols">
+          <app-stat-badge
+            icon="footsteps-outline"
+            [value]="formattedDistance()"
+            label="Distancia Total"
+            variant="primary"
+          ></app-stat-badge>
+          <app-stat-badge
+            icon="time-outline"
+            [value]="formattedDuration()"
+            label="Tiempo Estimado"
+            variant="default"
+          ></app-stat-badge>
+          <app-stat-badge
+            icon="pin-outline"
+            [value]="poiCount()"
+            label="POIs Culturales"
+            variant="default"
+          ></app-stat-badge>
+          <app-stat-badge
+            icon="sunny-outline"
+            [value]="currentTemp()"
+            label="Temperatura"
+            variant="warning"
+          ></app-stat-badge>
+        </section>
+
+        <!-- Tarjeta de Itinerario Principal estilo Flight Ticket -->
+        <app-info-card
+          [title]="routeTitle()"
+          [subtitle]="routeSubtitle()"
+          [badge]="routePath() ? 'En Curso' : 'Sin Ruta'"
+          badgeColor="success"
+          icon="map-outline"
+        >
+          <div class="route-details">
+            <div class="route-point">
+              <span class="route-point__dot route-point__dot--start"></span>
+              <div class="route-point__info">
+                <span class="route-point__label">Salida / Registro</span>
+                <strong class="route-point__name">{{ startPoint()?.title || 'Punto de Salida' }}</strong>
+                <span class="route-point__sub">{{ startPoint()?.description || 'Punto inicial del recorrido' }}</span>
+              </div>
+            </div>
+
+            <div class="route-divider">
+              <div class="route-divider__line"></div>
+              <ion-icon name="walk-outline" class="route-divider__icon"></ion-icon>
+            </div>
+
+            <div class="route-point">
+              <span class="route-point__dot route-point__dot--end"></span>
+              <div class="route-point__info">
+                <span class="route-point__label">Punto de Cierre</span>
+                <strong class="route-point__name">{{ endPoint()?.title || startPoint()?.title || 'Punto de Cierre' }}</strong>
+                <span class="route-point__sub">{{ endPoint()?.description || 'Meta del recorrido cultural' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="home-card-actions">
+            <ion-button expand="block" routerLink="/map" class="gt-btn gt-btn--primary">
+              <ion-icon name="navigate-outline" slot="start"></ion-icon>
+              <span>Abrir Mapa Interactivo</span>
+            </ion-button>
+
+            <ion-button expand="block" fill="outline" routerLink="/routes" class="gt-btn gt-btn--secondary">
+              <ion-icon name="information-circle-outline" slot="start"></ion-icon>
+              <span>Ver Puntos de Interés</span>
+            </ion-button>
+          </div>
+        </app-info-card>
+      }
+
+      @case ('itinerario') {
+        <!-- Cronograma Oficial de la Ruta -->
+        <app-info-card
+          title="Cronograma de la Ruta"
+          [subtitle]="routeTitle()"
+          [badge]="itinerary().length > 0 ? (itinerary().length + ' Hitos') : 'Sin Hitos'"
+          badgeColor="primary"
+          icon="time-outline"
+        >
+          @if (itinerary().length > 0) {
+            <div class="itinerary-timeline">
+              @for (item of itinerary(); track item.id) {
+                <div class="itinerary-milestone">
+                  <div class="itinerary-milestone__time-badge">
+                    <ion-icon name="time-outline" class="itinerary-milestone__icon"></ion-icon>
+                    <span>{{ item.plannedTime }}</span>
+                  </div>
+                  <div class="itinerary-milestone__content">
+                    <div class="itinerary-milestone__header">
+                      <strong class="itinerary-milestone__title">{{ item.title }}</strong>
+                      <span
+                        class="itinerary-milestone__status"
+                        [class.itinerary-milestone__status--completed]="item.status === 'COMPLETED'"
+                        [class.itinerary-milestone__status--in-progress]="item.status === 'IN_PROGRESS'"
+                        [class.itinerary-milestone__status--delayed]="item.status === 'DELAYED'"
+                      >
+                        {{ item.status }}
+                      </span>
+                    </div>
+                    @if (item.notes) {
+                      <p class="itinerary-milestone__notes">{{ item.notes }}</p>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-itinerary">
+              <ion-icon name="information-circle-outline" class="empty-itinerary__icon"></ion-icon>
+              <p class="empty-itinerary__text">
+                No hay hitos programados en el itinerario para esta ruta actualmente.
+              </p>
+            </div>
+          }
+        </app-info-card>
+
+        <!-- Tarjeta de Punto de Encuentro -->
+        <app-info-card
+          title="Punto de Encuentro Oficial"
+          subtitle="Coordenadas GPS y Navegación"
+          badge="Oficial"
+          badgeColor="primary"
+          icon="compass-outline"
+        >
+          <p class="meeting-card__desc">
+            Reúnete con tu guía oficial en {{ startPoint()?.title || 'el punto de salida' }}. Desde allí parte la caminata cultural guiada.
+          </p>
+
+          <div class="meeting-card__features">
+            <div class="feature-item">
+              <ion-icon name="pin-outline" class="feature-item__icon"></ion-icon>
+              <span class="feature-item__text">{{ startPoint()?.title || 'Punto oficial por definir' }}, {{ routePath()?.municipality || 'Piedecuesta' }}</span>
+            </div>
+            <div class="feature-item">
+              <ion-icon name="time-outline" class="feature-item__icon"></ion-icon>
+              <span class="feature-item__text">Punto de salida: {{ firstDepartureTime() }}</span>
+            </div>
+          </div>
+
+          <ion-button expand="block" routerLink="/how-to-arrive" class="gt-btn gt-btn--primary">
+            <ion-icon name="navigate-outline" slot="start"></ion-icon>
+            <span>Cómo Llegar al Punto de Encuentro</span>
+          </ion-button>
+        </app-info-card>
+
+        <!-- Tarjeta de Meteorologia -->
+        <app-info-card
+          title="Meteorología del Sendero"
+          subtitle="Condiciones Atmosféricas en Vivo"
+          [badge]="currentTemp()"
+          badgeColor="warning"
+          icon="partly-sunny-outline"
+        >
+          <p class="meeting-card__desc">
+            {{ weatherDescription() }}. Temperatura actual {{ currentTemp() }} en {{ weather()?.municipality || routePath()?.municipality || 'Piedecuesta' }}.
+          </p>
+          <ion-button expand="block" fill="outline" routerLink="/weather" class="gt-btn gt-btn--secondary">
+            <ion-icon name="sunny-outline" slot="start"></ion-icon>
+            <span>Ver Pronóstico Detallado</span>
+          </ion-button>
+        </app-info-card>
+      }
+
+      @case ('alertas') {
+        <app-info-card
+          title="Seguridad y Telemetría"
+          subtitle="Monitoreo Activo de Guianza"
+          badge="Activo"
+          badgeColor="success"
+          icon="shield-checkmark-outline"
+        >
+          <p class="meeting-card__desc">
+            Tu posición es compartida en tiempo real con el guía para garantizar la seguridad durante todo el sendero.
+          </p>
+
+          <ion-button expand="block" routerLink="/sos" class="gt-btn gt-btn--danger">
+            <ion-icon name="alert-circle-outline" slot="start"></ion-icon>
+            <span>Activar Alerta de Asistencia SOS</span>
+          </ion-button>
+        </app-info-card>
+      }
+    }
+
+    <!-- Aviso administrativo condicional -->
+    @if (isAdmin()) {
+      <aside class="admin-banner">
+        <ion-icon name="shield-checkmark-outline" class="admin-banner__icon"></ion-icon>
+        <div class="admin-banner__text-group">
+          <strong class="admin-banner__title">Modo Administrador Activo</strong>
+          <span class="admin-banner__desc">
+            Tienes permisos para gestionar rutas, visualizar telemetría activa de todos los participantes y atender alertas SOS.
+          </span>
+        </div>
+      </aside>
+    }
+  </main>
+</ion-content>

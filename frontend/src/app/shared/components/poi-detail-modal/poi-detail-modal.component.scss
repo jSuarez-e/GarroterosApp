@@ -1,0 +1,247 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM para modal multimedia de POI con diseno interactivo y adaptable (SDD-004-MAP-MULTIMEDIA-WEATHER).
+ * [I/O - Reusabilidad]: Clases BEM .poi-modal__*, .poi-gallery__*, .poi-audio-card__*, .poi-description-card__*.
+ * [Edge Cases - UI]: Galeria responsiva, estados de reproduccion de audio, sin estilos inline.
+ */
+
+@use "../../../../theme/variables.scss" as vars;
+
+.poi-modal {
+  &__toolbar {
+    --background: linear-gradient(135deg, var(--app-primary, #3B5BDB) 0%, var(--app-primary-dark, #2B44B3) 100%);
+    --color: #fff;
+    --border-width: 0;
+  }
+
+  &__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  &__close-btn {
+    --color: #fff;
+
+    opacity: 0.9;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  &__content {
+    --background: var(--app-bg-canvas, #F0F4FE);
+  }
+
+  &__body {
+    padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  &__header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__badge {
+    --background: var(--app-primary-light, #EDF2FF);
+    --color: var(--app-primary, #3B5BDB);
+
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--app-radius-pill, 9999px);
+    border: 1px solid rgb(59 91 219 / 20%);
+  }
+
+  &__location {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--app-text-muted, #64748B);
+    font-weight: 500;
+  }
+
+  &__location-icon {
+    color: var(--app-primary, #3B5BDB);
+    font-size: 1rem;
+  }
+}
+
+.poi-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &__featured {
+    width: 100%;
+    height: 220px;
+    border-radius: var(--app-radius-lg, 20px);
+    overflow: hidden;
+    background: #E2E8F0;
+    border: 1px solid var(--app-border-light, #E2E8F0);
+    box-shadow: var(--app-shadow-card, 0 4px 16px rgb(59 91 219 / 8%));
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  &__thumbnails {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  &__thumb-btn {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: var(--app-radius-md, 12px);
+    overflow: hidden;
+    border: 2px solid transparent;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+
+    &--active {
+      border-color: var(--app-primary, #3B5BDB);
+      transform: scale(1.04);
+      box-shadow: 0 2px 8px rgb(59 91 219 / 30%);
+    }
+  }
+
+  &__thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.poi-audio-card {
+  background: var(--app-surface-card, #FFF);
+  border: 1px solid var(--app-border-light, #E2E8F0);
+  border-radius: var(--app-radius-lg, 20px);
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: var(--app-shadow-card, 0 4px 16px rgb(59 91 219 / 8%));
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  &__icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--app-primary-light, #EDF2FF);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__icon {
+    color: var(--app-primary, #3B5BDB);
+    font-size: 1.4rem;
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  &__label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--app-primary, #3B5BDB);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &__name {
+    font-size: 0.88rem;
+    color: var(--app-text-title, #1E293B);
+    font-weight: 600;
+  }
+
+  &__play-btn {
+    --background: linear-gradient(135deg, var(--app-primary, #3B5BDB) 0%, var(--app-primary-dark, #2B44B3) 100%);
+    --color: #fff;
+    --border-radius: 50%;
+
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgb(59 91 219 / 30%);
+
+    &--playing {
+      --background: #F59E0B;
+      --color: #fff;
+    }
+  }
+
+  &__progress-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-top: 0.25rem;
+  }
+
+  &__bar {
+    --progress-background: var(--app-primary, #3B5BDB);
+    --buffer-background: rgb(59 91 219 / 12%);
+
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  &__timing {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--app-text-muted, #64748B);
+    font-weight: 500;
+  }
+}
+
+.poi-description-card {
+  background: var(--app-surface-card, #FFF);
+  border-radius: var(--app-radius-lg, 20px);
+  padding: 1.25rem;
+  border: 1px solid var(--app-border-light, #E2E8F0);
+  box-shadow: var(--app-shadow-card, 0 4px 16px rgb(59 91 219 / 8%));
+
+  &__heading {
+    margin: 0 0 0.65rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--app-text-title, #1E293B);
+  }
+
+  &__text {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--app-text-body, #334155);
+  }
+}

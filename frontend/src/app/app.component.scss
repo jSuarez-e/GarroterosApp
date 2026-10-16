@@ -1,0 +1,172 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos para el menu lateral reactivo de la aplicacion adaptado a la nueva paleta de viajes (SDD-005-UI-REDESIGN).
+ * [I/O - Reusabilidad]: Clases menu-header, menu-item, menu-footer con tokens de diseno de theme/variables.scss.
+ * [Edge Cases - UI]: Estados activos resaltados con azul cobalto, soporte responsive y modo contraste.
+ */
+
+@use "../theme/variables.scss" as *;
+
+.app-menu {
+  --width: 290px;
+}
+
+.menu-toolbar {
+  --background: var(--app-primary);
+  --color: var(--app-text-inverse);
+
+  padding: 20px 14px 14px;
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+}
+
+.menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  &__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 20%);
+    border: 1px solid rgb(255 255 255 / 35%);
+  }
+
+  &__avatar-icon {
+    font-size: 32px;
+    color: var(--app-text-inverse);
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  &__name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--app-text-inverse);
+    margin: 0 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__role-badge {
+    display: inline-block;
+    align-self: flex-start;
+    padding: 2px 8px;
+    border-radius: var(--app-radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: rgb(255 255 255 / 20%);
+    color: var(--app-text-inverse);
+    text-transform: uppercase;
+
+    &--admin {
+      background: #fcc419;
+      color: #212529;
+    }
+  }
+}
+
+.menu-content {
+  --background: var(--app-card);
+}
+
+.menu-list {
+  background: transparent;
+  padding: 12px 10px;
+
+  &__header {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--app-text-muted);
+    padding-left: 8px;
+    margin-top: 12px;
+    margin-bottom: 6px;
+
+    &--admin {
+      color: #b45309;
+      margin-top: 20px;
+    }
+  }
+}
+
+.menu-item {
+  --background: transparent;
+  --color: var(--app-text-secondary);
+  --border-radius: var(--app-radius-md);
+  --min-height: 44px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+
+  border-radius: var(--app-radius-md);
+  margin-bottom: 4px;
+  transition: all 0.2s ease-in-out;
+
+  &__icon {
+    font-size: 20px;
+    color: var(--app-text-muted);
+    margin-inline-end: 12px;
+  }
+
+  &__label {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  &__lock {
+    font-size: 14px;
+    color: var(--app-text-muted);
+    opacity: 0.65;
+  }
+
+  &--locked {
+    opacity: 0.75;
+  }
+
+  &--active {
+    --background: var(--app-primary-tint);
+    --color: var(--app-primary);
+
+    font-weight: 700;
+
+    .menu-item__icon {
+      color: var(--app-primary);
+    }
+  }
+
+  &--admin {
+    &.menu-item--active {
+      --background: #fff9db;
+      --color: #b45309;
+
+      .menu-item__icon {
+        color: #b45309;
+      }
+    }
+  }
+}
+
+.menu-footer {
+  &__toolbar {
+    --background: var(--app-card);
+
+    border-top: 1px solid var(--color-border);
+    padding: 8px 12px;
+  }
+
+  &__logout-btn {
+    font-weight: 700;
+
+    --border-radius: var(--app-radius-md);
+  }
+}

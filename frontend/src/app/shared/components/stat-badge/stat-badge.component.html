@@ -1,0 +1,23 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla HTML del chip de metrica estilo mockup de viajes (SDD-005-UI-REDESIGN).
+  [I/O - Reusabilidad]: Clases BEM modulares sin estilos inline.
+  [Edge Cases - UI]: Control flow @if para label opcional.
+-->
+
+<div
+  class="stat-badge"
+  [class.stat-badge--primary]="variant() === 'primary'"
+  [class.stat-badge--warning]="variant() === 'warning'"
+  [class.stat-badge--success]="variant() === 'success'"
+>
+  <div class="stat-badge__icon-wrap">
+    <ion-icon [name]="icon()" class="stat-badge__icon"></ion-icon>
+  </div>
+  <div class="stat-badge__info">
+    <span class="stat-badge__value">{{ value() }}</span>
+    @if (label()) {
+      <span class="stat-badge__label">{{ label() }}</span>
+    }
+  </div>
+</div>

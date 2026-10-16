@@ -1,0 +1,77 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla para la modal de informacion basica del participante en el mapa (SDD-004-MAP-MULTIMEDIA-WEATHER).
+  [I/O - Reusabilidad]: Modal informativa con avatar, badge de rol Guia/Turista, telemetria de bateria y coordenadas.
+  [Edge Cases - UI]: Control flow nativo @if para indicador SOS prioritario y roles sin estilos inline.
+-->
+<ion-header [translucent]="true">
+  <ion-toolbar class="participant-modal__toolbar">
+    <ion-title class="participant-modal__title">Perfil de Participante</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" class="participant-modal__close-btn">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="participant-modal__content">
+  <div class="participant-modal__body">
+    @if (participant.isSos) {
+      <div class="sos-banner">
+        <ion-icon name="alert-circle-outline" class="sos-banner__icon"></ion-icon>
+        <span class="sos-banner__text">¡ALERTA SOS ACTIVA EN ESTA POSICIÓN!</span>
+      </div>
+    }
+
+    <div class="participant-card">
+      <div
+        class="participant-card__avatar-box"
+        [class.participant-card__avatar-box--guide]="participant.role === 'ADMIN'"
+      >
+        <ion-icon name="person-circle-outline" class="participant-card__avatar-icon"></ion-icon>
+      </div>
+
+      <div class="participant-card__details">
+        <h2 class="participant-card__name">{{ participant.fullName }}</h2>
+        <div class="participant-card__badges">
+          <ion-badge
+            class="role-badge"
+            [class.role-badge--guide]="participant.role === 'ADMIN'"
+            [class.role-badge--tourist]="participant.role === 'USER'"
+          >
+            {{ participant.role === 'ADMIN' ? 'Guía Oficial de Recorrido' : 'Turista Participante' }}
+          </ion-badge>
+        </div>
+      </div>
+    </div>
+
+    <div class="telemetry-info-grid">
+      <div class="telemetry-item">
+        <ion-icon name="battery-charging-outline" class="telemetry-item__icon telemetry-item__icon--battery"></ion-icon>
+        <div class="telemetry-item__content">
+          <span class="telemetry-item__label">Nivel de Batería</span>
+          <span class="telemetry-item__value">{{ participant.batteryLevel ? participant.batteryLevel + '%' : 'Normal' }}</span>
+        </div>
+      </div>
+
+      <div class="telemetry-item">
+        <ion-icon name="time-outline" class="telemetry-item__icon"></ion-icon>
+        <div class="telemetry-item__content">
+          <span class="telemetry-item__label">Última Actualización</span>
+          <span class="telemetry-item__value">{{ formatTime(participant.updatedAt) }}</span>
+        </div>
+      </div>
+
+      <div class="telemetry-item telemetry-item--full">
+        <ion-icon name="location-outline" class="telemetry-item__icon telemetry-item__icon--location"></ion-icon>
+        <div class="telemetry-item__content">
+          <span class="telemetry-item__label">Coordenadas GPS</span>
+          <span class="telemetry-item__value">
+            {{ participant.latitude.toFixed(5) }}, {{ participant.longitude.toFixed(5) }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

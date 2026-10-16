@@ -1,0 +1,410 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla del panel administrativo para gestión completa de guías turísticos (SDD-005-USER-MODULES-AND-ADMIN).
+  [I/O - Reusabilidad]: Consume Signals de AdminGuidesPage, integra app-hero-banner y modales reactivos con IonModal.
+  [Edge Cases - UI]: Control flow nativo @if/@for con track guide.id, vista previa interactiva de fotos y fallback de avatares rotos.
+-->
+
+<ion-header class="ion-no-border">
+  <ion-toolbar class="admin-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Gestión de Guías</ion-title>
+    <ion-buttons slot="end">
+      <ion-button class="btn-create" (click)="openCreateModal()">
+        <ion-icon slot="start" name="person-add-outline"></ion-icon>
+        Nuevo
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="admin-content" [fullscreen]="true">
+  <!-- Hero Banner Reutilizable -->
+  <app-hero-banner
+    title="Directorio de Guías"
+    subtitle="Administración de perfiles profesionales, asignación de rutas, credenciales y fotografías de guías oficiales."
+    badgeText="Control Administrativo"
+    iconName="people-outline"
+  ></app-hero-banner>
+
+  <div class="admin-wrapper">
+    <!-- Barra de Filtros y Búsqueda -->
+    <div class="filter-bar">
+      <ion-searchbar
+        placeholder="Buscar por nombre, correo o teléfono..."
+        [debounce]="300"
+        (ionInput)="onSearch($event)"
+        class="admin-searchbar"
+      ></ion-searchbar>
+
+      <div class="status-select-box">
+        <ion-select
+          interface="popover"
+          [value]="statusFilter()"
+          (ionChange)="onStatusFilterChange($event)"
+          class="status-select"
+        >
+          <ion-select-option value="ALL">Todos los estados</ion-select-option>
+          <ion-select-option value="ACTIVE">Activos</ion-select-option>
+          <ion-select-option value="INACTIVE">Inactivos</ion-select-option>
+        </ion-select>
+      </div>
+    </div>
+
+    <!-- Estados de Carga, Error o Vacío -->
+    @if (isLoading()) {
+      <div class="admin-loading">
+        <ion-spinner name="crescent" class="admin-loading__spinner"></ion-spinner>
+        <span class="admin-loading__text">Cargando directorio de guías...</span>
+      </div>
+    } @else if (errorMessage()) {
+      <div class="empty-state empty-state--error">
+        <ion-icon name="alert-circle-outline" class="empty-state__icon"></ion-icon>
+        <span class="empty-state__title">Error al consultar guías</span>
+        <span class="empty-state__text">{{ errorMessage() }}</span>
+        <button type="button" class="empty-state__retry-btn" (click)="fetchData()">Reintentar</button>
+      </div>
+    } @else if (filteredGuides().length === 0) {
+      <div class="empty-state">
+        <ion-icon name="person-outline" class="empty-state__icon"></ion-icon>
+        <span class="empty-state__title">No se encontraron guías</span>
+        <span class="empty-state__text">Prueba ajustando los filtros o registra un nuevo guía oficial.</span>
+      </div>
+    } @else {
+      <!-- Directorio de Guías Oficiales -->
+      <div class="guides-grid">
+        @for (guide of filteredGuides(); track guide.id) {
+          <div class="guide-card" [class.guide-card--inactive]="guide.status === 'INACTIVE'">
+            <!-- Cabecera de la Tarjeta con Avatar y Metadatos -->
+            <div class="guide-card__header">
+              <div class="guide-card__avatar-box">
+                <img
+                  [src]="guide.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'"
+                  [alt]="guide.fullName"
+                  class="guide-card__avatar"
+                  (error)="onAvatarError($event)"
+                />
+                <span
+                  class="guide-card__status-dot"
+                  [class.guide-card__status-dot--active]="guide.status === 'ACTIVE'"
+                  [class.guide-card__status-dot--inactive]="guide.status === 'INACTIVE'"
+                  [title]="guide.status === 'ACTIVE' ? 'Guía Activo' : 'Guía Inactivo'"
+                ></span>
+              </div>
+
+              <div class="guide-card__identity">
+                <div class="guide-card__name-row">
+                  <h3 class="guide-card__name">{{ guide.fullName }}</h3>
+                  <span
+                    class="badge-status"
+                    [class.badge-status--active]="guide.status === 'ACTIVE'"
+                    [class.badge-status--inactive]="guide.status === 'INACTIVE'"
+                  >
+                    {{ guide.status === 'ACTIVE' ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </div>
+
+                <div class="guide-card__metrics">
+                  <span class="metric-item">
+                    <ion-icon name="star" class="metric-item__star"></ion-icon>
+                    <strong>{{ guide.rating }}</strong>
+                  </span>
+                  <span class="metric-item">
+                    <ion-icon name="time-outline" class="metric-item__icon"></ion-icon>
+                    {{ guide.experienceYears }} años exp.
+                  </span>
+                </div>
+
+                <div class="guide-card__contact">
+                  <span class="contact-item">
+                    <ion-icon name="mail-outline" class="contact-item__icon"></ion-icon>
+                    {{ guide.email }}
+                  </span>
+                  @if (guide.phone) {
+                    <a [href]="'tel:' + guide.phone" class="contact-item contact-item--link">
+                      <ion-icon name="call-outline" class="contact-item__icon"></ion-icon>
+                      {{ guide.phone }}
+                    </a>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Reseña Biográfica -->
+            @if (guide.bio) {
+              <p class="guide-card__bio">{{ guide.bio }}</p>
+            }
+
+            <!-- Certificaciones Oficiales -->
+            @if (guide.certifications && guide.certifications.length > 0) {
+              <div class="guide-card__certifications">
+                <div class="cert-chips">
+                  @for (cert of guide.certifications; track cert) {
+                    <span class="cert-pill">
+                      <ion-icon name="ribbon-outline" class="cert-pill__icon"></ion-icon>
+                      {{ cert }}
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Rutas Asignadas -->
+            <div class="guide-card__routes">
+              <span class="routes-label">
+                <ion-icon name="map-outline" class="routes-label__icon"></ion-icon>
+                Rutas asignadas:
+              </span>
+              @if (guide.routes && guide.routes.length > 0) {
+                <div class="route-tags">
+                  @for (r of guide.routes; track r.id) {
+                    <span class="route-tag">{{ r.name }}</span>
+                  }
+                </div>
+              } @else {
+                <span class="routes-empty">Sin rutas asignadas</span>
+              }
+            </div>
+
+            <!-- Acciones de Administración -->
+            <div class="guide-card__actions">
+              <button
+                type="button"
+                class="btn-action btn-action--edit"
+                (click)="openEditModal(guide)"
+                title="Editar Guía"
+              >
+                <ion-icon name="create-outline"></ion-icon>
+                <span>Editar</span>
+              </button>
+
+              <button
+                type="button"
+                class="btn-action"
+                [class.btn-action--deactivate]="guide.status === 'ACTIVE'"
+                [class.btn-action--activate]="guide.status === 'INACTIVE'"
+                (click)="onToggleStatus(guide)"
+                [title]="guide.status === 'ACTIVE' ? 'Desactivar Guía' : 'Activar Guía'"
+              >
+                @if (guide.status === 'ACTIVE') {
+                  <ion-icon name="pause-circle-outline"></ion-icon>
+                  <span>Pausar</span>
+                } @else {
+                  <ion-icon name="checkmark-circle-outline"></ion-icon>
+                  <span>Activar</span>
+                }
+              </button>
+
+              <button
+                type="button"
+                class="btn-action btn-action--delete"
+                (click)="onDeleteGuide(guide)"
+                title="Eliminar Guía"
+              >
+                <ion-icon name="trash-outline"></ion-icon>
+                <span>Eliminar</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Modal de Creación y Edición de Guía -->
+  <ion-modal [isOpen]="isModalOpen()" (didDismiss)="closeModal()" class="admin-modal">
+    <ng-template>
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-header__title-box">
+            <ion-icon name="people-outline" class="modal-header__icon"></ion-icon>
+            <h2 class="modal-header__title">
+              {{ editingGuideId() ? 'Editar Información del Guía' : 'Registrar Nuevo Guía Oficial' }}
+            </h2>
+          </div>
+          <button type="button" class="modal-header__close-btn" (click)="closeModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Vista Previa y Fotografía del Guía -->
+          <div class="avatar-manager">
+            <div class="avatar-manager__preview-box">
+              <img
+                [src]="formAvatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'"
+                alt="Vista previa de foto"
+                class="avatar-manager__preview"
+                (error)="onAvatarError($event)"
+              />
+            </div>
+            <div class="avatar-manager__presets">
+              <span class="avatar-manager__presets-title">Sugerencias rápidas de fotos:</span>
+              <div class="presets-row">
+                @for (preset of presetAvatars; track preset.url) {
+                  <button
+                    type="button"
+                    class="preset-btn"
+                    [class.preset-btn--selected]="formAvatarUrl === preset.url"
+                    (click)="onSelectPresetAvatar(preset.url)"
+                  >
+                    <img [src]="preset.url" [alt]="preset.label" class="preset-btn__thumb" />
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="guide-avatar-url">URL de Fotografía / Avatar</label>
+            <input
+              id="guide-avatar-url"
+              type="url"
+              class="form-input"
+              [(ngModel)]="formAvatarUrl"
+              placeholder="https://ejemplo.com/foto-guia.jpg"
+            />
+          </div>
+
+          <!-- Campos Esenciales -->
+          <div class="form-group">
+            <label class="form-label" for="guide-fullname">Nombre Completo *</label>
+            <input
+              id="guide-fullname"
+              type="text"
+              class="form-input"
+              [(ngModel)]="formFullName"
+              placeholder="Ej: Julio Carrillo"
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group form-group--half">
+              <label class="form-label" for="guide-email">Correo Electrónico *</label>
+              <input
+                id="guide-email"
+                type="email"
+                class="form-input"
+                [(ngModel)]="formEmail"
+                placeholder="guia@garroterosapp.com"
+              />
+            </div>
+            <div class="form-group form-group--half">
+              <label class="form-label" for="guide-phone">Teléfono / WhatsApp *</label>
+              <input
+                id="guide-phone"
+                type="tel"
+                class="form-input"
+                [(ngModel)]="formPhone"
+                placeholder="+57 300 123 4567"
+              />
+            </div>
+          </div>
+
+          <!-- Biografía y Perfil Profesional -->
+          <div class="form-group">
+            <label class="form-label" for="guide-bio">Biografía y Especialidad</label>
+            <textarea
+              id="guide-bio"
+              class="form-textarea"
+              rows="3"
+              [(ngModel)]="formBio"
+              placeholder="Especialista en historia comunera, rescate en montaña, patrimonio tabacalero..."
+            ></textarea>
+          </div>
+
+          <!-- Certificaciones -->
+          <div class="form-group">
+            <label class="form-label" for="guide-certs">Certificaciones (separadas por coma)</label>
+            <input
+              id="guide-certs"
+              type="text"
+              class="form-input"
+              [(ngModel)]="formCertificationsRaw"
+              placeholder="SENA Guianza Turística, Primeros Auxilios WFR, Rescate"
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group form-group--half">
+              <label class="form-label" for="guide-exp">Años de Experiencia</label>
+              <input
+                id="guide-exp"
+                type="number"
+                min="0"
+                class="form-input"
+                [(ngModel)]="formExperienceYears"
+              />
+            </div>
+            <div class="form-group form-group--half">
+              <label class="form-label" for="guide-rating">Calificación Inicial (1.0 - 5.0)</label>
+              <input
+                id="guide-rating"
+                type="number"
+                min="1"
+                max="5"
+                step="0.1"
+                class="form-input"
+                [(ngModel)]="formRating"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="guide-status">Estado Operativo</label>
+            <select id="guide-status" class="form-select" [(ngModel)]="formStatus">
+              <option value="ACTIVE">Activo (Disponible en Recorrido)</option>
+              <option value="INACTIVE">Inactivo (En descanso / No asignable)</option>
+            </select>
+          </div>
+
+          <!-- Asignación de Rutas Oficiales -->
+          <div class="form-group">
+            <span class="form-label">Asignar a Rutas Turísticas</span>
+            <div class="routes-picker">
+              @for (route of routes(); track route.id) {
+                <button
+                  type="button"
+                  class="route-chip"
+                  [class.route-chip--selected]="isRouteSelected(route.id)"
+                  (click)="toggleRouteSelection(route.id)"
+                >
+                  <ion-icon
+                    [name]="isRouteSelected(route.id) ? 'checkmark-circle-outline' : 'map-outline'"
+                    class="route-chip__icon"
+                  ></ion-icon>
+                  <span>{{ route.name }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeModal()" [disabled]="isSubmitting()">
+            Cancelar
+          </button>
+          <button type="button" class="btn-save" (click)="onSaveGuide()" [disabled]="isSubmitting()">
+            @if (isSubmitting()) {
+              <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+            } @else {
+              <ion-icon name="checkmark-outline"></ion-icon>
+            }
+            <span>{{ editingGuideId() ? 'Guardar Cambios' : 'Registrar Guía' }}</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Notificación Toast -->
+  <ion-toast
+    [isOpen]="isToastOpen()"
+    [message]="toastMessage() || ''"
+    [duration]="3000"
+    (didDismiss)="isToastOpen.set(false)"
+    position="bottom"
+  ></ion-toast>
+</ion-content>

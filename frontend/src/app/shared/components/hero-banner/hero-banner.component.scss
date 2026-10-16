@@ -1,0 +1,111 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM para el banner curvo Hero (SDD-005-UI-REDESIGN).
+ * [I/O - Reusabilidad]: Clases hero-banner__content, hero-banner__badge, hero-banner__title, hero-banner__decoration.
+ * [Edge Cases - UI]: Capas z-index para elementos decorativos y contraste con texto blanco.
+ */
+
+@use "../../../../theme/variables.scss" as *;
+
+.hero-banner {
+  @include hero-surface;
+
+  min-height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &__content {
+    position: relative;
+    z-index: 2;
+    max-width: 75%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgb(255 255 255 / 20%);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgb(255 255 255 / 35%);
+    padding: 4px 12px;
+    border-radius: var(--app-radius-pill);
+    align-self: flex-start;
+    margin-bottom: 4px;
+  }
+
+  &__badge-icon {
+    font-size: 14px;
+    color: var(--app-text-inverse);
+  }
+
+  &__badge-text {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--app-text-inverse);
+  }
+
+  &__title {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--app-text-inverse);
+    margin: 0;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+  }
+
+  &__subtitle {
+    font-size: 13px;
+    color: rgb(255 255 255 / 85%);
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  &__slot {
+    margin-top: 10px;
+  }
+
+  &__decoration {
+    position: absolute;
+    right: -20px;
+    top: -20px;
+    width: 170px;
+    height: 170px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &__globe-circle {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(255 255 255 / 22%) 0%, rgb(255 255 255 / 5%) 70%, transparent 100%);
+    right: 0;
+    top: 0;
+  }
+
+  &__orbit-line {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border: 2px dashed rgb(255 255 255 / 30%);
+    border-radius: 50%;
+    right: 15px;
+    top: 15px;
+  }
+
+  &__accent-icon {
+    position: absolute;
+    font-size: 38px;
+    color: rgb(255 255 255 / 70%);
+    right: 40px;
+    top: 45px;
+    transform: rotate(45deg);
+  }
+}

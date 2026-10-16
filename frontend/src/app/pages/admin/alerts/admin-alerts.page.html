@@ -1,0 +1,302 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla visual para el panel administrativo de recepcion, geolocalizacion y bitacora de alertas SOS (SDD-003-TELEMETRY-REALTIME & SDD-005-USER-MODULES-AND-ADMIN).
+  [I/O - Reusabilidad]: Lista reactiva de alertas, tarjetas con badges semanticos, modal de resolucion y enlaces a mapas.
+  [Edge Cases - UI]: Control flow nativo @if/@for, estados de carga, responsive optimizado para tablet y movil en campo.
+-->
+
+<ion-header [translucent]="true">
+  <ion-toolbar class="admin-alerts-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Gestión de Alertas SOS</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="fetchAlerts()" title="Refrescar alertas">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="admin-alerts-content">
+  <app-hero-banner
+    title="Centro de Alertas SOS"
+    subtitle="Monitoreo en tiempo real, geolocalización y bitácora de emergencias en ruta"
+    icon="alert-circle-outline"
+  ></app-hero-banner>
+
+  <div class="gt-container">
+    <!-- Píldoras de Filtro por Estado -->
+    <div class="filter-pills" role="tablist">
+      <button
+        type="button"
+        class="filter-pills__btn"
+        [class.filter-pills__btn--active]="selectedFilter() === 'ALL'"
+        (click)="setFilter('ALL')"
+      >
+        Todas ({{ alerts().length }})
+      </button>
+      <button
+        type="button"
+        class="filter-pills__btn filter-pills__btn--pending"
+        [class.filter-pills__btn--active]="selectedFilter() === 'PENDING'"
+        (click)="setFilter('PENDING')"
+      >
+        Pendientes
+      </button>
+      <button
+        type="button"
+        class="filter-pills__btn"
+        [class.filter-pills__btn--active]="selectedFilter() === 'ATTENDED'"
+        (click)="setFilter('ATTENDED')"
+      >
+        En Atención
+      </button>
+      <button
+        type="button"
+        class="filter-pills__btn"
+        [class.filter-pills__btn--active]="selectedFilter() === 'RESOLVED'"
+        (click)="setFilter('RESOLVED')"
+      >
+        Resueltas
+      </button>
+      <button
+        type="button"
+        class="filter-pills__btn"
+        [class.filter-pills__btn--active]="selectedFilter() === 'CANCELLED'"
+        (click)="setFilter('CANCELLED')"
+      >
+        Canceladas
+      </button>
+    </div>
+
+    <!-- Indicador de Carga -->
+    @if (isLoading()) {
+      <div class="alerts-loading">
+        <ion-spinner name="crescent" class="alerts-loading__spinner"></ion-spinner>
+        <p class="alerts-loading__text">Cargando bitácora de emergencias...</p>
+      </div>
+    } @else {
+      <!-- Estado Vacío -->
+      @if (alerts().length === 0) {
+        <div class="alerts-empty">
+          <ion-icon name="checkmark-circle-outline" class="alerts-empty__icon"></ion-icon>
+          <h3 class="alerts-empty__title">Sin alertas en este estado</h3>
+          <p class="alerts-empty__desc">
+            No se registran solicitudes de emergencia activas con el criterio seleccionado.
+          </p>
+        </div>
+      } @else {
+        <!-- Lista de Alertas SOS -->
+        <div class="alerts-list">
+          @for (alert of alerts(); track alert.id) {
+            <div class="alert-card" [class.alert-card--pending]="alert.status === SosAlertStatusEnum.PENDING">
+              <!-- Cabecera de la Tarjeta -->
+              <div class="alert-card__header">
+                <div class="alert-card__user">
+                  <div class="alert-card__avatar">
+                    <ion-icon name="person-circle-outline" class="alert-card__avatar-icon"></ion-icon>
+                  </div>
+                  <div class="alert-card__user-info">
+                    <h3 class="alert-card__user-name">{{ alert.userName || 'Usuario en Ruta' }}</h3>
+                    <span class="alert-card__user-meta">ID: {{ alert.userId | slice:0:8 }}...</span>
+                  </div>
+                </div>
+
+                <span class="alert-badge" [ngClass]="getStatusBadgeClass(alert.status)">
+                  {{ getStatusLabel(alert.status) }}
+                </span>
+              </div>
+
+              <!-- Mensaje de Emergencia -->
+              <div class="alert-card__message-box">
+                <ion-icon name="warning-outline" class="alert-card__message-icon"></ion-icon>
+                <p class="alert-card__message-text">{{ alert.message }}</p>
+              </div>
+
+              <!-- Metadatos de la Alerta -->
+              <div class="alert-card__meta-grid">
+                <div class="alert-meta-item">
+                  <ion-icon name="time-outline" class="alert-meta-item__icon"></ion-icon>
+                  <div class="alert-meta-item__content">
+                    <span class="alert-meta-item__label">Solicitado:</span>
+                    <span class="alert-meta-item__value">{{ formatDateTime(alert.createdAt) }}</span>
+                  </div>
+                </div>
+
+                <div class="alert-meta-item">
+                  <ion-icon name="navigate-outline" class="alert-meta-item__icon"></ion-icon>
+                  <div class="alert-meta-item__content">
+                    <span class="alert-meta-item__label">Georreferencia:</span>
+                    <span class="alert-meta-item__value">{{ alert.latitude | number:'1.4-4' }}, {{ alert.longitude | number:'1.4-4' }}</span>
+                  </div>
+                </div>
+
+                @if (alert.batteryLevel !== null && alert.batteryLevel !== undefined) {
+                  <div class="alert-meta-item">
+                    <ion-icon name="battery-half-outline" class="alert-meta-item__icon"></ion-icon>
+                    <div class="alert-meta-item__content">
+                      <span class="alert-meta-item__label">Batería:</span>
+                      <span class="alert-meta-item__value">{{ alert.batteryLevel }}%</span>
+                    </div>
+                  </div>
+                }
+
+                @if (alert.userPhone) {
+                  <div class="alert-meta-item">
+                    <ion-icon name="call-outline" class="alert-meta-item__icon"></ion-icon>
+                    <div class="alert-meta-item__content">
+                      <span class="alert-meta-item__label">Contacto:</span>
+                      <a [href]="'tel:' + alert.userPhone" class="alert-meta-item__link">{{ alert.userPhone }}</a>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Registro de Suceso / Historial de Resolución -->
+              @if (alert.resolutionNote) {
+                <div class="alert-card__resolution-log">
+                  <div class="alert-card__resolution-header">
+                    <ion-icon name="document-text-outline" class="alert-card__resolution-icon"></ion-icon>
+                    <span class="alert-card__resolution-title">Registro del Suceso / Bitácora:</span>
+                  </div>
+                  <p class="alert-card__resolution-text">{{ alert.resolutionNote }}</p>
+                  @if (alert.resolvedByName || alert.resolvedAt) {
+                    <span class="alert-card__resolution-author">
+                      Atendido por: <strong>{{ alert.resolvedByName || 'Guía Autorizado' }}</strong>
+                      @if (alert.resolvedAt) {
+                        — {{ formatDateTime(alert.resolvedAt) }}
+                      }
+                    </span>
+                  }
+                </div>
+              }
+
+              <!-- Botones de Acción -->
+              <div class="alert-card__actions">
+                <ion-button
+                  fill="outline"
+                  size="small"
+                  class="alert-card__btn-map"
+                  (click)="openExternalMap(alert)"
+                  title="Abrir ubicación en Google Maps"
+                >
+                  <ion-icon name="map-outline" slot="start"></ion-icon>
+                  <span>Abrir en Mapa</span>
+                </ion-button>
+
+                <ion-button
+                  fill="solid"
+                  size="small"
+                  class="alert-card__btn-manage"
+                  (click)="openManageModal(alert)"
+                >
+                  <ion-icon name="create-outline" slot="start"></ion-icon>
+                  <span>{{ alert.status === SosAlertStatusEnum.PENDING ? 'Atender / Cancelar' : 'Actualizar Nota' }}</span>
+                </ion-button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Modal Interactivo para Marcar Notificacion y Registrar Nota de Suceso -->
+  <ion-modal [isOpen]="isManageModalOpen()" (didDismiss)="closeManageModal()" class="manage-alert-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar class="modal-toolbar">
+          <ion-title>Gestión de Alerta SOS</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeManageModal()">
+              <ion-icon name="close-circle-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="modal-content">
+        @if (activeAlert(); as alert) {
+          <div class="modal-body">
+            <div class="modal-summary">
+              <span class="modal-summary__label">Incidente de:</span>
+              <span class="modal-summary__name">{{ alert.userName }}</span>
+              <span class="modal-summary__time">{{ formatDateTime(alert.createdAt) }}</span>
+            </div>
+
+            <!-- Seleccion de Estado -->
+            <label class="modal-label">Estado de la Notificación:</label>
+            <ion-radio-group [(ngModel)]="selectedNewStatus" class="modal-status-group">
+              <ion-item lines="none" class="modal-radio-item">
+                <ion-radio [value]="SosAlertStatusEnum.ATTENDED" slot="start" color="warning"></ion-radio>
+                <ion-label>
+                  <h3>En Atención</h3>
+                  <p>El equipo o guía está en camino o en contacto con el usuario.</p>
+                </ion-label>
+              </ion-item>
+
+              <ion-item lines="none" class="modal-radio-item">
+                <ion-radio [value]="SosAlertStatusEnum.RESOLVED" slot="start" color="success"></ion-radio>
+                <ion-label>
+                  <h3>Resuelta</h3>
+                  <p>Asistencia brindada y situación controlada con éxito.</p>
+                </ion-label>
+              </ion-item>
+
+              <ion-item lines="none" class="modal-radio-item">
+                <ion-radio [value]="SosAlertStatusEnum.CANCELLED" slot="start" color="medium"></ion-radio>
+                <ion-label>
+                  <h3>Cancelar / Falsa Alarma</h3>
+                  <p>Disparo involuntario, sin novedad o cancelada por el usuario.</p>
+                </ion-label>
+              </ion-item>
+            </ion-radio-group>
+
+            <!-- Nota de Resolucion / Bitacora del Suceso -->
+            <label class="modal-label">Nota del Suceso / Registro de Incidencia (* Obligatorio):</label>
+            <div class="modal-textarea-container">
+              <ion-textarea
+                placeholder="Describa el motivo, estado del senderista, acciones tomadas y resolución del suceso..."
+                [(ngModel)]="resolutionNote"
+                [autoGrow]="true"
+                rows="4"
+                class="modal-textarea"
+              ></ion-textarea>
+            </div>
+
+            <div class="modal-actions">
+              <ion-button fill="clear" color="medium" (click)="closeManageModal()">
+                Volver
+              </ion-button>
+              <ion-button
+                expand="block"
+                class="modal-btn-save"
+                [disabled]="isSavingNote() || !resolutionNote() || resolutionNote().trim().length < 3"
+                (click)="submitStatusUpdate()"
+              >
+                @if (isSavingNote()) {
+                  <ion-spinner name="crescent" slot="start"></ion-spinner>
+                  <span>Guardando...</span>
+                } @else {
+                  <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                  <span>Guardar Registro de Suceso</span>
+                }
+              </ion-button>
+            </div>
+          </div>
+        }
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Toast Notificaciones -->
+  <ion-toast
+    [isOpen]="showToast()"
+    [message]="toastMessage()"
+    [duration]="3500"
+    [color]="toastColor()"
+    (didDismiss)="showToast.set(false)"
+  ></ion-toast>
+</ion-content>

@@ -1,0 +1,45 @@
+{
+  "name": "flockapp",
+  "version": "0.2.2",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.68.0",
+    "@typescript-eslint/parser": "^8.68.0",
+    "better-sqlite3": "^13.0.3",
+    "commit-and-tag-version": "^12.5.0",
+    "eslint": "^10.9.1",
+    "eslint-plugin-jsdoc": "^63.3.3",
+    "eslint-plugin-sonarjs": "^4.2.0",
+    "postcss-scss": "^4.0.9",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard": "^40.0.0",
+    "stylelint-config-standard-scss": "^17.0.0"
+  },
+  "scripts": {
+    "lint:ts": "eslint frontend backend shared --format json -o docs/audits/eslint-report.json",
+    "lint:css": "stylelint \"frontend/**/*.scss\" --formatter json -o docs/audits/stylelint-report.json",
+    "lint:kt": "npx -y ktlint-cli \"mobile-plugins/**/*.kt\" --reporter=json > docs/audits/ktlint-report.json || exit 0",
+    "audit:all": "npm run lint:ts && npm run lint:css",
+    "audit:rules": "node scripts/audit-rules.mjs",
+    "test": "npm run test --prefix backend && npm run test --prefix frontend -- --watch=false",
+    "build:android": "npm run build --prefix frontend && npx --prefix frontend cap sync android",
+    "build:apk": "npm run build:android && cmd.exe /c \"cd frontend\\android && gradlew.bat assembleRelease\"",
+    "audit:split": "node scripts/split-audit.mjs",
+    "brain:sync": "node scripts/sync-brain.mjs",
+    "brain:ask": "node scripts/brain-ask.mjs",
+    "brain:adr": "node scripts/brain-adr.mjs",
+    "brain:run": "node scripts/run-brain.mjs",
+    "db:mirror": "node scripts/schema-mirror.mjs",
+    "precommit": "npm run brain:sync && npm run db:mirror && npm run audit:rules && (npm run audit:all || (npm run audit:split && exit 1))",
+    "release": "commit-and-tag-version"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run precommit"
+    }
+  },
+  "dependencies": {
+    "@nestjs/swagger": "^12.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1"
+  }
+}

@@ -1,0 +1,98 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla visual para inicio de sesion estricto de Guianza Piedecuesta.
+  [I/O - Reusabilidad]: Formulario reactivo loginForm, botones con estados disabled dinamicos.
+  [Edge Cases - UI]: Control flow nativo @if, responsive centrado verticalmente para movil y tablet.
+-->
+<ion-content class="login-content" [fullscreen]="true">
+  <div class="login-header-backdrop" aria-hidden="true"></div>
+  <div class="login-wrapper">
+    <div class="login-header">
+      <div class="login-header__icon-wrapper">
+        <ion-icon name="trail-sign-outline" class="login-header__icon"></ion-icon>
+      </div>
+      <h1 class="login-header__title">Garroteros App</h1>
+      <p class="login-header__subtitle">Ruta Turística y Guianza Piedecuesta</p>
+    </div>
+
+    <ion-card class="login-card">
+      <ion-card-header>
+        <ion-card-title class="login-card__title">Iniciar Sesión</ion-card-title>
+        <ion-card-subtitle class="login-card__subtitle">
+          Ingrese con sus credenciales autorizadas
+        </ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+          <div class="login-form__field">
+            <ion-item lines="none" class="login-form__item">
+              <ion-icon name="mail-outline" slot="start" class="login-form__icon"></ion-icon>
+              <ion-input
+                type="email"
+                placeholder="correo@ejemplo.com"
+                label="Correo Electrónico"
+                labelPlacement="floating"
+                formControlName="email"
+                autocomplete="email"
+                required
+              ></ion-input>
+            </ion-item>
+            @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+              <div class="login-form__error">
+                Ingrese un correo electrónico válido.
+              </div>
+            }
+          </div>
+
+          <div class="login-form__field">
+            <ion-item lines="none" class="login-form__item">
+              <ion-icon name="lock-closed-outline" slot="start" class="login-form__icon"></ion-icon>
+              <ion-input
+                type="password"
+                placeholder="Mínimo 6 caracteres"
+                label="Contraseña"
+                labelPlacement="floating"
+                formControlName="password"
+                autocomplete="current-password"
+                required
+              ></ion-input>
+            </ion-item>
+            @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+              <div class="login-form__error">
+                La contraseña debe tener al menos 6 caracteres.
+              </div>
+            }
+          </div>
+
+          @if (errorMessage()) {
+            <div class="login-form__banner-error">
+              {{ errorMessage() }}
+            </div>
+          }
+
+          <ion-button
+            expand="block"
+            type="submit"
+            class="login-form__submit-btn"
+            [disabled]="isLoading()"
+          >
+            @if (isLoading()) {
+              <ion-spinner name="crescent" slot="start"></ion-spinner>
+              <span>Verificando...</span>
+            } @else {
+              <ion-icon name="log-in-outline" slot="start"></ion-icon>
+              <span>Ingresar al Sistema</span>
+            }
+          </ion-button>
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+    <div class="login-footer">
+      <p class="login-footer__text">
+        Acceso restringido a guías y personal autorizado.
+      </p>
+    </div>
+  </div>
+</ion-content>

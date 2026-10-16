@@ -1,0 +1,191 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM y responsive para la pantalla de inicio de sesion con el diseno de viajes (SDD-005-UI-REDESIGN).
+ * [I/O - Reusabilidad]: Clases BEM login-wrapper, login-card, login-form con variables de theme/variables.scss.
+ * [Edge Cases - UI]: Adaptacion a pantallas de 320px hasta desktop, espaciados seguros para notches moviles.
+ */
+
+@use "../../../../theme/variables.scss" as *;
+
+.login-content {
+  --background: var(--app-bg-canvas, #F0F4FE);
+}
+
+.login-header-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 250px;
+  background: linear-gradient(180deg, var(--app-primary, #3B5BDB) 0%, var(--app-primary-dark, #2B44B3) 100%);
+  border-radius: 0 0 28px 28px;
+  box-shadow: 0 6px 20px rgb(59 91 219 / 18%);
+  z-index: 1;
+}
+
+.login-wrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+  padding: 32px 16px;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 24px;
+
+  &__icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 22%);
+    border: 1px solid rgb(255 255 255 / 40%);
+    box-shadow: 0 8px 16px rgb(43 68 179 / 20%);
+    margin-bottom: 12px;
+  }
+
+  &__icon {
+    font-size: 38px;
+    color: var(--app-text-inverse);
+  }
+
+  &__title {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--app-text-inverse);
+    margin: 0 0 4px;
+    letter-spacing: -0.5px;
+  }
+
+  &__subtitle {
+    font-size: 14px;
+    color: rgb(255 255 255 / 90%);
+    margin: 0;
+    font-weight: 500;
+  }
+}
+
+.login-card {
+  width: 100%;
+  border-radius: var(--app-radius-xl);
+  background: var(--app-card);
+  border: 1px solid rgb(59 91 219 / 8%);
+  box-shadow: var(--app-shadow-float);
+  margin: 0;
+  padding: 12px 6px;
+
+  &__title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--app-text-main);
+  }
+
+  &__subtitle {
+    font-size: 13px;
+    color: var(--app-text-secondary);
+    margin-top: 4px;
+  }
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__item {
+    --background: var(--app-canvas);
+    --border-color: var(--color-border);
+    --border-radius: var(--app-radius-md);
+    --highlight-color-focused: var(--app-primary);
+    --color: var(--app-text-main);
+    --padding-start: 14px;
+    --inner-padding-end: 14px;
+
+    border-radius: var(--app-radius-md);
+    border: 1px solid var(--color-border);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:focus-within {
+      border-color: var(--app-primary);
+      box-shadow: 0 0 0 3px rgb(59 91 219 / 12%);
+    }
+
+    ion-input::part(native) {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--app-text-main);
+
+      &:-webkit-autofill,
+      &:-webkit-autofill:hover,
+      &:-webkit-autofill:focus,
+      &:-webkit-autofill:active {
+        box-shadow: 0 0 0 1000px var(--app-canvas, #f8fafd) inset !important;
+        -webkit-text-fill-color: var(--app-text-main, #1e293b) !important;
+        caret-color: var(--app-primary, #3b5bdb);
+        transition: background-color 500000s ease-in-out 0s;
+      }
+    }
+  }
+
+  &__icon {
+    font-size: 20px;
+    color: var(--app-primary);
+    margin-inline-end: 12px;
+  }
+
+  &__error {
+    font-size: 12px;
+    color: var(--app-danger);
+    margin-top: 6px;
+    padding-left: 12px;
+    font-weight: 500;
+  }
+
+  &__banner-error {
+    background: var(--app-danger-tint);
+    border: 1px solid rgb(250 82 82 / 30%);
+    color: #c92a2a;
+    padding: 10px 14px;
+    border-radius: var(--app-radius-md);
+    font-size: 13px;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  &__submit-btn {
+    --background: var(--app-primary);
+    --border-radius: var(--app-radius-md);
+    --box-shadow: var(--app-shadow-primary);
+
+    font-weight: 700;
+    font-size: 15px;
+    height: 48px;
+    margin-top: 8px;
+  }
+}
+
+.login-footer {
+  margin-top: 24px;
+  text-align: center;
+
+  &__text {
+    font-size: 12px;
+    color: var(--app-text-secondary);
+    margin: 0;
+  }
+}

@@ -1,0 +1,96 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM para el chip de metrica con soporte de variantes (SDD-005-UI-REDESIGN).
+ * [I/O - Reusabilidad]: Clases stat-badge, stat-badge__icon-wrap, stat-badge__value, stat-badge__label.
+ * [Edge Cases - UI]: Variantes de color (--primary, --warning, --success).
+ */
+
+@use "../../../../theme/variables.scss" as *;
+
+.stat-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--app-card-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--app-radius-md);
+  padding: 10px 14px;
+  transition: all 0.2s ease;
+
+  &__icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--app-primary-tint);
+    color: var(--app-primary);
+    flex-shrink: 0;
+  }
+
+  &__icon {
+    font-size: 18px;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__value {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--app-text-main);
+    line-height: 1.2;
+  }
+
+  &__label {
+    font-size: 11px;
+    color: var(--app-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+  }
+
+  &--primary {
+    background: var(--app-primary-tint);
+    border-color: rgb(59 91 219 / 20%);
+
+    .stat-badge__icon-wrap {
+      background: var(--app-card);
+    }
+
+    .stat-badge__value {
+      color: var(--app-primary);
+    }
+  }
+
+  &--warning {
+    background: var(--app-warning-tint);
+    border-color: rgb(245 159 0 / 20%);
+
+    .stat-badge__icon-wrap {
+      background: var(--app-card);
+      color: var(--app-warning);
+    }
+
+    .stat-badge__value {
+      color: #b45309;
+    }
+  }
+
+  &--success {
+    background: var(--app-success-tint);
+    border-color: rgb(18 184 134 / 20%);
+
+    .stat-badge__icon-wrap {
+      background: var(--app-card);
+      color: var(--app-success);
+    }
+
+    .stat-badge__value {
+      color: var(--app-success);
+    }
+  }
+}

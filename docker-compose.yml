@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: guianza_postgres
+    restart: always
+    env_file:
+      - ./backend/.env
+    environment:
+      POSTGRES_USER: ${DB_USER:-tour_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-guianza_turistica_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata_guianza:/var/lib/postgresql/data
+      - ./backend/src/database/init-postgis.sql:/docker-entrypoint-initdb.d/init-postgis.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tour_admin} -d ${DB_NAME:-guianza_turistica_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: guianza_redis
+    restart: always
+    env_file:
+      - ./backend/.env
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata_guianza:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata_guianza:
+    driver: local
+  redisdata_guianza:
+    driver: local

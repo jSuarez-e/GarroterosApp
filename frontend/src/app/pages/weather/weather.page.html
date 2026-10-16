@@ -1,0 +1,109 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla de la vista de clima en tiempo real y pronostico horario para Piedecuesta (SDD-004-MAP-MULTIMEDIA-WEATHER).
+  [I/O - Reusabilidad]: Tarjeta hero con metricas atmosfericas, carrusel horizontal horario y tarjetas de recomendacion.
+  [Edge Cases - UI]: Control flow nativo @if/@for con track h.time, pull-to-refresh para actualizar condiciones en vivo.
+-->
+<ion-header [translucent]="true">
+  <ion-toolbar class="weather-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Clima en la Ruta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="weather-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="weather-wrapper">
+    @if (isLoading()) {
+      <div class="weather-loading">
+        <ion-spinner name="crescent" class="weather-loading__spinner"></ion-spinner>
+        <p class="weather-loading__text">Obteniendo datos meteorológicos en vivo...</p>
+      </div>
+    } @else {
+      @if (weather(); as data) {
+        <!-- Tarjeta Hero del Clima Actual -->
+        <div class="weather-hero">
+          <div class="weather-hero__top">
+            <div class="weather-hero__location">
+              <span class="weather-hero__city">{{ data.municipality }}</span>
+              <span class="weather-hero__status">En Tiempo Real (Open-Meteo)</span>
+            </div>
+            <div class="weather-hero__icon-circle">
+              <ion-icon [name]="data.current.weatherIcon" class="weather-hero__main-icon"></ion-icon>
+            </div>
+          </div>
+
+          <div class="weather-hero__temperature-box">
+            <span class="weather-hero__temp-value">{{ data.current.temperature }}°</span>
+            <div class="weather-hero__condition">
+              <span class="weather-hero__condition-text">{{ data.current.weatherDescription }}</span>
+              <span class="weather-hero__feels-like">
+                Probabilidad de lluvia: {{ data.current.precipitationProbability }}%
+              </span>
+            </div>
+          </div>
+
+          <div class="weather-hero__metrics-grid">
+            <div class="weather-metric">
+              <ion-icon name="umbrella-outline" class="weather-metric__icon"></ion-icon>
+              <span class="weather-metric__val">{{ data.current.precipitationProbability }}%</span>
+              <span class="weather-metric__label">Lluvia</span>
+            </div>
+
+            <div class="weather-metric">
+              <ion-icon name="water-outline" class="weather-metric__icon"></ion-icon>
+              <span class="weather-metric__val">{{ data.current.relativeHumidity }}%</span>
+              <span class="weather-metric__label">Humedad</span>
+            </div>
+
+            <div class="weather-metric">
+              <ion-icon name="speedometer-outline" class="weather-metric__icon"></ion-icon>
+              <span class="weather-metric__val">{{ data.current.windSpeed }} km/h</span>
+              <span class="weather-metric__label">Viento</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seccion: Pronostico por Horas de la Jornada -->
+        <div class="hourly-section">
+          <h2 class="hourly-section__title">Pronóstico para la Jornada</h2>
+          <div class="hourly-scroller">
+            @for (h of data.hourly; track h.time) {
+              <div class="hourly-card">
+                <span class="hourly-card__time">{{ h.time }}</span>
+                <ion-icon [name]="h.weatherIcon" class="hourly-card__icon"></ion-icon>
+                <span class="hourly-card__temp">{{ h.temperature }}°C</span>
+                <div class="hourly-card__rain">
+                  <ion-icon name="umbrella-outline" class="hourly-card__rain-icon"></ion-icon>
+                  <span>{{ h.precipitationProbability }}%</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Seccion: Recomendaciones para el Recorrido Peatonal -->
+        <div class="recommendations-card">
+          <div class="recommendations-card__header">
+            <ion-icon name="shield-checkmark-outline" class="recommendations-card__icon"></ion-icon>
+            <h3 class="recommendations-card__title">Recomendaciones para el Recorrido</h3>
+          </div>
+
+          <ul class="recommendations-list">
+            @for (rec of data.recommendations; track rec) {
+              <li class="recommendations-list__item">
+                <span class="recommendations-list__bullet"></span>
+                <span class="recommendations-list__text">{{ rec }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    }
+  </div>
+</ion-content>

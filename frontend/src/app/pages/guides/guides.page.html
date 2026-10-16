@@ -1,0 +1,101 @@
+<!-- frontend/src/app/pages/guides/guides.page.html -->
+<ion-header class="ion-no-border">
+  <ion-toolbar class="guides-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Guías del Recorrido</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="guides-content" [fullscreen]="true">
+  <!-- Hero Banner Reutilizable -->
+  <app-hero-banner
+    title="Guías Oficiales"
+    subtitle="Conoce al equipo de historiadores, ambientalistas y socorristas que lideran la Ruta de los Garroteros."
+    badgeText="Personal Certificado"
+    badgeIcon="people-outline"
+    badgeVariant="default"
+  ></app-hero-banner>
+
+  <div class="guides-wrapper">
+    <!-- Barra de Búsqueda -->
+    <div class="search-box">
+      <ion-searchbar
+        placeholder="Buscar guía por nombre..."
+        [debounce]="300"
+        (ionInput)="onSearchChange($event)"
+        class="guides-searchbar"
+      ></ion-searchbar>
+    </div>
+
+    @if (isLoading()) {
+      <div class="guides-loading">
+        <ion-spinner name="crescent" class="guides-loading__spinner"></ion-spinner>
+        <span class="guides-loading__text">Consultando directorio de guías...</span>
+      </div>
+    } @else if (guides().length === 0) {
+      <div class="empty-state">
+        <ion-icon name="people-outline" class="empty-state__icon"></ion-icon>
+        <span class="empty-state__title">No se encontraron guías</span>
+        <span class="empty-state__text">Intenta con otro término de búsqueda.</span>
+      </div>
+    } @else {
+      <!-- Listado de Tarjetas de Guías -->
+      <div class="guides-grid">
+        @for (guide of guides(); track guide.id) {
+          <div class="guide-card">
+            <!-- Cabecera de la Tarjeta con Avatar y Datos Principales -->
+            <div class="guide-card__header">
+              <img
+                [src]="guide.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'"
+                [alt]="guide.fullName"
+                class="guide-card__avatar"
+              />
+              <div class="guide-card__identity">
+                <span class="guide-card__name">{{ guide.fullName }}</span>
+                <span class="guide-card__tour">{{ guide.assignedTour || 'Ruta Histórica de los Garroteros' }}</span>
+                <div class="guide-card__metrics">
+                  <span class="metric-pill metric-pill--rating">
+                    <ion-icon name="star" class="metric-pill__icon"></ion-icon>
+                    {{ guide.rating }}
+                  </span>
+                  <span class="metric-pill metric-pill--experience">
+                    <ion-icon name="time-outline" class="metric-pill__icon"></ion-icon>
+                    {{ guide.experienceYears }} años exp.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Biografía -->
+            <p class="guide-card__bio">{{ guide.bio }}</p>
+
+            <!-- Certificaciones -->
+            @if (guide.certifications && guide.certifications.length > 0) {
+              <div class="guide-card__certs">
+                @for (cert of guide.certifications; track cert) {
+                  <span class="cert-badge">
+                    <ion-icon name="ribbon-outline" class="cert-badge__icon"></ion-icon>
+                    {{ cert }}
+                  </span>
+                }
+              </div>
+            }
+
+            <!-- Botón de Contacto y Llamada Directa -->
+            <div class="guide-card__actions">
+              <a
+                class="btn-call"
+                [href]="getCallUri(guide.phone)"
+              >
+                <ion-icon name="call-outline" class="btn-call__icon"></ion-icon>
+                Llamar al Guía
+              </a>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</ion-content>

@@ -1,0 +1,120 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos globales de la aplicacion y mapeo con tokens de diseno de viajes/guianza (SDD-005-UI-REDESIGN).
+ * [I/O - Reusabilidad]: Importa theme/variables.scss, define clases BEM globales (.gt-container, .gt-section-title, etc.) y variables Ionic.
+ * [Edge Cases - UI]: Soporte para scroll suave, safe-area-inset en moviles Android/iOS y componentes Ionic v9+.
+ */
+
+/* Importacion del sistema de variables y mixins */
+@use "./theme/variables.scss" as *;
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/* MapLibre GL Vector Map Styles */
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+/* ==========================================================================
+   CONFIGURACION GLOBAL DE IONIC (PALETA COBALTO VIAJES / GUIANZA)
+   ========================================================================== */
+:root {
+  --ion-color-primary: #3b5bdb;
+  --ion-color-primary-rgb: 59, 91, 219;
+  --ion-color-primary-contrast: #fff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #2b44b3;
+  --ion-color-primary-tint: #4c6ef5;
+  --ion-background-color: #f0f4fe;
+  --ion-background-color-rgb: 240, 244, 254;
+  --ion-text-color: #1e293b;
+  --ion-text-color-rgb: 30, 41, 59;
+  --ion-card-background: #fff;
+  --ion-font-family: -apple-system, blinkmacsystemfont, "Segoe UI", roboto, "Helvetica Neue", arial, sans-serif;
+  --ion-safe-area-top: env(safe-area-inset-top, 0);
+}
+
+/* Soporte para que la cabecera no se solape con la barra de estado (StatusBar) */
+ion-header {
+  padding-top: var(--ion-safe-area-top, env(safe-area-inset-top, 0));
+  background-color: var(--ion-color-primary, #3b5bdb);
+}
+
+/* ==========================================================================
+   UTILIDADES BEM GLOBALES (GT = GARROTEROS TOURISM)
+   ========================================================================== */
+
+.gt-container {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 16px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.gt-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0 4px;
+
+  &__title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--app-text-main);
+    letter-spacing: -0.3px;
+    margin: 0;
+  }
+
+  &__action {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--app-primary);
+    text-decoration: none;
+    cursor: pointer;
+  }
+}
+
+.gt-grid-two-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.gt-grid-three-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+/* ==========================================================================
+   SOPORTE Y PRESENTACION VISUAL LIMPIA PARA AUTOFILL Y SELECCION EN IONIC
+   ========================================================================== */
+ion-input::part(native):-webkit-autofill,
+ion-input::part(native):-webkit-autofill:hover,
+ion-input::part(native):-webkit-autofill:focus,
+ion-input::part(native):-webkit-autofill:active {
+  box-shadow: 0 0 0 1000px var(--app-canvas, #f8fafd) inset !important;
+  -webkit-text-fill-color: var(--app-text-main, #1e293b) !important;
+  caret-color: var(--app-primary, #3b5bdb) !important;
+  transition: background-color 500000s ease-in-out 0s;
+}
+
+ion-input::part(native)::selection {
+  background-color: rgb(59 91 219 / 25%);
+  color: var(--app-primary-dark, #2b44b3);
+}
+

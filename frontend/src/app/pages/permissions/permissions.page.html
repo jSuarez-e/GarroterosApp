@@ -1,0 +1,155 @@
+<!-- frontend/src/app/pages/permissions/permissions.page.html -->
+<ion-header class="ion-no-border">
+  <ion-toolbar class="permissions-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Permisos del Dispositivo</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="refreshDiagnostics()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="permissions-content" [fullscreen]="true">
+  <!-- Hero Banner Reutilizable -->
+  <app-hero-banner
+    title="Diagnóstico de Sensores"
+    subtitle="Verifica que tu dispositivo cuente con los permisos necesarios para el rastreo satelital y canal de auxilio SOS."
+    badgeText="Diagnóstico del Sistema"
+    badgeIcon="shield-checkmark-outline"
+    badgeVariant="accent"
+  ></app-hero-banner>
+
+  <div class="permissions-wrapper">
+    <!-- Permiso 1: Ubicación GPS -->
+    <app-info-card
+      title="Ubicación GPS Satelital"
+      subtitle="Requerido para ubicarte en el mapa interactivo y canal SOS"
+      iconName="location-outline"
+      variant="elevated"
+    >
+      <div class="permission-item">
+        <div class="permission-item__status">
+          <span class="permission-badge" [ngClass]="getStatusClass(gpsStatus())">
+            @if (gpsStatus() === 'granted') {
+              <ion-icon name="checkmark-circle" class="permission-badge__icon"></ion-icon>
+            } @else if (gpsStatus() === 'denied') {
+              <ion-icon name="close-circle" class="permission-badge__icon"></ion-icon>
+            } @else {
+              <ion-icon name="alert-circle" class="permission-badge__icon"></ion-icon>
+            }
+            {{ getStatusLabel(gpsStatus()) }}
+          </span>
+          <span class="permission-item__desc">
+            Permite a los guías saber tu distancia respecto al grupo y desplegar el trazado del camino.
+          </span>
+        </div>
+
+        <div class="permission-item__action">
+          <ion-button
+            class="btn-permit"
+            size="small"
+            [disabled]="gpsStatus() === 'granted'"
+            (click)="onRequestGps()"
+          >
+            @if (gpsStatus() === 'granted') {
+              Activo
+            } @else {
+              Solicitar Acceso GPS
+            }
+          </ion-button>
+        </div>
+      </div>
+    </app-info-card>
+
+    <!-- Permiso 2: Notificaciones Push -->
+    <app-info-card
+      title="Notificaciones y Alertas"
+      subtitle="Requerido para alertas meteorológicas y avisos de emergencia"
+      iconName="notifications-outline"
+      variant="elevated"
+    >
+      <div class="permission-item">
+        <div class="permission-item__status">
+          <span class="permission-badge" [ngClass]="getStatusClass(notificationStatus())">
+            @if (notificationStatus() === 'granted') {
+              <ion-icon name="checkmark-circle" class="permission-badge__icon"></ion-icon>
+            } @else if (notificationStatus() === 'denied') {
+              <ion-icon name="close-circle" class="permission-badge__icon"></ion-icon>
+            } @else {
+              <ion-icon name="alert-circle" class="permission-badge__icon"></ion-icon>
+            }
+            {{ getStatusLabel(notificationStatus()) }}
+          </span>
+          <span class="permission-item__desc">
+            Recibe avisos prioritarios de los guías sobre desvíos climáticos o paradas obligatorias.
+          </span>
+        </div>
+
+        <div class="permission-item__action">
+          <ion-button
+            class="btn-permit"
+            size="small"
+            [disabled]="notificationStatus() === 'granted'"
+            (click)="onRequestNotifications()"
+          >
+            @if (notificationStatus() === 'granted') {
+              Activo
+            } @else {
+              Permitir Alertas
+            }
+          </ion-button>
+        </div>
+      </div>
+    </app-info-card>
+
+    <!-- Permiso 3: Conectividad y Red -->
+    <app-info-card
+      title="Acceso a Red y Conectividad"
+      subtitle="Sincronización en tiempo real vía WebSockets"
+      iconName="wifiOutline"
+      variant="elevated"
+    >
+      <div class="permission-item">
+        <div class="permission-item__status">
+          <span class="permission-badge" [ngClass]="getStatusClass(networkStatus())">
+            @if (networkStatus() === 'online') {
+              <ion-icon name="checkmark-circle" class="permission-badge__icon"></ion-icon>
+            } @else {
+              <ion-icon name="close-circle" class="permission-badge__icon"></ion-icon>
+            }
+            {{ getStatusLabel(networkStatus()) }}
+          </span>
+          <span class="permission-item__desc">
+            @if (networkStatus() === 'online') {
+              Conexión activa con el servidor central de Piedecuesta.
+            } @else {
+              Dispositivo en modo sin conexión. La telemetría se almacenará localmente.
+            }
+          </span>
+        </div>
+      </div>
+    </app-info-card>
+
+    <!-- Caja de recomendación -->
+    <div class="permission-tip">
+      <ion-icon name="shield-checkmark-outline" class="permission-tip__icon"></ion-icon>
+      <div class="permission-tip__body">
+        <span class="permission-tip__title">Consejo de Batería en Ruta</span>
+        <p class="permission-tip__text">
+          La geolocalización continua optimiza la seguridad del grupo. Recomendamos llevar la batería cargada al menos al 80% antes de iniciar la caminata.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <ion-toast
+    [isOpen]="showToast()"
+    [message]="toastMessage()"
+    [duration]="3000"
+    (didDismiss)="showToast.set(false)"
+  ></ion-toast>
+</ion-content>

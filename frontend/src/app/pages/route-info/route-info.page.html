@@ -1,0 +1,113 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla del catalogo secuencial de la ruta con fotos, textos y reproductor de audio integrado (SDD-004-MAP-MULTIMEDIA-WEATHER).
+  [I/O - Reusabilidad]: Listado de tarjetas de POIs ordenados por orderIndex, botones de audio play/pause sincronizados.
+  [Edge Cases - UI]: Control flow nativo @if/@for con track wp.id, barra de progreso reactiva a AudioPlayerService.
+-->
+<ion-header [translucent]="true">
+  <ion-toolbar class="route-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Información de Ruta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="route-content">
+  <!-- Banner Curvo Hero de la Ruta -->
+  <app-hero-banner
+    [title]="activeRoute()?.name || 'Recorrido Turístico'"
+    [subtitle]="activeRoute()?.description || 'Explora los hitos patrimoniales y culturales del recorrido oficial.'"
+    badgeText="Itinerario Cultural Oficial"
+    iconName="map-outline"
+  ></app-hero-banner>
+
+  <div class="route-wrapper">
+
+    <!-- Indicador de Carga -->
+    @if (isLoading()) {
+      <div class="route-loading">
+        <ion-spinner name="crescent" class="route-loading__spinner"></ion-spinner>
+        <p class="route-loading__text">Cargando puntos del recorrido...</p>
+      </div>
+    } @else if (waypoints().length === 0) {
+      <div class="route-empty">
+        <div class="route-empty__icon-bubble">
+          <ion-icon name="information-circle-outline"></ion-icon>
+        </div>
+        <h3 class="route-empty__title">Información no disponible</h3>
+        <p class="route-empty__message">
+          Aún no se ha cargado información ni puntos de interés para esta ruta.
+        </p>
+      </div>
+    } @else {
+      <!-- Listado Secuencial de Waypoints -->
+      <div class="waypoints-list">
+        @for (wp of waypoints(); track wp.id) {
+          <ion-card class="waypoint-card">
+            <!-- Imagen Destacada del Hito -->
+            @if (wp.photoUrls && wp.photoUrls.length > 0) {
+              <div class="waypoint-card__image-box">
+                <img [src]="wp.photoUrls[0]" [alt]="wp.title" class="waypoint-card__image" />
+                <div class="waypoint-card__order-badge">
+                  #{{ wp.orderIndex }}
+                </div>
+              </div>
+            }
+
+            <ion-card-header class="waypoint-card__header">
+              <div class="waypoint-card__meta">
+                <ion-badge class="waypoint-card__badge">Hito #{{ wp.orderIndex }}</ion-badge>
+                <div class="waypoint-card__location">
+                  <ion-icon name="location-outline" class="waypoint-card__location-icon"></ion-icon>
+                  <span>Piedecuesta</span>
+                </div>
+              </div>
+              <ion-card-title class="waypoint-card__title">{{ wp.title }}</ion-card-title>
+            </ion-card-header>
+
+            <ion-card-content class="waypoint-card__content">
+              <p class="waypoint-card__description">{{ wp.description }}</p>
+
+              <!-- Reproductor de Audio Integrado por Hito -->
+              @if (wp.audioUrl) {
+                <div class="audio-strip">
+                  <div class="audio-strip__info">
+                    <ion-icon name="volume-high-outline" class="audio-strip__icon"></ion-icon>
+                    <span class="audio-strip__label">Audio Guía del Hito</span>
+                  </div>
+
+                  <ion-button
+                    fill="solid"
+                    class="audio-strip__play-btn"
+                    [class.audio-strip__play-btn--active]="audioPlayer.currentUrl() === wp.audioUrl && audioPlayer.isPlaying()"
+                    (click)="toggleAudio(wp.audioUrl)"
+                  >
+                    @if (audioPlayer.currentUrl() === wp.audioUrl && audioPlayer.isPlaying()) {
+                      <ion-icon name="pause-outline" slot="icon-only"></ion-icon>
+                    } @else {
+                      <ion-icon name="play-outline" slot="icon-only"></ion-icon>
+                    }
+                  </ion-button>
+                </div>
+
+                @if (audioPlayer.currentUrl() === wp.audioUrl) {
+                  <div class="audio-strip__progress">
+                    <ion-progress-bar
+                      [value]="audioPlayer.progress()"
+                      class="audio-strip__bar"
+                    ></ion-progress-bar>
+                    <div class="audio-strip__time">
+                      <span>{{ formatSeconds(audioPlayer.currentTime()) }}</span>
+                      <span>{{ formatSeconds(audioPlayer.duration()) }}</span>
+                    </div>
+                  </div>
+                }
+              }
+            </ion-card-content>
+          </ion-card>
+        }
+      </div>
+    }
+  </div>
+</ion-content>

@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+*.env
+*.env.*
+*.keystore
+*.jks
+*.idsig
+*.p12
+*.pem
+*.key
+local.properties
+.eslintcache
+
+# Production builds & artifacts
+dist/
+build/
+www/
+out-tsc/
+.angular/
+.nx/
+
+# SQLite Knowledge Graph & local databases
+docs/brain.sqlite
+docs/brain.sqlite-journal
+docs/brain.sqlite-wal
+docs/brain.sqlite-shm
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs & temporary files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.tmp/
+tmp/
+coverage/
+
+# IDE & Editor files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

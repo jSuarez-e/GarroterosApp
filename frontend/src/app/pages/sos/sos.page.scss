@@ -1,0 +1,210 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM para la vista de emergencia SOS y boton de panico con animacion de pulso (SDD-003-TELEMETRY-REALTIME).
+ * [I/O - Reusabilidad]: Clases sos-wrapper, sos-panic-btn, sos-alert-banner con tema oscuro y alto contraste.
+ * [Edge Cases - UI]: Animacion de pulso con transform y box-shadow sin causar repaints excesivos.
+ */
+
+@use "../../../theme/variables.scss" as *;
+
+.sos-toolbar {
+  --background: linear-gradient(135deg, var(--app-primary, #3B5BDB) 0%, var(--app-primary-dark, #2B44B3) 100%);
+  --color: #fff;
+}
+
+.sos-content {
+  --background: var(--app-bg-canvas, #F0F4FE);
+}
+
+.sos-wrapper {
+  padding: 0 16px 24px;
+  max-width: 500px;
+  margin: -16px auto 0;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sos-action-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.sos-panic-btn {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #EF4444 0%, #DC2626 100%);
+  border: 4px solid rgb(254 202 202 / 60%);
+  box-shadow: 0 0 30px rgb(239 68 68 / 40%), 0 0 60px rgb(239 68 68 / 20%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+  &:active {
+    transform: scale(0.95);
+    box-shadow: 0 0 15px rgb(220 38 38 / 70%);
+  }
+
+  &__label {
+    font-size: 36px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  &__sub {
+    font-size: 11px;
+    font-weight: 700;
+    color: #FEE2E2;
+    letter-spacing: 1px;
+    margin-top: 6px;
+  }
+
+  &__spinner {
+    color: #fff;
+    width: 38px;
+    height: 38px;
+  }
+
+  &__text {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 8px;
+  }
+}
+
+.sos-alert-banner {
+  background: #FEF2F2;
+  border: 1px solid rgb(239 68 68 / 40%);
+  border-radius: var(--app-radius-lg, 20px);
+  padding: 18px;
+  text-align: center;
+  box-shadow: 0 4px 14px rgb(239 68 68 / 8%);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  &__icon {
+    font-size: 22px;
+    color: #EF4444;
+  }
+
+  &__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #991B1B;
+    letter-spacing: 0.5px;
+  }
+
+  &__text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #B91C1C;
+    margin: 0 0 14px;
+  }
+
+  &__btn {
+    --border-radius: var(--app-radius-md, 14px);
+
+    font-weight: 600;
+  }
+}
+
+.sos-card {
+  border-radius: var(--app-radius-lg, 20px);
+  background: var(--app-surface-card, #FFF);
+  border: 1px solid var(--app-border-light, #E2E8F0);
+  box-shadow: var(--app-shadow-card, 0 4px 16px rgb(59 91 219 / 8%));
+  margin: 0;
+
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--app-text-title, #1E293B);
+  }
+
+  &__subtitle {
+    font-size: 12px;
+    color: var(--app-text-muted, #64748B);
+  }
+}
+
+.emergency-contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--app-radius-md, 14px);
+  background: var(--app-surface-canvas, #F0F4FE);
+  border: 1px solid var(--app-border-light, #E2E8F0);
+  text-decoration: none;
+  transition: background 0.15s ease-in-out, transform 0.15s ease-in-out;
+
+  &:active {
+    background: var(--app-primary-light, #EDF2FF);
+    transform: scale(0.99);
+  }
+
+  &__icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 20px;
+
+    &--police {
+      background: var(--app-primary-light, #EDF2FF);
+      color: var(--app-primary, #3B5BDB);
+    }
+
+    &--fire {
+      background: #FFF7ED;
+      color: #EA580C;
+    }
+
+    &--medical {
+      background: #ECFDF5;
+      color: #10B981;
+    }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--app-text-title, #1E293B);
+  }
+
+  &__number {
+    font-size: 12px;
+    color: var(--app-text-muted, #64748B);
+  }
+}

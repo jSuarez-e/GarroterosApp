@@ -1,0 +1,24 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla HTML del selector de píldoras segmentado estilo VIP/Economy (SDD-005-UI-REDESIGN).
+  [I/O - Reusabilidad]: Control flow nativo @for con track opt.id, sin estilos inline.
+  [Edge Cases - UI]: Accesibilidad a11y mediante roles y seleccion visual.
+-->
+
+<nav class="segmented-pill" role="tablist">
+  @for (opt of options(); track opt.id) {
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="selectedId() === opt.id"
+      class="segmented-pill__item"
+      [class.segmented-pill__item--active]="selectedId() === opt.id"
+      (click)="selectOption(opt.id)"
+    >
+      @if (opt.icon) {
+        <ion-icon [name]="opt.icon" class="segmented-pill__icon"></ion-icon>
+      }
+      <span class="segmented-pill__label">{{ opt.label }}</span>
+    </button>
+  }
+</nav>

@@ -1,0 +1,92 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM para la tarjeta de informacion redondeada (SDD-005-UI-REDESIGN).
+ * [I/O - Reusabilidad]: Clases info-card, info-card__header, info-card__badge, info-card__body.
+ * [Edge Cases - UI]: Variantes de badge semanticas (--success, --warning, --danger).
+ */
+
+@use "../../../../theme/variables.scss" as *;
+
+.info-card {
+  @include app-card;
+
+  margin: 0;
+
+  &__header {
+    @include flex-between;
+
+    margin-bottom: 14px;
+    gap: 12px;
+  }
+
+  &__title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__icon-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--app-radius-md);
+    background: var(--app-primary-tint);
+    color: var(--app-primary);
+  }
+
+  &__icon {
+    font-size: 22px;
+  }
+
+  &__text-box {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--app-text-main);
+    margin: 0;
+    line-height: 1.25;
+  }
+
+  &__subtitle {
+    font-size: 12px;
+    color: var(--app-text-muted);
+    margin: 2px 0 0;
+  }
+
+  &__badge {
+    padding: 4px 10px;
+    border-radius: var(--app-radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--app-primary-tint);
+    color: var(--app-primary);
+    white-space: nowrap;
+
+    &--success {
+      background: var(--app-success-tint);
+      color: var(--app-success);
+    }
+
+    &--warning {
+      background: var(--app-warning-tint);
+      color: var(--app-warning);
+    }
+
+    &--danger {
+      background: var(--app-danger-tint);
+      color: var(--app-danger);
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}

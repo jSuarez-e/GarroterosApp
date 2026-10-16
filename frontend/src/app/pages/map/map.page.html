@@ -1,0 +1,72 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla del Mapa Interactivo con lienzo WebGL, capas superpuestas y badge de clima flotante (SDD-004-MAP-MULTIMEDIA-WEATHER).
+  [I/O - Reusabilidad]: Contenedor de mapa con id nativo, badge flotante de clima con enlace a /weather, boton de centrado.
+  [Edge Cases - UI]: Control flow nativo @if para estado de carga, botones flotantes optimizados para interaccion tactil mobile.
+-->
+<ion-header [translucent]="true">
+  <ion-toolbar class="map-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>{{ activeRouteName() || 'Recorrido Piedecuesta' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="navigateToRouteInfo()" class="toolbar-nav-btn">
+        <ion-icon name="information-circle-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="map-content">
+  <div class="map-wrapper">
+    <!-- Contenedor WebGL para MapLibre GL JS -->
+    <div #mapContainer class="map-viewport"></div>
+
+    <!-- Indicador de carga inicial -->
+    @if (!isMapLoaded()) {
+      <div class="map-loading-overlay">
+        <ion-spinner name="crescent" class="map-loading-overlay__spinner"></ion-spinner>
+        <p class="map-loading-overlay__text">Cargando cartografía vectorial...</p>
+      </div>
+    }
+
+    <!-- Badge Flotante de Clima en Tiempo Real -->
+    @if (weatherData(); as weather) {
+      <div class="weather-floating-badge" (click)="navigateToWeather()">
+        <div class="weather-floating-badge__icon-box">
+          <ion-icon [name]="weather.current.weatherIcon" class="weather-floating-badge__icon"></ion-icon>
+        </div>
+        <div class="weather-floating-badge__info">
+          <span class="weather-floating-badge__temp">{{ weather.current.temperature }}°C</span>
+          <span class="weather-floating-badge__rain">
+            <ion-icon name="umbrella-outline" class="weather-floating-badge__rain-icon"></ion-icon>
+            {{ weather.current.precipitationProbability }}% lluvia
+          </span>
+        </div>
+      </div>
+    }
+
+    <!-- Aviso flotante cuando la ruta no tiene puntos de interés configurados -->
+    @if (isMapLoaded() && poiCount() === 0) {
+      <div class="map-empty-notice">
+        <ion-icon name="information-circle-outline" class="map-empty-notice__icon"></ion-icon>
+        <div class="map-empty-notice__info">
+          <span class="map-empty-notice__title">{{ activeRouteName() || 'Ruta activa' }}</span>
+          <span class="map-empty-notice__desc">Aún no se han configurado puntos de interés para este recorrido.</span>
+        </div>
+      </div>
+    }
+
+    <!-- Controles Flotantes del Mapa -->
+    <div class="map-action-controls">
+      <ion-button
+        class="floating-btn floating-btn--recenter"
+        (click)="recenterMap()"
+        title="Centrar en Piedecuesta"
+      >
+        <ion-icon name="locate-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

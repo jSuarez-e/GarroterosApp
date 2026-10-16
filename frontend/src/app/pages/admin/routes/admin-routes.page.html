@@ -1,0 +1,425 @@
+<!-- frontend/src/app/pages/admin/routes/admin-routes.page.html -->
+<ion-header class="ion-no-border">
+  <ion-toolbar class="admin-routes-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Gestión de Rutas y Guías</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="admin-routes-content" [fullscreen]="true">
+  <!-- Hero Banner Reutilizable -->
+  <app-hero-banner
+    title="Gestión de Rutas y Guías"
+    subtitle="Crea senderos, activa el recorrido oficial y asigna los guías acreditados de Piedecuesta."
+    badgeText="Control de Rutas"
+    badgeIcon="map-outline"
+    badgeVariant="default"
+  ></app-hero-banner>
+
+  <div class="admin-routes-wrapper">
+    <!-- Barra de Acciones Principales -->
+    <div class="actions-bar">
+      <button class="btn-action btn-action--primary" (click)="openCreateRouteModal()">
+        <ion-icon name="add-circle-outline" class="btn-action__icon"></ion-icon>
+        <span>Nueva Ruta</span>
+      </button>
+      <button class="btn-action btn-action--secondary" (click)="openCreateGuideModal()">
+        <ion-icon name="person-add-outline" class="btn-action__icon"></ion-icon>
+        <span>Nuevo Guía</span>
+      </button>
+    </div>
+
+    <!-- Estado de Carga -->
+    @if (isLoading()) {
+      <div class="routes-loading">
+        <ion-spinner name="crescent" class="routes-loading__spinner"></ion-spinner>
+        <span class="routes-loading__text">Consultando rutas turísticas y guías...</span>
+      </div>
+    } @else if (errorMessage()) {
+      <!-- Estado de Error -->
+      <div class="routes-error">
+        <ion-icon name="close-outline" class="routes-error__icon"></ion-icon>
+        <span class="routes-error__title">Error al consultar datos</span>
+        <p class="routes-error__message">{{ errorMessage() }}</p>
+        <button class="btn-action btn-action--primary" (click)="loadData()">
+          <ion-icon name="refresh-outline" class="btn-action__icon"></ion-icon>
+          <span>Reintentar</span>
+        </button>
+      </div>
+    } @else if (routes().length === 0) {
+      <!-- Estado Vacío -->
+      <div class="empty-state">
+        <ion-icon name="map-outline" class="empty-state__icon"></ion-icon>
+        <span class="empty-state__title">No hay rutas registradas</span>
+        <span class="empty-state__text">Crea el primer sendero turístico y asóciale los guías oficiales.</span>
+        <button class="btn-action btn-action--primary" (click)="openCreateRouteModal()">
+          <ion-icon name="add-circle-outline" class="btn-action__icon"></ion-icon>
+          <span>Crear Primera Ruta</span>
+        </button>
+      </div>
+    } @else {
+      <!-- Listado de Rutas -->
+      <div class="routes-grid">
+        @for (route of routes(); track route.id) {
+          <div class="route-card" [class.route-card--active]="route.isActive">
+            <!-- Encabezado de la Tarjeta -->
+            <div class="route-card__header">
+              <div class="route-card__title-box">
+                <span class="route-card__name">{{ route.name }}</span>
+                <span class="route-card__location">
+                  <ion-icon name="navigate-outline" class="route-card__loc-icon"></ion-icon>
+                  {{ route.municipality }}
+                </span>
+              </div>
+              <div class="route-card__status">
+                @if (route.isActive) {
+                  <span class="status-pill status-pill--active">
+                    <ion-icon name="checkmark-circle-outline" class="status-pill__icon"></ion-icon>
+                    Ruta Activa
+                  </span>
+                } @else {
+                  <span class="status-pill status-pill--inactive">Inactiva</span>
+                }
+              </div>
+            </div>
+
+            <!-- Métricas del Recorrido -->
+            <div class="route-card__metrics">
+              <div class="metric-item">
+                <ion-icon name="map-outline" class="metric-item__icon"></ion-icon>
+                <span class="metric-item__value">{{ route.totalDistanceKm }} km</span>
+                <span class="metric-item__label">Distancia</span>
+              </div>
+              <div class="metric-item">
+                <ion-icon name="time-outline" class="metric-item__icon"></ion-icon>
+                <span class="metric-item__value">{{ route.estimatedDurationMinutes }} min</span>
+                <span class="metric-item__label">Duración</span>
+              </div>
+              <div class="metric-item">
+                <ion-icon name="people-outline" class="metric-item__icon"></ion-icon>
+                <span class="metric-item__value">{{ (route.guides || []).length }}</span>
+                <span class="metric-item__label">Guías</span>
+              </div>
+            </div>
+
+            <!-- Descripción -->
+            <p class="route-card__desc">{{ route.description }}</p>
+
+            <!-- Guías Asignados a esta Ruta -->
+            <div class="route-card__guides-section">
+              <span class="section-subtitle">
+                <ion-icon name="people-outline" class="section-subtitle__icon"></ion-icon>
+                Guías Oficiales Asignados:
+              </span>
+
+              @if ((route.guides || []).length === 0) {
+                <span class="no-guides-text">No hay guías asignados a este recorrido.</span>
+              } @else {
+                <div class="guides-chips-list">
+                  @for (guide of route.guides; track guide.id) {
+                    <div class="guide-chip">
+                      <img
+                        [src]="guide.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'"
+                        [alt]="guide.fullName"
+                        class="guide-chip__avatar"
+                      />
+                      <span class="guide-chip__name">{{ guide.fullName }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Acciones de la Tarjeta -->
+            <div class="route-card__actions">
+              @if (!route.isActive) {
+                <button
+                  class="btn-card-action btn-card-action--activate"
+                  (click)="onActivateRoute(route)"
+                >
+                  <ion-icon name="checkmark-circle-outline"></ion-icon>
+                  <span>Activar como Recorrido Oficial</span>
+                </button>
+              }
+
+              <div class="route-card__btn-group">
+                <button
+                  class="btn-card-action btn-card-action--edit"
+                  (click)="openEditRouteModal(route)"
+                >
+                  <ion-icon name="create-outline"></ion-icon>
+                  <span>Editar</span>
+                </button>
+                <button
+                  class="btn-card-action btn-card-action--delete"
+                  (click)="onDeleteRoute(route)"
+                >
+                  <ion-icon name="trash-outline"></ion-icon>
+                  <span>Eliminar</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Modal para Crear / Editar Ruta -->
+  <ion-modal [isOpen]="isRouteModalOpen()" (didDismiss)="closeRouteModal()" class="route-modal">
+    <ng-template>
+      <div class="modal-wrapper">
+        <div class="modal-header">
+          <h2 class="modal-header__title">
+            {{ editingRouteId() ? 'Editar Recorrido Turístico' : 'Nueva Ruta Turística' }}
+          </h2>
+          <button class="modal-header__close" (click)="closeRouteModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Campo: Nombre de la Ruta -->
+          <div class="form-group">
+            <label class="form-label">Nombre del Recorrido *</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="routeForm.name"
+              placeholder="Ej: Ruta Histórica y Cultural de los Garroteros"
+            />
+          </div>
+
+          <!-- Campo: Municipio -->
+          <div class="form-group">
+            <label class="form-label">Municipio / Locación</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="routeForm.municipality"
+              placeholder="Ej: Piedecuesta, Santander"
+            />
+          </div>
+
+          <!-- Campos Numéricos en Grilla -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Distancia (km) *</label>
+              <input
+                type="number"
+                step="0.1"
+                class="form-input"
+                [(ngModel)]="routeForm.totalDistanceKm"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Duración (min) *</label>
+              <input
+                type="number"
+                class="form-input"
+                [(ngModel)]="routeForm.estimatedDurationMinutes"
+              />
+            </div>
+          </div>
+
+          <!-- Campo: Descripción -->
+          <div class="form-group">
+            <label class="form-label">Descripción del Recorrido *</label>
+            <textarea
+              class="form-textarea"
+              rows="3"
+              [(ngModel)]="routeForm.description"
+              placeholder="Describe los monumentos, callejones y valor histórico del sendero..."
+            ></textarea>
+          </div>
+
+          <!-- SELECCIÓN DE GUÍAS DE LA RUTA -->
+          <div class="guides-selection-section">
+            <div class="guides-selection-section__header">
+              <div>
+                <span class="selection-title">Seleccionar Guías del Recorrido *</span>
+                <span class="selection-subtitle">
+                  Los guías seleccionados aparecerán en la sección "Guías del Recorrido" de la app.
+                </span>
+              </div>
+              <button class="btn-mini-add" type="button" (click)="openCreateGuideModal()">
+                <ion-icon name="person-add-outline"></ion-icon>
+                <span>+ Guía</span>
+              </button>
+            </div>
+
+            @if (availableGuides().length === 0) {
+              <div class="no-available-guides">
+                <span>No hay guías registrados en el catálogo. Registra uno con el botón superior.</span>
+              </div>
+            } @else {
+              <div class="guides-select-list">
+                @for (guide of availableGuides(); track guide.id) {
+                  <div
+                    class="guide-select-item"
+                    [class.guide-select-item--selected]="isGuideSelected(guide.id)"
+                    (click)="toggleGuideSelection(guide.id)"
+                  >
+                    <div class="guide-select-item__checkbox">
+                      @if (isGuideSelected(guide.id)) {
+                        <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                      }
+                    </div>
+                    <img
+                      [src]="guide.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'"
+                      [alt]="guide.fullName"
+                      class="guide-select-item__avatar"
+                    />
+                    <div class="guide-select-item__info">
+                      <span class="guide-select-item__name">{{ guide.fullName }}</span>
+                      <span class="guide-select-item__phone">{{ guide.phone }}</span>
+                      @if (guide.certifications && guide.certifications.length > 0) {
+                        <span class="guide-select-item__cert">{{ guide.certifications[0] }}</span>
+                      }
+                    </div>
+                    <div class="guide-select-item__badge">
+                      <ion-icon name="star" class="star-icon"></ion-icon>
+                      <span>{{ guide.rating }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-modal btn-modal--cancel" (click)="closeRouteModal()">
+            Cancelar
+          </button>
+          <button
+            class="btn-modal btn-modal--save"
+            (click)="onSaveRoute()"
+            [disabled]="isSubmitting()"
+          >
+            @if (isSubmitting()) {
+              <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+            } @else {
+              <span>Guardar Ruta</span>
+            }
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Modal para Registrar Nuevo Guía -->
+  <ion-modal [isOpen]="isGuideModalOpen()" (didDismiss)="closeGuideModal()" class="guide-modal">
+    <ng-template>
+      <div class="modal-wrapper">
+        <div class="modal-header">
+          <h2 class="modal-header__title">Registrar Nuevo Guía Oficial</h2>
+          <button class="modal-header__close" (click)="closeGuideModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Nombre Completo *</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="guideForm.fullName"
+              placeholder="Ej: Laura Sofía Mantilla"
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Correo Electrónico *</label>
+              <input
+                type="email"
+                class="form-input"
+                [(ngModel)]="guideForm.email"
+                placeholder="laura@garroterosapp.com"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono Móvil *</label>
+              <input
+                type="text"
+                class="form-input"
+                [(ngModel)]="guideForm.phone"
+                placeholder="+573151234567"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Años de Experiencia</label>
+              <input
+                type="number"
+                class="form-input"
+                [(ngModel)]="guideForm.experienceYears"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">URL Fotografía / Avatar</label>
+              <input
+                type="text"
+                class="form-input"
+                [(ngModel)]="guideForm.avatarUrl"
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Certificaciones (separadas por coma)</label>
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="guideForm.certificationsStr"
+              placeholder="SENA Guianza Turística, Primeros Auxilios WFR"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Biografía y Especialidad</label>
+            <textarea
+              class="form-textarea"
+              rows="3"
+              [(ngModel)]="guideForm.bio"
+              placeholder="Especialista en flora y fauna del cañón del Chicamocha..."
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-modal btn-modal--cancel" (click)="closeGuideModal()">
+            Cancelar
+          </button>
+          <button
+            class="btn-modal btn-modal--save"
+            (click)="onSaveGuide()"
+            [disabled]="isSubmitting()"
+          >
+            @if (isSubmitting()) {
+              <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+            } @else {
+              <span>Guardar Guía</span>
+            }
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Toast de Notificaciones -->
+  <ion-toast
+    [isOpen]="isToastOpen()"
+    [message]="toastMessage() || ''"
+    [duration]="3000"
+    (didDismiss)="isToastOpen.set(false)"
+    position="bottom"
+  ></ion-toast>
+</ion-content>

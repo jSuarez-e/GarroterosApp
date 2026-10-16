@@ -1,0 +1,197 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM para modal de perfil de participante en el mapa (SDD-004-MAP-MULTIMEDIA-WEATHER).
+ * [I/O - Reusabilidad]: Clases BEM .participant-modal__*, .participant-card__*, .role-badge--guide, .sos-banner.
+ * [Edge Cases - UI]: Alerta SOS animada, bordes dorados/verdes para Guías y azul para Turistas.
+ */
+
+@use "../../../../theme/variables.scss" as vars;
+
+.participant-modal {
+  &__toolbar {
+    --background: linear-gradient(135deg, var(--app-primary, #3B5BDB) 0%, var(--app-primary-dark, #2B44B3) 100%);
+    --color: #fff;
+    --border-width: 0;
+  }
+
+  &__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  &__close-btn {
+    --color: #fff;
+
+    opacity: 0.9;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  &__content {
+    --background: var(--app-bg-canvas, #F0F4FE);
+  }
+
+  &__body {
+    padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+}
+
+.sos-banner {
+  background: #FEF2F2;
+  border: 1px solid #EF4444;
+  border-radius: var(--app-radius-md, 14px);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  animation: pulse-sos 1.5s infinite ease-in-out;
+
+  &__icon {
+    font-size: 1.4rem;
+    color: #EF4444;
+  }
+
+  &__text {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #DC2626;
+  }
+}
+
+@keyframes pulse-sos {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgb(239 68 68 / 40%);
+  }
+
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px 3px rgb(239 68 68 / 40%);
+  }
+}
+
+.participant-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--app-surface-card, #FFF);
+  border-radius: var(--app-radius-lg, 20px);
+  padding: 1.25rem;
+  border: 1px solid var(--app-border-light, #E2E8F0);
+  box-shadow: var(--app-shadow-card, 0 4px 16px rgb(59 91 219 / 8%));
+
+  &__avatar-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--app-primary-light, #EDF2FF);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--app-primary, #3B5BDB);
+
+    &--guide {
+      border-color: #10B981;
+      box-shadow: 0 0 12px rgb(16 185 129 / 35%);
+      background: #ECFDF5;
+    }
+  }
+
+  &__avatar-icon {
+    font-size: 3rem;
+    color: var(--app-primary, #3B5BDB);
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  &__name {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--app-text-title, #1E293B);
+  }
+
+  &__badges {
+    display: flex;
+  }
+}
+
+.role-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--app-radius-pill, 9999px);
+
+  &--guide {
+    --background: #ECFDF5;
+    --color: #065F46;
+  }
+
+  &--tourist {
+    --background: var(--app-primary-light, #EDF2FF);
+    --color: var(--app-primary, #3B5BDB);
+  }
+}
+
+.telemetry-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.telemetry-item {
+  background: var(--app-surface-card, #FFF);
+  border-radius: var(--app-radius-md, 14px);
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--app-border-light, #E2E8F0);
+  box-shadow: var(--app-shadow-card, 0 4px 16px rgb(59 91 219 / 8%));
+
+  &--full {
+    grid-column: span 2;
+  }
+
+  &__icon {
+    font-size: 1.5rem;
+    color: var(--app-primary, #3B5BDB);
+
+    &--battery {
+      color: #10B981;
+    }
+
+    &--location {
+      color: var(--app-primary, #3B5BDB);
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  &__label {
+    font-size: 0.7rem;
+    color: var(--app-text-muted, #64748B);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  &__value {
+    font-size: 0.88rem;
+    color: var(--app-text-title, #1E293B);
+    font-weight: 600;
+  }
+}

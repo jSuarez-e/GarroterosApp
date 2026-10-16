@@ -1,0 +1,392 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM para la vista principal redisenada de inicio (SDD-005-UI-REDESIGN).
+ * [I/O - Reusabilidad]: Clases home-toolbar, home-body, route-details, gt-btn, admin-banner con variables SCSS.
+ * [Edge Cases - UI]: Espaciados responsive, adaptacion a resoluciones moviles y contrastes certificados.
+ */
+
+.home-header {
+  box-shadow: none;
+  background: var(--app-primary);
+  padding-top: var(--ion-safe-area-top, env(safe-area-inset-top, 0));
+}
+
+.home-toolbar {
+  --background: var(--app-primary);
+  --color: var(--app-text-inverse);
+  --border-width: 0;
+
+  padding: 4px 8px;
+
+  &__menu-btn {
+    --color: var(--app-text-inverse);
+  }
+
+  &__title {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  &__sos-btn {
+    --color: #ffc9c9;
+
+    font-size: 20px;
+  }
+}
+
+.home-content {
+  --background: var(--app-surface);
+}
+
+.home-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgb(255 255 255 / 18%);
+    border-radius: var(--app-radius-pill);
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--app-text-inverse);
+  }
+
+  &__icon {
+    font-size: 13px;
+  }
+
+  &__role {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: var(--app-radius-pill);
+    background: rgb(255 255 255 / 22%);
+    color: var(--app-text-inverse);
+
+    &--admin {
+      background: #fcc419;
+      color: #212529;
+    }
+  }
+}
+
+.home-body {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 16px 36px;
+  gap: 16px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.home-selector-wrapper {
+  margin-top: -6px;
+  margin-bottom: 4px;
+}
+
+/* ==========================================================================
+   ESTRUCTURA DE RUTA ESTILO TICKET DE VUELO (MOCKUP VIAJES)
+   ========================================================================== */
+
+.route-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--app-primary-tint);
+  border-radius: var(--app-radius-md);
+  padding: 16px;
+  border: 1px dashed rgb(59 91 219 / 25%);
+}
+
+.route-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  &__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+
+    &--start {
+      background: var(--app-primary);
+      box-shadow: 0 0 0 3px rgb(59 91 219 / 20%);
+    }
+
+    &--end {
+      background: var(--app-success);
+      box-shadow: 0 0 0 3px rgb(18 184 134 / 20%);
+    }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--app-text-muted);
+  }
+
+  &__name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--app-text-main);
+  }
+
+  &__sub {
+    font-size: 12px;
+    color: var(--app-text-secondary);
+  }
+}
+
+.route-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 5px;
+
+  &__line {
+    width: 2px;
+    height: 18px;
+    background: repeating-linear-gradient(to bottom, var(--app-primary) 0, var(--app-primary) 3px, transparent 3px, transparent 6px);
+  }
+
+  &__icon {
+    font-size: 15px;
+    color: var(--app-primary);
+  }
+}
+
+/* ==========================================================================
+   BOTONES DE ACCION BEM
+   ========================================================================== */
+
+.home-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.gt-btn {
+  --border-radius: var(--app-radius-md);
+
+  font-weight: 700;
+  font-size: 14px;
+  height: 46px;
+  margin: 0;
+
+  &--primary {
+    --background: var(--app-primary);
+    --color: var(--app-text-inverse);
+    --box-shadow: var(--app-shadow-primary);
+  }
+
+  &--secondary {
+    --border-color: var(--app-primary);
+    --color: var(--app-primary);
+  }
+
+  &--danger {
+    --background: var(--app-danger);
+    --color: var(--app-text-inverse);
+    --box-shadow: 0 8px 20px rgb(250 82 82 / 28%);
+  }
+}
+
+/* ==========================================================================
+   CONTENIDO ITINERARIO Y ENCUENTRO
+   ========================================================================== */
+
+.itinerary-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.itinerary-milestone {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--app-primary-tint);
+  border-radius: var(--app-radius-md);
+  padding: 12px 14px;
+  border-left: 3px solid var(--app-primary);
+
+  &__time-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #fff;
+    color: var(--app-primary);
+    padding: 3px 8px;
+    border-radius: var(--app-radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+    flex-shrink: 0;
+  }
+
+  &__icon {
+    font-size: 13px;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  &__title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--app-text-main);
+  }
+
+  &__status {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: var(--app-radius-pill);
+    background: #e9ecef;
+    color: #495057;
+    text-transform: uppercase;
+
+    &--completed {
+      background: var(--app-success-tint);
+      color: var(--app-success);
+    }
+
+    &--in-progress {
+      background: var(--app-primary-tint);
+      color: var(--app-primary);
+    }
+
+    &--delayed {
+      background: var(--app-warning-tint);
+      color: var(--app-warning);
+    }
+  }
+
+  &__notes {
+    font-size: 12px;
+    color: var(--app-text-secondary);
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+.empty-itinerary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  background: var(--app-primary-tint);
+  border-radius: var(--app-radius-md);
+
+  &__icon {
+    font-size: 24px;
+    color: var(--app-primary);
+    flex-shrink: 0;
+  }
+
+  &__text {
+    font-size: 13px;
+    color: var(--app-text-secondary);
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+.meeting-card__desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--app-text-secondary);
+  margin: 0 0 10px;
+}
+
+.meeting-card__features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--app-text-main);
+  font-weight: 500;
+
+  &__icon {
+    font-size: 17px;
+    color: var(--app-primary);
+    flex-shrink: 0;
+  }
+}
+
+/* ==========================================================================
+   BANNER DE AVISO ADMINISTRATIVO
+   ========================================================================== */
+
+.admin-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff9db;
+  border: 1px solid #ffe066;
+  border-radius: var(--app-radius-md);
+  padding: 14px;
+
+  &__icon {
+    font-size: 22px;
+    color: #f59f00;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  &__text-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #92400e;
+  }
+
+  &__desc {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #78350f;
+  }
+}

@@ -1,0 +1,43 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla HTML para la tarjeta de informacion blanca con bordes curvos (SDD-005-UI-REDESIGN).
+  [I/O - Reusabilidad]: Proyeccion de contenido principal y slots para encabezados y acciones.
+  [Edge Cases - UI]: Control flow @if para header y badge condicional.
+-->
+
+<article class="info-card">
+  @if (title() || badge() || icon()) {
+    <header class="info-card__header">
+      <div class="info-card__title-group">
+        @if (icon()) {
+          <div class="info-card__icon-badge">
+            <ion-icon [name]="icon()" class="info-card__icon"></ion-icon>
+          </div>
+        }
+        <div class="info-card__text-box">
+          @if (title()) {
+            <h2 class="info-card__title">{{ title() }}</h2>
+          }
+          @if (subtitle()) {
+            <p class="info-card__subtitle">{{ subtitle() }}</p>
+          }
+        </div>
+      </div>
+
+      @if (badge()) {
+        <span
+          class="info-card__badge"
+          [class.info-card__badge--success]="badgeColor() === 'success'"
+          [class.info-card__badge--warning]="badgeColor() === 'warning'"
+          [class.info-card__badge--danger]="badgeColor() === 'danger'"
+        >
+          {{ badge() }}
+        </span>
+      }
+    </header>
+  }
+
+  <div class="info-card__body">
+    <ng-content></ng-content>
+  </div>
+</article>

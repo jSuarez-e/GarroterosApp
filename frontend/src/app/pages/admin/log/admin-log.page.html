@@ -1,0 +1,262 @@
+<!-- frontend/src/app/pages/admin/log/admin-log.page.html -->
+<ion-header class="ion-no-border">
+  <ion-toolbar class="admin-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Itinerario y Bitácora</ion-title>
+    <ion-buttons slot="end">
+      <ion-button class="btn-create" (click)="openCreateModal()">
+        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+        Hito
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="admin-content" [fullscreen]="true">
+  <!-- Hero Banner Reutilizable -->
+  <app-hero-banner
+    title="Itinerario de Ruta"
+    subtitle="Seguimiento cronológico de hitos, marcas de tiempo operativas de la jornada y estado en vivo."
+    badgeText="Bitácora Operativa"
+    badgeIcon="calendar-outline"
+    badgeVariant="accent"
+  ></app-hero-banner>
+
+  <div class="admin-wrapper">
+    <!-- Selector Universal de Ruta -->
+    <app-route-selector
+      label="Ruta para Itinerario"
+      [(selectedRouteId)]="selectedRouteId"
+      (routeChanged)="onRouteChanged($event)"
+    ></app-route-selector>
+
+    @if (isLoading()) {
+      <div class="admin-loading">
+        <ion-spinner name="crescent" class="admin-loading__spinner"></ion-spinner>
+        <span class="admin-loading__text">Cargando hitos del itinerario para esta ruta...</span>
+      </div>
+    } @else if (entries().length === 0) {
+      <div class="empty-state">
+        <ion-icon name="calendar-outline" class="empty-state__icon"></ion-icon>
+        <span class="empty-state__title">No hay hitos en el itinerario para esta ruta</span>
+        <span class="empty-state__text">
+          La ruta seleccionada {{ selectedRouteName() ? '("' + selectedRouteName() + '")' : '' }} aún no tiene un cronograma definido. Añade los puntos de control y horarios planificados.
+        </span>
+        <div class="empty-state__action">
+          <ion-button class="btn-create" (click)="openCreateModal()">
+            <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+            Definir Hito en esta Ruta
+          </ion-button>
+        </div>
+      </div>
+    } @else {
+      <!-- Línea de Tiempo de Hitos -->
+      <div class="timeline">
+        @for (entry of entries(); track entry.id) {
+          <div class="timeline-item">
+            <div class="timeline-item__badge-col">
+              <span class="timeline-item__order">{{ entry.orderIndex }}</span>
+              <div class="timeline-item__line"></div>
+            </div>
+
+            <div class="timeline-item__content">
+              <div class="milestone-card">
+                <div class="milestone-card__header">
+                  <span class="milestone-card__title">{{ entry.title }}</span>
+                  <span class="status-badge" [ngClass]="getStatusClass(entry.status)">
+                    {{ getStatusLabel(entry.status) }}
+                  </span>
+                </div>
+
+                <!-- Tiempos Operativos -->
+                <div class="milestone-card__times">
+                  <div class="time-box">
+                    <ion-icon name="time-outline" class="time-box__icon"></ion-icon>
+                    <span class="time-box__label">Planificado:</span>
+                    <span class="time-box__val">{{ entry.plannedTime }}</span>
+                  </div>
+                  @if (entry.actualTime) {
+                    <div class="time-box time-box--actual">
+                      <ion-icon name="checkmark-done-outline" class="time-box__icon"></ion-icon>
+                      <span class="time-box__label">Real:</span>
+                      <span class="time-box__val">{{ entry.actualTime }}</span>
+                    </div>
+                  }
+                </div>
+
+                @if (entry.notes) {
+                  <p class="milestone-card__notes">{{ entry.notes }}</p>
+                }
+
+                <!-- Acciones Rápidas -->
+                <div class="milestone-card__footer">
+                  <div class="quick-status-group">
+                    <button
+                      type="button"
+                      class="btn-status-quick btn-status-quick--progress"
+                      (click)="onQuickStatusUpdate(entry, ItineraryStatus.IN_PROGRESS)"
+                    >
+                      En Curso
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-status-quick btn-status-quick--completed"
+                      (click)="onQuickStatusUpdate(entry, ItineraryStatus.COMPLETED)"
+                    >
+                      Completado
+                    </button>
+                  </div>
+
+                  <div class="milestone-card__actions">
+                    <button
+                      type="button"
+                      class="btn-icon-action btn-icon-action--edit"
+                      (click)="openEditModal(entry)"
+                    >
+                      <ion-icon name="create-outline"></ion-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-icon-action btn-icon-action--delete"
+                      (click)="onDelete(entry)"
+                    >
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Modal Crear / Editar Hito -->
+  <ion-modal [isOpen]="isModalOpen()" (didDismiss)="closeModal()">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar class="modal-toolbar">
+          <ion-title>{{ editingEntry() ? 'Editar Hito' : 'Añadir Hito' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModal()">
+              <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="modal-content">
+        <div class="modal-form">
+          <div class="form-group">
+            <label class="form-group__label" for="milestone-title">Título del Hito</label>
+            <input
+              id="milestone-title"
+              type="text"
+              class="form-input"
+              placeholder="Ej. Salida de Parque La Libertad"
+              [value]="formTitle()"
+              (input)="onInputChange(formTitle, $event)"
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group form-col">
+              <label class="form-group__label" for="milestone-order">Secuencia / Orden</label>
+              <input
+                id="milestone-order"
+                type="number"
+                class="form-input"
+                [value]="formOrderIndex()"
+                (input)="onOrderChange($event)"
+              />
+            </div>
+
+            <div class="form-group form-col">
+              <label class="form-group__label" for="milestone-planned">Hora Planeada</label>
+              <input
+                id="milestone-planned"
+                type="text"
+                class="form-input"
+                placeholder="08:30"
+                [value]="formPlannedTime()"
+                (input)="onInputChange(formPlannedTime, $event)"
+              />
+            </div>
+          </div>
+
+          @if (editingEntry()) {
+            <div class="form-row">
+              <div class="form-group form-col">
+                <label class="form-group__label" for="milestone-actual">Hora Real</label>
+                <input
+                  id="milestone-actual"
+                  type="text"
+                  class="form-input"
+                  placeholder="08:35"
+                  [value]="formActualTime()"
+                  (input)="onInputChange(formActualTime, $event)"
+                />
+              </div>
+
+              <div class="form-group form-col">
+                <label class="form-group__label" for="milestone-status">Estado Operativo</label>
+                <div class="form-select-container">
+                  <ion-select
+                    id="milestone-status"
+                    class="form-select"
+                    interface="popover"
+                    [value]="formStatus()"
+                    (ionChange)="formStatus.set($event.detail.value)"
+                  >
+                    <ion-select-option value="PENDING">Pendiente</ion-select-option>
+                    <ion-select-option value="IN_PROGRESS">En curso</ion-select-option>
+                    <ion-select-option value="COMPLETED">Completado</ion-select-option>
+                    <ion-select-option value="DELAYED">Retrasado</ion-select-option>
+                  </ion-select>
+                </div>
+              </div>
+            </div>
+          }
+
+          <div class="form-group">
+            <label class="form-group__label" for="milestone-notes">Notas Operativas</label>
+            <textarea
+              id="milestone-notes"
+              class="form-textarea"
+              rows="3"
+              placeholder="Instrucciones para los guías o notas del trayecto..."
+              [value]="formNotes()"
+              (input)="onInputChange(formNotes, $event)"
+            ></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <ion-button
+              expand="block"
+              class="btn-save"
+              [disabled]="isSubmitting()"
+              (click)="onSave()"
+            >
+              @if (isSubmitting()) {
+                <ion-spinner name="crescent" slot="start"></ion-spinner>
+                Guardando...
+              } @else {
+                {{ editingEntry() ? 'Actualizar Hito' : 'Guardar Hito' }}
+              }
+            </ion-button>
+          </div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-toast
+    [isOpen]="showToast()"
+    [message]="toastMessage()"
+    [duration]="3000"
+    (didDismiss)="showToast.set(false)"
+  ></ion-toast>
+</ion-content>

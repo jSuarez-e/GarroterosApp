@@ -1,0 +1,157 @@
+<!-- frontend/src/app/pages/admin/notes/admin-notes.page.html -->
+<ion-header class="ion-no-border">
+  <ion-toolbar class="admin-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Notas y Novedades</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="admin-content" [fullscreen]="true">
+  <!-- Hero Banner Reutilizable -->
+  <app-hero-banner
+    title="Bitácora de Eventos"
+    subtitle="Registro colaborativo de incidencias menores, reportes climáticos y observaciones operativas en tiempo real."
+    badgeText="Colaboración Guías"
+    badgeIcon="document-text-outline"
+    badgeVariant="default"
+  ></app-hero-banner>
+
+  <div class="admin-wrapper">
+    <!-- Selector Universal de Ruta -->
+    <app-route-selector
+      label="Ruta para Bitácora de Novedades"
+      [(selectedRouteId)]="selectedRouteId"
+      (routeChanged)="onRouteChanged($event)"
+    ></app-route-selector>
+
+    <!-- Formulario para Nueva Nota -->
+    <app-info-card
+      title="Registrar Novedad u Observación"
+      subtitle="Publica un reporte para que todo el equipo de guías esté informado"
+      iconName="create-outline"
+      variant="elevated"
+    >
+      <form class="note-form" (ngSubmit)="onSubmitNote()">
+        <div class="form-group">
+          <label class="form-group__label" for="note-title">Título de la Novedad</label>
+          <input
+            id="note-title"
+            type="text"
+            class="form-input"
+            placeholder="Ej. Precaución por piso húmedo en carrera 7"
+            [value]="formTitle()"
+            (input)="onInputChange(formTitle, $event)"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-group__label" for="note-severity-select">Nivel de Severidad</label>
+          <div class="form-select-container">
+            <ion-select
+              id="note-severity-select"
+              class="form-select"
+              interface="popover"
+              [value]="formSeverity()"
+              (ionChange)="formSeverity.set($event.detail.value)"
+            >
+              <ion-select-option value="INFO">Informativa (INFO)</ion-select-option>
+              <ion-select-option value="WARNING">Advertencia / Cuidado (WARNING)</ion-select-option>
+              <ion-select-option value="CRITICAL">Urgente / Crítica (CRITICAL)</ion-select-option>
+            </ion-select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-group__label" for="note-content">Descripción Detallada</label>
+          <textarea
+            id="note-content"
+            class="form-textarea"
+            rows="3"
+            placeholder="Describe la situación observada y la acción recomendada..."
+            [value]="formContent()"
+            (input)="onTextAreaChange(formContent, $event)"
+          ></textarea>
+        </div>
+
+        <div class="form-actions">
+          <ion-button
+            expand="block"
+            class="btn-publish"
+            [disabled]="isSubmitting()"
+            (click)="onSubmitNote()"
+          >
+            @if (isSubmitting()) {
+              <ion-spinner name="crescent" slot="start"></ion-spinner>
+              Publicando...
+            } @else {
+              <ion-icon name="send-outline" slot="start"></ion-icon>
+              Publicar Novedad en Bitácora
+            }
+          </ion-button>
+        </div>
+      </form>
+    </app-info-card>
+
+    <!-- Lista de Notas Cronológicas -->
+    @if (isLoading()) {
+      <div class="admin-loading">
+        <ion-spinner name="crescent" class="admin-loading__spinner"></ion-spinner>
+        <span class="admin-loading__text">Cargando bitácora de novedades...</span>
+      </div>
+    } @else if (notes().length === 0) {
+      <div class="empty-state">
+        <ion-icon name="document-text-outline" class="empty-state__icon"></ion-icon>
+        <span class="empty-state__title">No hay notas registradas para esta ruta</span>
+        <span class="empty-state__text">
+          La ruta seleccionada {{ selectedRouteName() ? '("' + selectedRouteName() + '")' : '' }} no tiene novedades ni observaciones aún. Sé el primero en registrar una nota para el equipo.
+        </span>
+      </div>
+    } @else {
+      <div class="notes-feed">
+        @for (note of notes(); track note.id) {
+          <div class="note-card" [ngClass]="getSeverityClass(note.severity)">
+            <div class="note-card__header">
+              <div class="note-card__meta">
+                <span class="note-card__author">
+                  <ion-icon name="person-circle-outline" class="note-card__meta-icon"></ion-icon>
+                  {{ note.authorName }}
+                </span>
+                <span class="note-card__time">
+                  <ion-icon name="time-outline" class="note-card__meta-icon"></ion-icon>
+                  {{ formatTime(note.createdAt) }}
+                </span>
+              </div>
+
+              <span class="severity-badge" [ngClass]="getSeverityClass(note.severity)">
+                {{ note.severity }}
+              </span>
+            </div>
+
+            <span class="note-card__title">{{ note.title }}</span>
+            <p class="note-card__content">{{ note.content }}</p>
+
+            <div class="note-card__footer">
+              <button
+                type="button"
+                class="btn-delete-note"
+                (click)="onDeleteNote(note)"
+              >
+                <ion-icon name="trash-outline"></ion-icon>
+                Eliminar
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <ion-toast
+    [isOpen]="showToast()"
+    [message]="toastMessage()"
+    [duration]="3000"
+    (didDismiss)="showToast.set(false)"
+  ></ion-toast>
+</ion-content>

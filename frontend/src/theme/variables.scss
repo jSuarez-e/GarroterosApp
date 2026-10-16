@@ -1,0 +1,146 @@
+/**
+ * @sdd
+ * [Objetivo]: Sistema centralizado de tokens de diseno, variables CSS y mixins SCSS inspirados en el diseno aeroportuario y de viajes (SDD-005-UI-REDESIGN).
+ * [I/O - Reusabilidad]: Exporta variables de color ($color-primary, $color-surface, etc.), variables CSS (--app-*) y mixins (@mixin app-card, @mixin pill-container).
+ * [Edge Cases - UI]: Modo claro prioritario con soporte para alto contraste y adaptabilidad movil/tablet.
+ */
+
+// =============================================================================
+// 1. PALETA DE COLORES (Extraida del mockup de viajes y guianza)
+// =============================================================================
+
+// Azul Real y Cobalto (Marca y Acciones Principales)
+$color-primary: #3b5bdb;          // Azul cobalto vibrante (Hero, botones, elementos activos)
+$color-primary-dark: #2b44b3;     // Tono profundo para sombras y contrastes
+$color-primary-light: #4c6ef5;    // Azul cielo brillante para acentos
+$color-primary-tint: #edf2ff;     // Azul lavanda muy tenue para contenedores y tarjetas
+
+// Superficies y Fondos
+$color-surface: #f0f4fe;          // Fondo de la app suave y fresco
+$color-canvas: #f8fafd;           // Lienzo claro
+$color-card: #fff;             // Blanco puro para tarjetas elevadas
+$color-card-muted: #f8fafc;       // Blanco ahumado para sub-tarjetas
+
+// Textos y Jerarquia Tipografica
+$color-text-main: #1e293b;        // Gris pizarra oscuro para titulos
+$color-text-secondary: #64748b;   // Gris medio para subtitulos y metadatos
+$color-text-muted: #94a3b8;       // Gris suave para etiquetas secundarias
+$color-text-inverse: #fff;     // Blanco para textos sobre fondos oscuros
+
+// Estados Semanticos
+$color-success: #12b886;          // Verde menta para estado activo / disponible
+$color-success-tint: #e6fcf5;
+$color-warning: #f59f00;          // Ambar para advertencias y clima soleado
+$color-warning-tint: #fff9db;
+$color-danger: #fa5252;           // Rojo coral para emergencias SOS
+$color-danger-tint: #ffe3e3;
+
+// Bordes y Divisores
+$color-border: #e2e8f0;
+$color-border-subtle: rgb(59 91 219 / 8%);
+
+// =============================================================================
+// 2. FORMAS, RADIOS Y SOMBRAS (Curvatura organica del mockup)
+// =============================================================================
+
+$radius-sm: 8px;
+$radius-md: 14px;
+$radius-lg: 20px;
+$radius-xl: 26px;
+$radius-pill: 9999px;
+$shadow-subtle: 0 4px 12px rgb(59 91 219 / 4%);
+$shadow-card: 0 10px 25px -5px rgb(59 91 219 / 8%), 0 6px 12px -4px rgb(59 91 219 / 3%);
+$shadow-float: 0 14px 30px -4px rgb(59 91 219 / 16%);
+$shadow-primary: 0 8px 20px rgb(59 91 219 / 28%);
+
+// =============================================================================
+// 3. VARIABLES CSS NATIVAS (Expuestas para runtime e Ionic)
+// =============================================================================
+
+:root {
+  --app-primary: #{$color-primary};
+  --app-primary-dark: #{$color-primary-dark};
+  --app-primary-light: #{$color-primary-light};
+  --app-primary-tint: #{$color-primary-tint};
+  --app-surface: #{$color-surface};
+  --app-canvas: #{$color-canvas};
+  --app-card: #{$color-card};
+  --app-card-muted: #{$color-card-muted};
+  --app-text-main: #{$color-text-main};
+  --app-text-secondary: #{$color-text-secondary};
+  --app-text-muted: #{$color-text-muted};
+  --app-text-inverse: #{$color-text-inverse};
+  --app-success: #{$color-success};
+  --app-success-tint: #{$color-success-tint};
+  --app-warning: #{$color-warning};
+  --app-warning-tint: #{$color-warning-tint};
+  --app-danger: #{$color-danger};
+  --app-danger-tint: #{$color-danger-tint};
+  --app-radius-sm: #{$radius-sm};
+  --app-radius-md: #{$radius-md};
+  --app-radius-lg: #{$radius-lg};
+  --app-radius-xl: #{$radius-xl};
+  --app-radius-pill: #{$radius-pill};
+  --app-shadow-card: #{$shadow-card};
+  --app-shadow-float: #{$shadow-float};
+  --app-shadow-primary: #{$shadow-primary};
+}
+
+// =============================================================================
+// 4. MIXINS SCSS REUTILIZABLES
+// =============================================================================
+
+@mixin app-card {
+  background: var(--app-card);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-card);
+  border: 1px solid rgb(59 91 219 / 6%);
+  padding: 16px 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@mixin pill-container {
+  display: inline-flex;
+  align-items: center;
+  background: var(--app-primary-tint);
+  border-radius: var(--app-radius-pill);
+  padding: 4px;
+  gap: 4px;
+}
+
+@mixin pill-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  border-radius: var(--app-radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+
+  &--active {
+    background: var(--app-card);
+    color: var(--app-primary);
+    box-shadow: 0 4px 10px rgb(59 91 219 / 12%);
+  }
+}
+
+@mixin hero-surface {
+  background: linear-gradient(145deg, var(--app-primary) 0%, var(--app-primary-dark) 100%);
+  color: var(--app-text-inverse);
+  border-radius: 0 0 var(--app-radius-xl) var(--app-radius-xl);
+  padding: 24px 20px 32px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 28px -6px rgb(43 68 179 / 35%);
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

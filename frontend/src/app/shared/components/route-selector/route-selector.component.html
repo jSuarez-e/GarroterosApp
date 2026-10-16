@@ -1,0 +1,65 @@
+<!-- frontend/src/app/shared/components/route-selector/route-selector.component.html -->
+<div class="route-selector">
+  <div class="route-selector__header">
+    <div class="route-selector__title-wrap">
+      <div class="route-selector__icon-bubble">
+        <ion-icon name="trail-sign-outline" class="route-selector__icon"></ion-icon>
+      </div>
+      <div class="route-selector__label-box">
+        <span class="route-selector__label">{{ label() }}</span>
+        @if (currentRoute()) {
+          <span class="route-selector__current-name">{{ currentRoute()?.name }}</span>
+        }
+      </div>
+    </div>
+
+    @if (currentRoute()?.isActive) {
+      <div class="route-selector__badge route-selector__badge--active">
+        <ion-icon name="checkmark-circle-outline" class="route-selector__badge-icon"></ion-icon>
+        <span class="route-selector__badge-text">Ruta Oficial Activa</span>
+      </div>
+    }
+  </div>
+
+  <div class="route-selector__control-row">
+    @if (isLoading()) {
+      <div class="route-selector__loading">
+        <ion-spinner name="crescent" class="route-selector__spinner"></ion-spinner>
+        <span class="route-selector__loading-text">Cargando rutas disponibles...</span>
+      </div>
+    } @else {
+      <div class="route-selector__input-wrap">
+        <ion-select
+          class="route-selector__select"
+          interface="popover"
+          placeholder="Seleccionar ruta turística..."
+          [value]="selectedRouteId()"
+          (ionChange)="onSelectionChange($event.detail.value)"
+        >
+          @for (route of routes(); track route.id) {
+            <ion-select-option [value]="route.id">
+              {{ route.name }}{{ route.isActive ? ' ⭐ (Activa)' : '' }}
+            </ion-select-option>
+          }
+        </ion-select>
+      </div>
+    }
+  </div>
+
+  @if (currentRoute(); as route) {
+    <div class="route-selector__meta-strip">
+      <div class="route-selector__meta-pill">
+        <ion-icon name="walk-outline" class="route-selector__meta-icon"></ion-icon>
+        <span class="route-selector__meta-text">{{ route.totalDistanceKm }} km</span>
+      </div>
+      <div class="route-selector__meta-pill">
+        <ion-icon name="time-outline" class="route-selector__meta-icon"></ion-icon>
+        <span class="route-selector__meta-text">{{ route.estimatedDurationMinutes }} min</span>
+      </div>
+      <div class="route-selector__meta-pill">
+        <ion-icon name="navigate-outline" class="route-selector__meta-icon"></ion-icon>
+        <span class="route-selector__meta-text">{{ route.municipality }}</span>
+      </div>
+    </div>
+  }
+</div>

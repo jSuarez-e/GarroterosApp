@@ -1,0 +1,208 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM para la vista ¿Como llegar? con tarjetas de metricas y botones de navegacion.
+ * [I/O - Reusabilidad]: Clases arrive-wrapper, metric-box, btn-nav con soporte de tema oscuro.
+ * [Edge Cases - UI]: Grid responsivo para las metricas, espaciados adaptados para dispositivos tactiles.
+ */
+
+@use "../../../theme/variables.scss" as *;
+
+.arrive-toolbar {
+  --background: linear-gradient(135deg, var(--app-primary, #3B5BDB) 0%, var(--app-primary-dark, #2B44B3) 100%);
+  --color: #fff;
+}
+
+.arrive-content {
+  --background: var(--app-bg-canvas, #F0F4FE);
+}
+
+.arrive-wrapper {
+  padding: 0 16px 24px;
+  max-width: 600px;
+  margin: -16px auto 0;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.arrive-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+
+  &__spinner {
+    color: var(--app-primary, #3B5BDB);
+    width: 44px;
+    height: 44px;
+  }
+
+  &__text {
+    color: var(--app-text-muted, #64748B);
+    font-size: 14px;
+    margin-top: 16px;
+  }
+}
+
+.arrive-card {
+  border-radius: var(--app-radius-lg, 20px);
+  background: var(--app-surface-card, #FFF);
+  border: 1px solid var(--app-border-light, #E2E8F0);
+  box-shadow: var(--app-shadow-card, 0 4px 16px rgb(59 91 219 / 8%));
+  margin: 0;
+
+  &__title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--app-text-title, #1E293B);
+    margin-top: 8px;
+  }
+
+  &__subtitle {
+    font-size: 13px;
+    color: var(--app-text-muted, #64748B);
+  }
+
+  &__description {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--app-text-body, #334155);
+    margin: 0;
+  }
+}
+
+.destination-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--app-primary-light, #EDF2FF);
+  border: 1px solid rgb(59 91 219 / 20%);
+  padding: 4px 12px;
+  border-radius: var(--app-radius-pill, 9999px);
+  color: var(--app-primary, #3B5BDB);
+  font-size: 12px;
+  font-weight: 600;
+
+  &__icon {
+    font-size: 14px;
+  }
+}
+
+:host ::ng-deep {
+  .gt-grid-three-cols {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+
+    .stat-badge {
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      padding: 10px 4px;
+      gap: 6px;
+
+      &__icon-wrap {
+        width: 30px;
+        height: 30px;
+      }
+
+      &__icon {
+        font-size: 16px;
+      }
+
+      &__info {
+        align-items: center;
+      }
+
+      &__value {
+        font-size: 14px;
+      }
+
+      &__label {
+        font-size: 10px;
+        letter-spacing: 0;
+      }
+    }
+  }
+}
+
+.actions-header {
+  &__title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--app-text-title, #1E293B);
+  }
+
+  &__subtitle {
+    font-size: 13px;
+    color: var(--app-text-muted, #64748B);
+  }
+}
+
+.actions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-nav {
+  --border-radius: var(--app-radius-md, 14px);
+
+  font-weight: 600;
+  height: 48px;
+  margin: 0;
+
+  &__end-icon {
+    font-size: 16px;
+    opacity: 0.8;
+  }
+
+  &--google {
+    --background: linear-gradient(135deg, #3B5BDB 0%, #2B44B3 100%);
+    --box-shadow: 0 4px 14px rgb(59 91 219 / 30%);
+  }
+
+  &--waze {
+    --background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+    --box-shadow: 0 4px 12px rgb(6 182 212 / 35%);
+  }
+}
+
+.security-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #ECFDF5;
+  border: 1px solid rgb(16 185 129 / 25%);
+  border-radius: var(--app-radius-md, 14px);
+  padding: 14px;
+
+  &__icon {
+    font-size: 24px;
+    color: #10B981;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #065F46;
+    margin-bottom: 2px;
+  }
+
+  &__text {
+    font-size: 13px;
+    color: #047857;
+    margin: 0;
+    line-height: 1.4;
+  }
+}

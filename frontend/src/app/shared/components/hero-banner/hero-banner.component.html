@@ -1,0 +1,35 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla HTML del encabezado curvo Hero inspirado en el mockup de viajes (SDD-005-UI-REDESIGN).
+  [I/O - Reusabilidad]: Proyeccion de contenido en slot superior y principal, sin estilos inline.
+  [Edge Cases - UI]: Control flow @if para badge y subtitulo opcional.
+-->
+
+<section class="hero-banner">
+  <div class="hero-banner__content">
+    @if (badgeText()) {
+      <div class="hero-banner__badge">
+        <ion-icon [name]="iconName()" class="hero-banner__badge-icon"></ion-icon>
+        <span class="hero-banner__badge-text">{{ badgeText() }}</span>
+      </div>
+    }
+
+    <h1 class="hero-banner__title">{{ title() }}</h1>
+
+    @if (subtitle()) {
+      <p class="hero-banner__subtitle">{{ subtitle() }}</p>
+    }
+
+    <div class="hero-banner__slot">
+      <ng-content></ng-content>
+    </div>
+  </div>
+
+  @if (showDecorativeIllustration()) {
+    <div class="hero-banner__decoration" aria-hidden="true">
+      <div class="hero-banner__globe-circle"></div>
+      <div class="hero-banner__orbit-line"></div>
+      <ion-icon name="navigate" class="hero-banner__accent-icon"></ion-icon>
+    </div>
+  }
+</section>

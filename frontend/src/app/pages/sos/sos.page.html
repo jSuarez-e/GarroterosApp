@@ -1,0 +1,105 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla visual para el canal de emergencia y asistencia en ruta SOS (SDD-003-TELEMETRY-REALTIME).
+  [I/O - Reusabilidad]: Boton de panico SOS, panel de coordenadas transmitidas y accesos directos de llamada a emergencias.
+  [Edge Cases - UI]: Control flow nativo @if para confirmar emision, botones grandes optimizados para situaciones de estres.
+-->
+<ion-header [translucent]="true">
+  <ion-toolbar class="sos-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Asistencia SOS</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="sos-content">
+  <!-- Banner Curvo Hero de Emergencia SOS -->
+  <app-hero-banner
+    title="Canal Prioritario SOS"
+    subtitle="Transmisión de telemetría y alerta inmediata a los guías de la ruta"
+    badgeText="Seguridad Turística"
+    iconName="alert-circle-outline"
+  ></app-hero-banner>
+
+  <div class="sos-wrapper">
+    @if (sosSent() || activeAlert()) {
+      <div class="sos-alert-banner">
+        <div class="sos-alert-banner__header">
+          <ion-icon name="checkmark-circle-outline" class="sos-alert-banner__icon"></ion-icon>
+          <strong class="sos-alert-banner__title">ALERTA SOS ACTIVA</strong>
+        </div>
+        <p class="sos-alert-banner__text">
+          Tu ubicación GPS ha sido compartida en el canal prioritario. Los guías y equipo de rescate han sido notificados. Mantén la calma y permanece en el lugar seguro más cercano.
+        </p>
+        <ion-button
+          expand="block"
+          fill="outline"
+          color="light"
+          class="sos-alert-banner__btn"
+          (click)="dismissAlert()"
+        >
+          Desactivar Estado de Alerta
+        </ion-button>
+      </div>
+    } @else {
+      <div class="sos-action-box">
+        <button
+          type="button"
+          class="sos-panic-btn"
+          [disabled]="isSending()"
+          (click)="sendSosAlert()"
+        >
+          @if (isSending()) {
+            <ion-spinner name="crescent" class="sos-panic-btn__spinner"></ion-spinner>
+            <span class="sos-panic-btn__text">EMITIENDO...</span>
+          } @else {
+            <span class="sos-panic-btn__label">SOS</span>
+            <span class="sos-panic-btn__sub">PEDIR AUXILIO</span>
+          }
+        </button>
+      </div>
+    }
+
+    <!-- Tarjeta de Líneas Directas con InfoCard Compartido -->
+    <app-info-card
+      title="Líneas de Emergencia Directas"
+      subtitle="Contacta inmediatamente a las autoridades locales de Piedecuesta"
+      badge="24/7"
+      badgeColor="danger"
+      icon="call-outline"
+    >
+      <div class="emergency-contacts">
+        <a href="tel:123" class="contact-item">
+          <div class="contact-item__icon-box contact-item__icon-box--police">
+            <ion-icon name="call-outline"></ion-icon>
+          </div>
+          <div class="contact-item__info">
+            <strong class="contact-item__name">Policía Nacional Piedecuesta</strong>
+            <span class="contact-item__number">Línea 123</span>
+          </div>
+        </a>
+
+        <a href="tel:119" class="contact-item">
+          <div class="contact-item__icon-box contact-item__icon-box--fire">
+            <ion-icon name="call-outline"></ion-icon>
+          </div>
+          <div class="contact-item__info">
+            <strong class="contact-item__name">Bomberos Piedecuesta</strong>
+            <span class="contact-item__number">Línea 119</span>
+          </div>
+        </a>
+
+        <a href="tel:132" class="contact-item">
+          <div class="contact-item__icon-box contact-item__icon-box--medical">
+            <ion-icon name="call-outline"></ion-icon>
+          </div>
+          <div class="contact-item__info">
+            <strong class="contact-item__name">Cruz Roja / Defensa Civil</strong>
+            <span class="contact-item__number">Línea 132</span>
+          </div>
+        </a>
+      </div>
+    </app-info-card>
+  </div>
+</ion-content>

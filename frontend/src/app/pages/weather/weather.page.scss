@@ -1,0 +1,300 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM para la vista de meteorologia adaptados al diseno de viajes y cobalto (SDD-005-UI-REDESIGN).
+ * [I/O - Reusabilidad]: Clases BEM .weather-toolbar, .weather-hero, .hourly-scroller, .recommendations-card con tokens de variables.scss.
+ * [Edge Cases - UI]: Desplazamiento horizontal fluido sin barra tosca, diseno adaptable a cualquier pantalla movil.
+ */
+
+@use "../../../theme/variables.scss" as *;
+
+.weather-toolbar {
+  --background: var(--app-primary);
+  --color: var(--app-text-inverse);
+  --border-width: 0;
+
+  ion-title {
+    font-weight: 700;
+  }
+}
+
+.weather-content {
+  --background: var(--app-surface);
+}
+
+.weather-wrapper {
+  padding: 16px;
+  max-width: 650px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.weather-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  gap: 1rem;
+
+  &__spinner {
+    --color: var(--app-primary);
+  }
+
+  &__text {
+    color: var(--app-text-muted);
+    font-size: 0.9rem;
+  }
+}
+
+/* Tarjeta Hero Principal */
+.weather-hero {
+  @include hero-surface;
+
+  border-radius: var(--app-radius-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  &__location {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__city {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--app-text-inverse);
+    letter-spacing: -0.3px;
+  }
+
+  &__status {
+    font-size: 0.72rem;
+    color: rgb(255 255 255 / 85%);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &__icon-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 20%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__main-icon {
+    font-size: 2.2rem;
+    color: var(--app-text-inverse);
+  }
+
+  &__temperature-box {
+    display: flex;
+    align-items: baseline;
+    gap: 1.25rem;
+  }
+
+  &__temp-value {
+    font-size: 4rem;
+    font-weight: 900;
+    color: var(--app-text-inverse);
+    line-height: 1;
+  }
+
+  &__condition {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  &__condition-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--app-text-inverse);
+  }
+
+  &__feels-like {
+    font-size: 0.8rem;
+    color: rgb(255 255 255 / 80%);
+  }
+
+  &__metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgb(255 255 255 / 20%);
+  }
+}
+
+.weather-metric {
+  background: rgb(255 255 255 / 16%);
+  border-radius: var(--app-radius-md);
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  border: 1px solid rgb(255 255 255 / 25%);
+
+  &__icon {
+    font-size: 1.25rem;
+    color: var(--app-text-inverse);
+  }
+
+  &__val {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--app-text-inverse);
+  }
+
+  &__label {
+    font-size: 0.7rem;
+    color: rgb(255 255 255 / 80%);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+}
+
+/* Pronostico por Horas */
+.hourly-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &__title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--app-text-main);
+  }
+}
+
+.hourly-scroller {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgb(59 91 219 / 15%);
+    border-radius: 4px;
+  }
+}
+
+.hourly-card {
+  flex-shrink: 0;
+  width: 82px;
+  background: var(--app-card);
+  border: 1px solid rgb(59 91 219 / 8%);
+  border-radius: var(--app-radius-md);
+  box-shadow: var(--app-shadow-card);
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+
+  &__time {
+    font-size: 0.75rem;
+    color: var(--app-text-secondary);
+    font-weight: 600;
+  }
+
+  &__icon {
+    font-size: 1.6rem;
+    color: var(--app-primary);
+  }
+
+  &__temp {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--app-text-main);
+  }
+
+  &__rain {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    font-size: 0.7rem;
+    color: var(--app-primary);
+    font-weight: 700;
+  }
+
+  &__rain-icon {
+    font-size: 0.75rem;
+  }
+}
+
+/* Recomendaciones */
+.recommendations-card {
+  @include app-card;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__icon {
+    font-size: 1.3rem;
+    color: var(--app-primary);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--app-text-main);
+  }
+}
+
+.recommendations-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  &__bullet {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--app-primary);
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    font-size: 0.85rem;
+    color: var(--app-text-secondary);
+    line-height: 1.4;
+  }
+}

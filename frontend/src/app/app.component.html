@@ -1,0 +1,94 @@
+<!--
+  @sdd
+  [Objetivo]: Shell principal con contenedor IonMenu lateral reactivo y router outlet (SDD-002-AUTH-RBAC).
+  [I/O - Reusabilidad]: Proyeccion de rutas en ion-router-outlet id="main-content", enlaces directos routerLink.
+  [Edge Cases - UI]: Control flow nativo @if para separar opciones administrativas, toggle automatico en seleccion.
+-->
+<ion-app>
+  <ion-menu contentId="main-content" type="overlay" class="app-menu">
+    <ion-header>
+      <ion-toolbar class="menu-toolbar">
+        <div class="menu-header">
+          <div class="menu-header__avatar">
+            <ion-icon name="person-circle-outline" class="menu-header__avatar-icon"></ion-icon>
+          </div>
+          <div class="menu-header__info">
+            <h2 class="menu-header__name">{{ currentUser()?.fullName || 'Usuario Guianza' }}</h2>
+            <div class="menu-header__role-badge" [class.menu-header__role-badge--admin]="isAdmin()">
+              {{ currentUser()?.role || 'TURISTA' }}
+            </div>
+          </div>
+        </div>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="menu-content">
+      <ion-list lines="none" class="menu-list">
+        <ion-list-header class="menu-list__header">
+          <ion-label>Recorrido Turístico</ion-label>
+        </ion-list-header>
+
+        @for (item of userMenuItems; track item.url) {
+          <ion-menu-toggle auto-hide="true">
+            <ion-item
+              [routerLink]="[item.url]"
+              routerDirection="root"
+              routerLinkActive="menu-item--active"
+              class="menu-item"
+              [class.menu-item--locked]="item.requiresAttendance && !isAdmin() && attendanceConfirmed() === false"
+              detail="false"
+            >
+              <ion-icon [name]="item.icon" slot="start" class="menu-item__icon"></ion-icon>
+              <ion-label class="menu-item__label">{{ item.title }}</ion-label>
+              @if (item.requiresAttendance && !isAdmin() && attendanceConfirmed() === false) {
+                <ion-icon name="lock-closed-outline" slot="end" class="menu-item__lock"></ion-icon>
+              }
+            </ion-item>
+          </ion-menu-toggle>
+        }
+
+        @if (isAdmin()) {
+          <ion-list-header class="menu-list__header menu-list__header--admin">
+            <ion-label>Control Administrativo</ion-label>
+          </ion-list-header>
+
+          @for (item of adminMenuItems; track item.url) {
+            <ion-menu-toggle auto-hide="true">
+              <ion-item
+                [routerLink]="[item.url]"
+                routerDirection="root"
+                routerLinkActive="menu-item--active"
+                class="menu-item menu-item--admin"
+                detail="false"
+              >
+                <ion-icon [name]="item.icon" slot="start" class="menu-item__icon"></ion-icon>
+                <ion-label class="menu-item__label">{{ item.title }}</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+          }
+        }
+      </ion-list>
+    </ion-content>
+
+    @if (isAuthenticated()) {
+      <ion-footer class="menu-footer">
+        <ion-toolbar class="menu-footer__toolbar">
+          <ion-menu-toggle auto-hide="true">
+            <ion-button
+              expand="block"
+              fill="clear"
+              color="danger"
+              (click)="onLogout()"
+              class="menu-footer__logout-btn"
+            >
+              <ion-icon name="log-out-outline" slot="start"></ion-icon>
+              <span>Cerrar Sesión</span>
+            </ion-button>
+          </ion-menu-toggle>
+        </ion-toolbar>
+      </ion-footer>
+    }
+  </ion-menu>
+
+  <ion-router-outlet id="main-content"></ion-router-outlet>
+</ion-app>

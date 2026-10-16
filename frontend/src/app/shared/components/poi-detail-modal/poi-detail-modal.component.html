@@ -1,0 +1,105 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla del modal multimedia para POIs con galeria de fotos, reproductor de audio y ficha historica (SDD-004-MAP-MULTIMEDIA-WEATHER).
+  [I/O - Reusabilidad]: Boton de cierre, miniaturas de imagenes, barra de reproduccion de audio interactiva.
+  [Edge Cases - UI]: Control flow nativo @if/@for con track index, fallback cuando no hay audios o fotos disponibles.
+-->
+<ion-header [translucent]="true">
+  <ion-toolbar class="poi-modal__toolbar">
+    <ion-title class="poi-modal__title">{{ poi.title }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" class="poi-modal__close-btn">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="poi-modal__content">
+  <div class="poi-modal__body">
+    <!-- Indicador de secuencia de ruta -->
+    <div class="poi-modal__header-meta">
+      <ion-badge class="poi-modal__badge">
+        Hito #{{ poi.orderIndex }} del Recorrido
+      </ion-badge>
+      <div class="poi-modal__location">
+        <ion-icon name="location-outline" class="poi-modal__location-icon"></ion-icon>
+        <span>Piedecuesta Histórica</span>
+      </div>
+    </div>
+
+    <!-- Galeria de Fotos -->
+    @if (poi.photoUrls && poi.photoUrls.length > 0) {
+      <div class="poi-gallery">
+        <div class="poi-gallery__featured">
+          <img
+            [src]="poi.photoUrls[activeImageIndex()] || poi.photoUrls[0]"
+            [alt]="poi.title"
+            class="poi-gallery__image"
+          />
+        </div>
+
+        @if (poi.photoUrls.length > 1) {
+          <div class="poi-gallery__thumbnails">
+            @for (photo of poi.photoUrls; track photo; let idx = $index) {
+              <button
+                type="button"
+                class="poi-gallery__thumb-btn"
+                [class.poi-gallery__thumb-btn--active]="activeImageIndex() === idx"
+                (click)="selectImage(idx)"
+              >
+                <img [src]="photo" [alt]="poi.title" class="poi-gallery__thumb-img" />
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Reproductor de Audio Integrado -->
+    @if (poi.audioUrl) {
+      <div class="poi-audio-card">
+        <div class="poi-audio-card__header">
+          <div class="poi-audio-card__icon-box">
+            <ion-icon name="volume-high-outline" class="poi-audio-card__icon"></ion-icon>
+          </div>
+          <div class="poi-audio-card__info">
+            <span class="poi-audio-card__label">Audio Guía Oficial</span>
+            <span class="poi-audio-card__name">Narración Histórica y Tradición</span>
+          </div>
+          <ion-button
+            fill="solid"
+            class="poi-audio-card__play-btn"
+            [class.poi-audio-card__play-btn--playing]="audioPlayer.currentUrl() === poi.audioUrl && audioPlayer.isPlaying()"
+            (click)="toggleAudio()"
+          >
+            @if (audioPlayer.currentUrl() === poi.audioUrl && audioPlayer.isPlaying()) {
+              <ion-icon name="pause-outline" slot="icon-only"></ion-icon>
+            } @else {
+              <ion-icon name="play-outline" slot="icon-only"></ion-icon>
+            }
+          </ion-button>
+        </div>
+
+        @if (audioPlayer.currentUrl() === poi.audioUrl) {
+          <div class="poi-audio-card__progress-container">
+            <ion-progress-bar
+              [value]="audioPlayer.progress()"
+              class="poi-audio-card__bar"
+            ></ion-progress-bar>
+            <div class="poi-audio-card__timing">
+              <span>{{ formatSeconds(audioPlayer.currentTime()) }}</span>
+              <span>{{ formatSeconds(audioPlayer.duration()) }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Descripcion Cultural e Historica -->
+    <div class="poi-description-card">
+      <h3 class="poi-description-card__heading">Historia y Memoria Cultural</h3>
+      <p class="poi-description-card__text">{{ poi.description }}</p>
+    </div>
+  </div>
+</ion-content>

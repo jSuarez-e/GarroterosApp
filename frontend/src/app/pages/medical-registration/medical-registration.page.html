@@ -1,0 +1,243 @@
+<!-- frontend/src/app/pages/medical-registration/medical-registration.page.html -->
+<ion-header class="ion-no-border">
+  <ion-toolbar class="medical-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Ficha Médica</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="medical-content" [fullscreen]="true">
+  <!-- Hero Banner Reutilizable -->
+  <app-hero-banner
+    title="Ficha Médica y Asistencia"
+    subtitle="Confirma tu participación y registra tus condiciones de salud para una experiencia segura en la ruta."
+    badgeText="Seguridad Turística"
+    badgeIcon="shield-checkmark-outline"
+    badgeVariant="accent"
+  ></app-hero-banner>
+
+  <div class="medical-wrapper">
+    @if (isLoading()) {
+      <div class="medical-loading">
+        <ion-spinner name="crescent" class="medical-loading__spinner"></ion-spinner>
+        <span class="medical-loading__text">Cargando datos médicos...</span>
+      </div>
+    } @else {
+      <!-- Banner de Requisito Obligatorio para Acceso General -->
+      <div class="medical-requirement-banner">
+        <ion-icon name="alert-circle-outline" class="medical-requirement-banner__icon"></ion-icon>
+        <div class="medical-requirement-banner__info">
+          <strong class="medical-requirement-banner__title">Validación Requerida para el Recorrido</strong>
+          <p class="medical-requirement-banner__text">
+            Para poder utilizar el Mapa, consultar Guías, ver ¿Cómo llegar? y activar Asistencia en Ruta (SOS), primero debes validar que participarás en la ruta confirmando tu asistencia a continuación.
+          </p>
+        </div>
+      </div>
+
+      <!-- Tarjeta 1: Confirmación de Asistencia -->
+      <app-info-card
+        title="Confirmación de Asistencia"
+        subtitle="Informa al equipo de guías tu participación en el recorrido"
+        iconName="checkmark-circle-outline"
+        variant="elevated"
+      >
+        <div class="attendance-box">
+          <div class="attendance-box__info">
+            <span class="attendance-box__label">¿Confirmas tu asistencia para el recorrido?</span>
+            <span class="attendance-box__hint">
+              @if (attendanceConfirmed()) {
+                Asistencia confirmada para la jornada
+              } @else {
+                Participación no confirmada o pendiente
+              }
+            </span>
+          </div>
+          <ion-toggle
+            [checked]="attendanceConfirmed()"
+            (ionChange)="attendanceConfirmed.set($event.detail.checked)"
+            color="primary"
+          ></ion-toggle>
+        </div>
+      </app-info-card>
+
+      <!-- Tarjeta 2: Datos de Salud y Alimentación -->
+      <app-info-card
+        title="Información Médica y Dieta"
+        subtitle="Datos críticos de primeros auxilios y logística de alimentación"
+        iconName="medkit-outline"
+        variant="elevated"
+      >
+        <form class="medical-form" (ngSubmit)="onSave()">
+          <!-- Tipo de Alimentación -->
+          <div class="form-group">
+            <label class="form-group__label" for="diet-select">
+              <ion-icon name="restaurant-outline" class="form-group__icon"></ion-icon>
+              Tipo de Alimentación / Dieta
+            </label>
+            <div class="form-select-container">
+              <ion-select
+                id="diet-select"
+                class="form-select"
+                interface="popover"
+                [value]="dietType()"
+                (ionChange)="dietType.set($event.detail.value)"
+              >
+                @for (opt of dietOptions; track opt.value) {
+                  <ion-select-option [value]="opt.value">{{ opt.label }}</ion-select-option>
+                }
+              </ion-select>
+            </div>
+          </div>
+
+          <!-- Grupo Sanguíneo -->
+          <div class="form-group">
+            <label class="form-group__label" for="blood-select">
+              <ion-icon name="medkit-outline" class="form-group__icon"></ion-icon>
+              Grupo Sanguíneo y Factor RH
+            </label>
+            <div class="form-select-container">
+              <ion-select
+                id="blood-select"
+                class="form-select"
+                interface="popover"
+                [value]="bloodType()"
+                (ionChange)="bloodType.set($event.detail.value)"
+              >
+                @for (bt of bloodTypeOptions; track bt) {
+                  <ion-select-option [value]="bt">{{ bt }}</ion-select-option>
+                }
+              </ion-select>
+            </div>
+          </div>
+
+          <!-- Alergias -->
+          <div class="form-group">
+            <label class="form-group__label" for="allergies-input">
+              <ion-icon name="alert-circle-outline" class="form-group__icon"></ion-icon>
+              Alergias Conocidas (medicamentos, alimentos o insectos)
+            </label>
+            <input
+              id="allergies-input"
+              type="text"
+              class="form-input"
+              placeholder="Ej. Penicilina, mariscos, picaduras de abeja (o 'Ninguna')"
+              [value]="allergies()"
+              (input)="onInputChange(allergies, $event)"
+            />
+          </div>
+
+          <!-- Condiciones Médicas -->
+          <div class="form-group">
+            <label class="form-group__label" for="conditions-input">
+              Condiciones Médicas Preexistentes
+            </label>
+            <input
+              id="conditions-input"
+              type="text"
+              class="form-input"
+              placeholder="Ej. Asma, hipertensión, diabetes, problemas articulares"
+              [value]="medicalConditions()"
+              (input)="onInputChange(medicalConditions, $event)"
+            />
+          </div>
+
+          <!-- Medicamentos Requeridos -->
+          <div class="form-group">
+            <label class="form-group__label" for="medications-input">
+              Medicamentos de Uso Diario o Emergencia
+            </label>
+            <input
+              id="medications-input"
+              type="text"
+              class="form-input"
+              placeholder="Ej. Inhalador salbutamol, antihistamínicos, insulina"
+              [value]="medications()"
+              (input)="onInputChange(medications, $event)"
+            />
+          </div>
+        </form>
+      </app-info-card>
+
+      <!-- Tarjeta 3: Contacto de Emergencia -->
+      <app-info-card
+        title="Contacto de Emergencia"
+        subtitle="Persona a contactar de inmediato en caso de eventualidad en ruta"
+        iconName="call-outline"
+        variant="elevated"
+      >
+        <div class="medical-form">
+          <div class="form-group">
+            <label class="form-group__label" for="emergency-name">
+              <ion-icon name="person-outline" class="form-group__icon"></ion-icon>
+              Nombre del Contacto
+            </label>
+            <input
+              id="emergency-name"
+              type="text"
+              class="form-input"
+              placeholder="Ej. María Pérez (Familiar / Pareja)"
+              [value]="emergencyContactName()"
+              (input)="onInputChange(emergencyContactName, $event)"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-group__label" for="emergency-phone">
+              <ion-icon name="call-outline" class="form-group__icon"></ion-icon>
+              Teléfono de Contacto
+            </label>
+            <input
+              id="emergency-phone"
+              type="tel"
+              class="form-input"
+              placeholder="+57 300 123 4567"
+              [value]="emergencyContactPhone()"
+              (input)="onInputChange(emergencyContactPhone, $event)"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-group__label" for="notes-input">
+              Observaciones Adicionales para los Guías
+            </label>
+            <textarea
+              id="notes-input"
+              class="form-textarea"
+              rows="3"
+              placeholder="Indica cualquier necesidad particular o indicación para la caminata..."
+              [value]="notes()"
+              (input)="onTextAreaChange(notes, $event)"
+            ></textarea>
+          </div>
+        </div>
+      </app-info-card>
+
+      <!-- Botón de Guardar -->
+      <div class="submit-container">
+        <ion-button
+          expand="block"
+          class="btn-save"
+          [disabled]="isSaving()"
+          (click)="onSave()"
+        >
+          @if (isSaving()) {
+            <ion-spinner name="crescent" slot="start"></ion-spinner>
+            Guardando ficha médica...
+          } @else {
+            <ion-icon name="save-outline" slot="start"></ion-icon>
+            Guardar y Confirmar Asistencia
+          }
+        </ion-button>
+      </div>
+    }
+  </div>
+
+  <ion-toast
+    [isOpen]="showToast()"
+    [message]="toastMessage()"
+    [duration]="3000"
+    (didDismiss)="showToast.set(false)"
+  ></ion-toast>
+</ion-content>

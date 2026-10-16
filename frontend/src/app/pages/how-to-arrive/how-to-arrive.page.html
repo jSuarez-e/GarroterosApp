@@ -1,0 +1,118 @@
+<!--
+  @sdd
+  [Objetivo]: Plantilla visual para la vista ¿Como llegar? con metricas de distancia y botones de navegacion externa.
+  [I/O - Reusabilidad]: Boton de menu, tarjetas de metrica (distancia, tiempo de caminata) y botones para Google Maps/Waze.
+  [Edge Cases - UI]: Control flow nativo @if con estado de carga mediante ion-spinner, layout adaptable a pantallas moviles.
+-->
+<ion-header [translucent]="true">
+  <ion-toolbar class="arrive-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>¿Cómo llegar?</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadNavigationData()" [disabled]="isLoading()" aria-label="Actualizar ubicación">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="arrive-content">
+  <!-- Banner Curvo Hero de Navegacion -->
+  <app-hero-banner
+    title="¿Cómo llegar?"
+    subtitle="Punto de encuentro y navegación GPS hacia el sendero patrimonial"
+    badgeText="Punto de Encuentro"
+    iconName="navigate-outline"
+  ></app-hero-banner>
+
+  <div class="arrive-wrapper">
+    @if (isLoading()) {
+      <div class="arrive-loading">
+        <ion-spinner name="crescent" class="arrive-loading__spinner"></ion-spinner>
+        <p class="arrive-loading__text">Calculando ruta hacia el punto de encuentro...</p>
+      </div>
+    } @else {
+      @if (routeData(); as data) {
+        <!-- Tarjeta de Punto de Salida con InfoCard Compartido -->
+        <app-info-card
+          [title]="data.destination.name"
+          [subtitle]="data.destination.address"
+          badge="Oficial"
+          badgeColor="primary"
+          icon="location-outline"
+        >
+          <p class="arrive-card__description">
+            {{ data.destination.description }}
+          </p>
+        </app-info-card>
+
+        <!-- Metricas en Grid de 3 Columnas con StatBadge Compartido -->
+        <section class="gt-grid-three-cols">
+          <app-stat-badge
+            icon="navigate-outline"
+            [value]="data.distanceKm + ' km'"
+            label="Distancia GPS"
+            variant="primary"
+          ></app-stat-badge>
+
+          <app-stat-badge
+            icon="walk-outline"
+            [value]="'~' + data.estimatedWalkingMinutes + ' min'"
+            label="Caminando"
+            variant="default"
+          ></app-stat-badge>
+
+          <app-stat-badge
+            icon="car-outline"
+            [value]="'~' + data.estimatedDrivingMinutes + ' min'"
+            label="En Carro"
+            variant="default"
+          ></app-stat-badge>
+        </section>
+
+        <!-- Tarjeta de Acciones GPS con InfoCard Compartido -->
+        <app-info-card
+          title="Iniciar Navegación GPS"
+          subtitle="Elige tu aplicación preferida para navegación paso a paso"
+          badge="GPS"
+          badgeColor="success"
+          icon="compass-outline"
+        >
+          <div class="actions-container">
+            <ion-button
+              expand="block"
+              class="btn-nav btn-nav--google"
+              (click)="openGoogleMaps()"
+            >
+              <ion-icon name="map-outline" slot="start"></ion-icon>
+              <span>Abrir en Google Maps</span>
+              <ion-icon name="open-outline" slot="end" class="btn-nav__end-icon"></ion-icon>
+            </ion-button>
+
+            <ion-button
+              expand="block"
+              class="btn-nav btn-nav--waze"
+              (click)="openWaze()"
+            >
+              <ion-icon name="car-outline" slot="start"></ion-icon>
+              <span>Abrir en Waze</span>
+              <ion-icon name="open-outline" slot="end" class="btn-nav__end-icon"></ion-icon>
+            </ion-button>
+          </div>
+        </app-info-card>
+
+        <div class="security-card">
+          <ion-icon name="shield-checkmark-outline" class="security-card__icon"></ion-icon>
+          <div class="security-card__info">
+            <strong class="security-card__title">Recomendación de Seguridad</strong>
+            <p class="security-card__text">
+              Procura llegar 15 minutos antes de la hora indicada con calzado cómodo, hidratación y batería suficiente en tu teléfono.
+            </p>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</ion-content>

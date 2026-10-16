@@ -1,0 +1,499 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM y responsive para la gestion y bitacora de alertas SOS (SDD-003-TELEMETRY-REALTIME & SDD-005-USER-MODULES-AND-ADMIN).
+ * [I/O - Reusabilidad]: Clases BEM .alert-card, .alert-badge, .filter-pills, .alert-meta-item, .manage-alert-modal.
+ * [Edge Cases - UI]: Alerta pendiente con borde rojo pulsante, modal responsive en moviles y tablets, alto contraste.
+ */
+
+@use "../../../../theme/variables.scss" as *;
+
+.admin-alerts-toolbar {
+  --background: linear-gradient(135deg, var(--app-primary, #3B5BDB) 0%, var(--app-primary-dark, #2B44B3) 100%);
+  --color: #fff;
+
+  ion-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+}
+
+.admin-alerts-content {
+  --background: var(--app-surface, #F0F4FE);
+}
+
+/* Pildoras de Filtro */
+.filter-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 12px;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &__btn {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: var(--app-radius-pill, 9999px);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--app-text-secondary, #64748b);
+    background: var(--app-card, #fff);
+    border: 1px solid var(--color-border, #e2e8f0);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--app-primary-tint, #edf2ff);
+      color: var(--app-primary, #3b5bdb);
+    }
+
+    &--active {
+      background: var(--app-primary, #3b5bdb);
+      color: #fff;
+      border-color: var(--app-primary, #3b5bdb);
+      box-shadow: 0 4px 10px rgb(59 91 219 / 20%);
+    }
+
+    &--pending {
+      position: relative;
+    }
+  }
+}
+
+/* Estado de Carga */
+.alerts-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  gap: 12px;
+
+  &__spinner {
+    width: 40px;
+    height: 40px;
+
+    --color: var(--app-primary, #3b5bdb);
+  }
+
+  &__text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--app-text-secondary, #64748b);
+    margin: 0;
+  }
+}
+
+/* Estado Vacio */
+.alerts-empty {
+  background: var(--app-card, #fff);
+  border-radius: var(--app-radius-lg, 20px);
+  padding: 40px 20px;
+  text-align: center;
+  border: 1px solid var(--color-border-subtle, rgb(59 91 219 / 8%));
+  box-shadow: var(--app-shadow-card);
+  margin-top: 12px;
+
+  &__icon {
+    font-size: 52px;
+    color: var(--app-success, #12b886);
+    margin-bottom: 8px;
+  }
+
+  &__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--app-text-main, #1e293b);
+    margin: 0 0 6px;
+  }
+
+  &__desc {
+    font-size: 13px;
+    color: var(--app-text-secondary, #64748b);
+    max-width: 380px;
+    margin: 0 auto;
+    line-height: 1.4;
+  }
+}
+
+/* Lista de Tarjetas de Alerta */
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.alert-card {
+  background: var(--app-card, #fff);
+  border-radius: var(--app-radius-lg, 20px);
+  border: 1px solid var(--color-border, #e2e8f0);
+  box-shadow: var(--app-shadow-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &--pending {
+    border-color: rgb(250 82 82 / 60%);
+    box-shadow: 0 4px 18px rgb(250 82 82 / 18%);
+    position: relative;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--app-danger, #fa5252);
+      border-radius: var(--app-radius-lg, 20px) var(--app-radius-lg, 20px) 0 0;
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  &__user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--app-primary-tint, #edf2ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__avatar-icon {
+    font-size: 28px;
+    color: var(--app-primary, #3b5bdb);
+  }
+
+  &__user-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--app-text-main, #1e293b);
+    margin: 0;
+  }
+
+  &__user-meta {
+    font-size: 12px;
+    color: var(--app-text-muted, #94a3b8);
+  }
+
+  &__message-box {
+    background: rgb(250 82 82 / 8%);
+    border: 1px solid rgb(250 82 82 / 25%);
+    border-radius: var(--app-radius-md, 14px);
+    padding: 10px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  &__message-icon {
+    font-size: 20px;
+    color: var(--app-danger, #fa5252);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  &__message-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #c92a2a;
+    margin: 0;
+    line-height: 1.35;
+  }
+
+  &__meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px 16px;
+    background: var(--app-surface, #f0f4fe);
+    padding: 10px 12px;
+    border-radius: var(--app-radius-md, 14px);
+  }
+
+  &__resolution-log {
+    background: #f8fafc;
+    border-left: 3px solid var(--app-primary, #3b5bdb);
+    border-radius: 0 10px 10px 0;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__resolution-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__resolution-icon {
+    font-size: 15px;
+    color: var(--app-primary, #3b5bdb);
+  }
+
+  &__resolution-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--app-text-main, #1e293b);
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+  }
+
+  &__resolution-text {
+    font-size: 13px;
+    color: var(--app-text-secondary, #64748b);
+    margin: 0;
+    line-height: 1.4;
+    white-space: pre-wrap;
+  }
+
+  &__resolution-author {
+    font-size: 11px;
+    color: var(--app-text-muted, #94a3b8);
+    margin-top: 4px;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 4px;
+    border-top: 1px solid var(--color-border, #e2e8f0);
+  }
+
+  &__btn-map {
+    --border-color: var(--app-primary, #3b5bdb);
+    --color: var(--app-primary, #3b5bdb);
+
+    font-weight: 600;
+  }
+
+  &__btn-manage {
+    --background: var(--app-primary, #3b5bdb);
+    --color: #fff;
+
+    font-weight: 600;
+  }
+}
+
+/* Badges de Estado */
+.alert-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--app-radius-pill, 9999px);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+
+  &--pending {
+    background: var(--app-danger-tint, #ffe3e3);
+    color: #c92a2a;
+    border: 1px solid rgb(250 82 82 / 30%);
+    animation: alert-pulse 1.8s infinite ease-in-out;
+  }
+
+  &--attended {
+    background: var(--app-warning-tint, #fff9db);
+    color: #d9480f;
+    border: 1px solid rgb(245 159 0 / 30%);
+  }
+
+  &--resolved {
+    background: var(--app-success-tint, #e6fcf5);
+    color: #0ca678;
+    border: 1px solid rgb(18 184 134 / 30%);
+  }
+
+  &--cancelled {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+  }
+}
+
+@keyframes alert-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgb(250 82 82 / 40%);
+  }
+
+  50% {
+    box-shadow: 0 0 0 5px rgb(250 82 82 / 0%);
+  }
+}
+
+/* Items de Metadatos */
+.alert-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &__icon {
+    font-size: 16px;
+    color: var(--app-primary, #3b5bdb);
+    flex-shrink: 0;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--app-text-muted, #94a3b8);
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+
+  &__value {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--app-text-main, #1e293b);
+  }
+
+  &__link {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--app-primary, #3b5bdb);
+    text-decoration: none;
+  }
+}
+
+/* Modal de Gestion */
+.manage-alert-modal {
+  --border-radius: var(--app-radius-lg, 20px);
+
+  .modal-toolbar {
+    --background: var(--app-primary, #3b5bdb);
+    --color: #fff;
+  }
+
+  .modal-content {
+    --background: var(--app-canvas, #f8fafd);
+  }
+
+  .modal-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .modal-summary {
+    background: #fff;
+    border-radius: var(--app-radius-md, 14px);
+    padding: 12px 14px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    &__label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--app-text-muted, #94a3b8);
+      text-transform: uppercase;
+    }
+
+    &__name {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--app-text-main, #1e293b);
+    }
+
+    &__time {
+      font-size: 12px;
+      color: var(--app-text-secondary, #64748b);
+    }
+  }
+
+  .modal-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--app-text-main, #1e293b);
+    margin-top: 4px;
+  }
+
+  .modal-status-group {
+    background: #fff;
+    border-radius: var(--app-radius-md, 14px);
+    border: 1px solid var(--color-border, #e2e8f0);
+    overflow: hidden;
+  }
+
+  .modal-radio-item {
+    --background: transparent;
+    --padding-start: 12px;
+    --inner-padding-end: 12px;
+
+    h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0 0 2px;
+    }
+
+    p {
+      font-size: 12px;
+      color: var(--app-text-secondary, #64748b);
+      margin: 0;
+    }
+  }
+
+  .modal-textarea-container {
+    background: #fff;
+    border-radius: var(--app-radius-md, 14px);
+    border: 1.5px solid var(--color-border, #e2e8f0);
+    padding: 8px 12px;
+    transition: border-color 0.2s ease;
+
+    &:focus-within {
+      border-color: var(--app-primary, #3b5bdb);
+      box-shadow: 0 0 0 3px rgb(59 91 219 / 12%);
+    }
+  }
+
+  .modal-textarea {
+    font-size: 14px;
+    color: var(--app-text-main, #1e293b);
+  }
+
+  .modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .modal-btn-save {
+    --background: var(--app-primary, #3b5bdb);
+    --border-radius: var(--app-radius-md, 14px);
+    --box-shadow: var(--app-shadow-primary);
+
+    height: 48px;
+    font-weight: 700;
+  }
+}

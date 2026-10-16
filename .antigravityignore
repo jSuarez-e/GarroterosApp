@@ -1,0 +1,93 @@
+# --- Control de Versiones ---
+.git/
+
+# --- Dependencias y Paquetes de Terceros ---
+node_modules/
+bower_components/
+jspm_packages/
+.pnp/
+.pnp.js
+
+# --- Entornos Virtuales y Gestores de Paquetes ---
+.venv/
+venv/
+env/
+.env_python/
+poetry.lock
+Pipfile.lock
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# --- Carpetas de Compilación y Distribución ---
+dist/
+build/
+out/
+www/
+.next/
+.nuxt/
+.docusaurus/
+*.min.js
+*.min.css
+
+# --- Cachés del Sistema, Frameworks e IDEs ---
+.angular/
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+.eslintcache
+.turbo/
+.chg/
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# --- Bases de Datos Locales (CRÍTICO PARA SQLITE) ---
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+mysql-data/
+
+# --- Reportes de QA y Testing ---
+coverage/
+.coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# --- Archivos Multimedia, Binarios y Pesados ---
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.mp4
+*.mp3
+*.pdf
+*.zip
+*.tar.gz
+*.rar
+
+# --- Información Sensible y Logs ---
+.env
+.env.*
+!.env.example
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Archivos Temporales del Sistema Operativo ---
+.DS_Store
+Thumbs.db
+desktop.ini

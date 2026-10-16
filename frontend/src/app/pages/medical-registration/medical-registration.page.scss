@@ -1,0 +1,194 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM para la ficha médica y confirmación de asistencia (SDD-005-USER-MODULES-AND-ADMIN).
+ * [I/O - Reusabilidad]: Clases medical-wrapper, attendance-box, form-group, btn-save bajo el diseño de tokens.
+ * [Edge Cases - UI]: Formularios responsivos, contrastes accesibles y espaciados optimizados para móviles.
+ */
+
+// frontend/src/app/pages/medical-registration/medical-registration.page.scss
+
+@use "../../../theme/variables.scss" as *;
+
+.medical-toolbar {
+  --background: linear-gradient(135deg, var(--app-primary, #3B5BDB) 0%, var(--app-primary-dark, #2B44B3) 100%);
+  --color: #fff;
+}
+
+.medical-content {
+  --background: var(--app-bg-canvas, #F0F4FE);
+}
+
+.medical-wrapper {
+  padding: 0 16px 32px;
+  max-width: 600px;
+  margin: -16px auto 0;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.medical-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+
+  &__spinner {
+    color: var(--app-primary, #3B5BDB);
+    width: 44px;
+    height: 44px;
+  }
+
+  &__text {
+    color: var(--app-text-muted, #64748B);
+    font-size: 14px;
+    margin-top: 16px;
+  }
+}
+
+.attendance-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__label {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--app-text-title, #1E293B);
+  }
+
+  &__hint {
+    font-size: 13px;
+    color: var(--app-text-muted, #64748B);
+  }
+}
+
+.medical-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--app-text-title, #1E293B);
+  }
+
+  &__icon {
+    font-size: 16px;
+    color: var(--app-primary, #3B5BDB);
+  }
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--app-radius-md, 14px);
+  border: 1px solid var(--app-border-light, #E2E8F0);
+  background: var(--app-surface-card, #FFF);
+  font-size: 14px;
+  color: var(--app-text-body, #334155);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+
+  &:focus {
+    border-color: var(--app-primary, #3B5BDB);
+    box-shadow: 0 0 0 3px rgb(59 91 219 / 15%);
+  }
+
+  &::placeholder {
+    color: #94A3B8;
+  }
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-select-container {
+  border-radius: var(--app-radius-md, 14px);
+  border: 1px solid var(--app-border-light, #E2E8F0);
+  background: var(--app-surface-card, #FFF);
+  padding: 2px 8px;
+}
+
+.form-select {
+  --padding-start: 6px;
+  --padding-end: 6px;
+
+  font-size: 14px;
+  color: var(--app-text-title, #1E293B);
+}
+
+.submit-container {
+  margin-top: 8px;
+}
+
+.btn-save {
+  --background: linear-gradient(135deg, var(--app-primary, #3B5BDB) 0%, var(--app-primary-dark, #2B44B3) 100%);
+  --border-radius: var(--app-radius-md, 14px);
+  --box-shadow: 0 4px 14px rgb(59 91 219 / 30%);
+
+  font-weight: 700;
+  height: 50px;
+  margin: 0;
+}
+
+.medical-requirement-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #FFFBEB;
+  border: 1px solid rgb(245 158 11 / 30%);
+  border-radius: var(--app-radius-md, 14px);
+  padding: 14px 16px;
+
+  &__icon {
+    font-size: 24px;
+    color: #D97706;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  &__title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #92400E;
+  }
+
+  &__text {
+    font-size: 13px;
+    color: #B45309;
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
