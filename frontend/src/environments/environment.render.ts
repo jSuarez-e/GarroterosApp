@@ -7,6 +7,6 @@
 
 export const environment = {
   production: true,
-  apiUrl: 'https://garroterosapp-backend.onrender.com/api/v1',
-  wsUrl: 'https://garroterosapp-backend.onrender.com',
+  apiUrl: 'https://garroterosapp.onrender.com/api/v1',
+  wsUrl: 'https://garroterosapp.onrender.com',
 };
