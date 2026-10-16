@@ -5,7 +5,7 @@
  * [Edge Cases]: Conexion resiliente con variables de entorno validadas, prevencion de credenciales expuestas.
  */
 
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller.js';
@@ -46,30 +46,58 @@ import { AdminModule } from './modules/admin/admin.module.js';
        * @returns Opciones de conexion para TypeORM con PostgreSQL.
        */
       useFactory: (configService: ConfigService) => {
+        const logger = new Logger('DatabaseModule');
         const databaseUrl = configService.get<string>('DATABASE_URL');
         const isProduction = configService.get<string>('NODE_ENV') === 'production';
-        const useSsl = configService.get<string>('DATABASE_SSL') === 'true' || Boolean(databaseUrl);
+        const sslConfig = configService.get<string>('DATABASE_SSL');
+
+        const isInternalRender =
+          databaseUrl !== undefined &&
+          (databaseUrl.includes('.internal') || (databaseUrl.includes('dpg-') && !databaseUrl.includes('.render.com')));
+        const isLocal =
+          databaseUrl !== undefined && (databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1'));
+        const useSsl =
+          sslConfig === 'true'
+            ? true
+            : sslConfig === 'false'
+              ? false
+              : Boolean(databaseUrl) && !isInternalRender && !isLocal;
 
         const commonEntities = [User, Waypoint, TelemetryLog, MedicalProfile, RouteLogEntry, EventNote, Guide, Route, SosAlert];
 
         if (databaseUrl) {
+          logger.log(
+            `Conectando a PostgreSQL vía DATABASE_URL (${isInternalRender ? 'Render Red Interna (Sin SSL)' : `Externa/Cloud (SSL: ${useSsl})`})...`,
+          );
           return {
             type: 'postgres' as const,
             url: databaseUrl,
             ssl: useSsl ? { rejectUnauthorized: false } : false,
+            connectTimeoutMS: 10000,
+            extra: {
+              connectionTimeoutMillis: 10000,
+            },
             entities: commonEntities,
             synchronize: !isProduction,
           };
         }
 
+        const host = configService.get<string>('DB_HOST', 'localhost');
+        const port = configService.get<number>('DB_PORT', 5432);
+        logger.warn(`DATABASE_URL no configurada. Intentando conexión local a PostgreSQL en ${host}:${port}...`);
+
         return {
           type: 'postgres' as const,
-          host: configService.get<string>('DB_HOST', 'localhost'),
-          port: configService.get<number>('DB_PORT', 5432),
+          host,
+          port,
           username: configService.get<string>('DB_USER', 'tour_admin'),
           password: configService.get<string>('DB_PASSWORD') || '',
           database: configService.get<string>('DB_NAME', 'guianza_turistica_db'),
           ssl: useSsl ? { rejectUnauthorized: false } : false,
+          connectTimeoutMS: 10000,
+          extra: {
+            connectionTimeoutMillis: 10000,
+          },
           entities: commonEntities,
           synchronize: !isProduction,
         };

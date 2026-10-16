@@ -115,34 +115,40 @@ export class RedisService implements OnModuleDestroy {
 
     /**
      * Estrategia de reconexion con tope de reintentos para no saturar registros.
-     * @param times Numero de intentos acumulados.
+     * @param retryAttemptNumber Numero de intentos acumulados.
      * @returns Tiempo de espera en milisegundos o null para detener reintentos.
      */
-    const redisRetryStrategy = (times: number): number | null => {
-      if (times > 8) {
+    const redisRetryStrategy = (retryAttemptNumber: number): number | null => {
+      if (retryAttemptNumber > 5) {
         this.logger.warn('[RedisService] Límite de reconexión alcanzado. Continuando en modo de memoria.');
         return null;
       }
-      return Math.min(times * 300, 3000);
+      return Math.min(retryAttemptNumber * 500, 2500);
     };
 
     if (redisUrl) {
+      const isSecureTls = redisUrl.startsWith('rediss://');
       this.client = new Redis(redisUrl, {
-        lazyConnect: false,
+        lazyConnect: true,
+        enableOfflineQueue: false,
+        maxRetriesPerRequest: null,
+        connectTimeout: 5000,
         retryStrategy: redisRetryStrategy,
-        maxRetriesPerRequest: 2,
+        ...(isSecureTls ? { tls: { rejectUnauthorized: false } } : {}),
       });
-      this.logger.log('Inicializando conexión con Redis vía REDIS_URL...');
+      this.logger.log('Inicializando cliente Redis vía REDIS_URL en modo asíncrono no bloqueante...');
     } else if (!isProduction) {
       this.client = new Redis({
         host,
         port,
         ...(password ? { password } : {}),
-        lazyConnect: false,
+        lazyConnect: true,
+        enableOfflineQueue: false,
+        maxRetriesPerRequest: null,
+        connectTimeout: 5000,
         retryStrategy: redisRetryStrategy,
-        maxRetriesPerRequest: 2,
       });
-      this.logger.log(`Inicializando conexión con Redis local en ${host}:${port}...`);
+      this.logger.log(`Inicializando cliente Redis local en ${host}:${port}...`);
     } else {
       this.logger.warn(
         '[RedisService] REDIS_URL no está configurada en producción. Operando en modo degradado resiliente (In-Memory).',
@@ -155,9 +161,15 @@ export class RedisService implements OnModuleDestroy {
         this.logger.log(`Conexión establecida con Redis ${redisUrl ? '(Cloud/Render)' : `en ${host}:${port}`}`);
       });
 
-      this.client.on('error', (err) => {
+      this.client.on('error', (connectionError: Error) => {
         this.isConnected = false;
-        this.logger.error(`Error en cliente Redis: ${err.message}`);
+        this.logger.warn(`[RedisService] Evento de desconexión en Redis: ${connectionError.message}. Operando en memoria.`);
+      });
+
+      // Conexión asíncrona desacoplada del ciclo de arranque de NestJS
+      this.client.connect().catch((connectionError: Error) => {
+        this.isConnected = false;
+        this.logger.warn(`[RedisService] No fue posible conectar con Redis (${connectionError.message}). Operando en memoria.`);
       });
     }
   }

@@ -15,6 +15,8 @@ import { AppModule } from './app.module.js';
  */
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
+  logger.log('Iniciando proceso de bootstrap de NestJS...');
+
   const app = await NestFactory.create(AppModule);
 
   // Aumento de límite para cargas de fotos y telemetría
@@ -36,12 +38,14 @@ async function bootstrap() {
   // Configuración de CORS para el cliente Ionic/Capacitor
   const defaultOrigins = 'http://localhost:8100,http://localhost:4200,capacitor://localhost,https://localhost,http://localhost';
   app.enableCors({
-    origin: (process.env.CORS_ORIGIN || defaultOrigins).split(',').map((o) => o.trim()),
+    origin: (process.env.CORS_ORIGIN || defaultOrigins).split(',').map((originItem) => originItem.trim()),
     credentials: true,
   });
 
-  const port = process.env.PORT || 3000;
+  const environmentPort = process.env.PORT;
+  const port = environmentPort ? Number(environmentPort) : 3000;
+  logger.log(`Enlazando servidor HTTP en 0.0.0.0:${port} (PORT env: ${environmentPort ?? 'no configurado, usando 3000'})...`);
   await app.listen(port, '0.0.0.0');
-  logger.log(`Backend server running on port ${port} (bound to 0.0.0.0/api/v1)`);
+  logger.log(`🚀 Backend server running on port ${port} (bound to 0.0.0.0/api/v1)`);
 }
 await bootstrap();
