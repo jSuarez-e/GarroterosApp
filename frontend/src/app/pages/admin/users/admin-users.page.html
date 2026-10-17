@@ -34,17 +34,33 @@
         class="admin-searchbar"
       ></ion-searchbar>
 
-      <div class="role-select-box">
-        <ion-select
-          interface="popover"
-          [value]="roleFilter()"
-          (ionChange)="onRoleFilterChange($event)"
-          class="role-select"
-        >
-          <ion-select-option value="ALL">Todos los roles</ion-select-option>
-          <ion-select-option value="ADMIN">Guías / Admin</ion-select-option>
-          <ion-select-option value="USER">Turistas / User</ion-select-option>
-        </ion-select>
+      <div class="filter-controls">
+        <div class="role-select-box">
+          <ion-select
+            interface="popover"
+            [value]="roleFilter()"
+            (ionChange)="onRoleFilterChange($event)"
+            class="role-select"
+          >
+            <ion-select-option value="ALL">Todos los roles</ion-select-option>
+            <ion-select-option value="ADMIN">Guías / Admin</ion-select-option>
+            <ion-select-option value="USER">Turistas / User</ion-select-option>
+          </ion-select>
+        </div>
+
+        <div class="route-select-box">
+          <ion-select
+            interface="popover"
+            [value]="routeFilter()"
+            (ionChange)="onRouteFilterChange($event)"
+            class="route-select"
+          >
+            <ion-select-option value="ALL">Todas las rutas</ion-select-option>
+            @for (route of availableRoutes(); track route.id) {
+              <ion-select-option [value]="route.id">{{ route.name }}</ion-select-option>
+            }
+          </ion-select>
+        </div>
       </div>
     </div>
 
@@ -84,6 +100,13 @@
                     {{ user.phone }}
                   </span>
                 }
+                <span
+                  class="user-card__route"
+                  [ngClass]="user.route ? 'user-card__route--assigned' : 'user-card__route--unassigned'"
+                >
+                  <ion-icon name="map-outline" class="user-card__meta-icon"></ion-icon>
+                  {{ user.route ? user.route.name : 'Sin ruta asignada' }}
+                </span>
               </div>
 
               <!-- Badges de Rol y Estado -->
@@ -115,6 +138,28 @@
                     Inactivo
                   }
                 </button>
+              </div>
+            </div>
+
+            <!-- Asignación de Ruta Directa en Tarjeta -->
+            <div class="user-card__assignment">
+              <span class="user-card__assignment-label">
+                <ion-icon name="map-outline" class="user-card__assignment-icon"></ion-icon>
+                Ruta asignada:
+              </span>
+              <div class="user-card__assignment-select-box">
+                <ion-select
+                  interface="popover"
+                  [value]="user.routeId || ''"
+                  (ionChange)="onAssignRoute(user, $event)"
+                  class="user-card__assignment-select"
+                  placeholder="Seleccionar ruta..."
+                >
+                  <ion-select-option value="">Ninguna (Sin ruta)</ion-select-option>
+                  @for (route of availableRoutes(); track route.id) {
+                    <ion-select-option [value]="route.id">{{ route.name }}</ion-select-option>
+                  }
+                </ion-select>
               </div>
             </div>
 
@@ -224,6 +269,24 @@
               [value]="formPhone()"
               (input)="onInputChange(formPhone, $event)"
             />
+          </div>
+
+          <div class="form-group">
+            <label class="form-group__label" for="user-route-select">Ruta Asignada</label>
+            <div class="form-select-container">
+              <ion-select
+                id="user-route-select"
+                class="form-select"
+                interface="popover"
+                [value]="formRouteId()"
+                (ionChange)="formRouteId.set($event.detail.value)"
+              >
+                <ion-select-option value="">Ninguna (Sin ruta asignada)</ion-select-option>
+                @for (route of availableRoutes(); track route.id) {
+                  <ion-select-option [value]="route.id">{{ route.name }}</ion-select-option>
+                }
+              </ion-select>
+            </div>
           </div>
 
           <div class="modal-actions">

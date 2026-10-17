@@ -58,8 +58,21 @@
       </div>
     }
 
+    <!-- Aviso cuando el usuario no tiene ruta activa asignada -->
+    @if (!hasActiveRoute()) {
+      <div class="map-no-route-card">
+        <ion-icon name="trail-sign-outline" class="map-no-route-card__icon"></ion-icon>
+        <div class="map-no-route-card__info">
+          <strong class="map-no-route-card__title">Sin ruta activa asignada</strong>
+          <span class="map-no-route-card__desc">
+            No tienes una ruta activa asignada en este momento. Por favor solicita a un guía o administrador que configure tu recorrido.
+          </span>
+        </div>
+      </div>
+    }
+
     <!-- Aviso flotante cuando la ruta no tiene puntos de interés configurados -->
-    @if (isMapLoaded() && poiCount() === 0) {
+    @if (hasActiveRoute() && isMapLoaded() && poiCount() === 0) {
       <div class="map-empty-notice">
         <ion-icon name="information-circle-outline" class="map-empty-notice__icon"></ion-icon>
         <div class="map-empty-notice__info">

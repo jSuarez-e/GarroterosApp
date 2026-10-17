@@ -1,1 +1,1 @@
-{"version":3,"file":"medical.contract.js","sourceRoot":"","sources":["medical.contract.ts"],"names":[],"mappings":";;;AAOA,IAAY,QAMX;AAND,WAAY,QAAQ;IAClB,+BAAmB,CAAA;IACnB,qCAAyB,CAAA;IACzB,2BAAe,CAAA;IACf,6BAAiB,CAAA;IACjB,2BAAe,CAAA;AACjB,CAAC,EANW,QAAQ,wBAAR,QAAQ,QAMnB"}
+{"version":3,"file":"medical.contract.js","sourceRoot":"","sources":["medical.contract.ts"],"names":[],"mappings":";;;AASA,IAAY,QAMX;AAND,WAAY,QAAQ;IAClB,+BAAmB,CAAA;IACnB,qCAAyB,CAAA;IACzB,2BAAe,CAAA;IACf,6BAAiB,CAAA;IACjB,2BAAe,CAAA;AACjB,CAAC,EANW,QAAQ,wBAAR,QAAQ,QAMnB"}

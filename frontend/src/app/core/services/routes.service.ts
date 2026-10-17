@@ -66,16 +66,24 @@ export class RoutesService {
 
   /**
    * Carga la polilinea oficial del recorrido en formato GeoJSON.
+   * @param routeId UUID opcional de la ruta a consultar.
    * @param forceRefresh Indica si se debe omitir la cache en memoria.
    */
-  public getRoutePath(forceRefresh = false): Observable<RoutePathDto | null> {
-    if (!forceRefresh && this.routePath()) {
+  public getRoutePath(routeId?: string, forceRefresh = false): Observable<RoutePathDto | null> {
+    if (!forceRefresh && !routeId && this.routePath()) {
       return of(this.routePath());
     }
 
-    return this.http.get<RoutePathDto>(`${this.apiUrl}/path`).pipe(
-      tap((data) => this.routePath.set(data)),
-      catchError((error) => of(null)),
+    let params = new HttpParams();
+    if (routeId) params = params.set('routeId', routeId);
+
+    return this.http.get<RoutePathDto>(`${this.apiUrl}/path`, { params }).pipe(
+      tap((data) => {
+        if (!routeId) {
+          this.routePath.set(data);
+        }
+      }),
+      catchError(() => of(null)),
     );
   }
 

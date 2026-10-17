@@ -22,6 +22,8 @@ export interface AdminCreateUserDto {
   phone?: string | null;
   /** Avatar opcional */
   avatarUrl?: string | null;
+  /** Identificador UUID de la ruta turística asignada */
+  routeId?: string | null;
 }
 
 /** DTO para actualizar datos de un usuario */
@@ -36,6 +38,8 @@ export interface AdminUpdateUserDto {
   status?: UserStatus;
   /** Avatar */
   avatarUrl?: string | null;
+  /** Identificador UUID de la ruta turística asignada */
+  routeId?: string | null;
 }
 
 /** Criterios de busqueda para usuarios */
@@ -46,6 +50,8 @@ export interface AdminUserQueryDto {
   role?: UserRole;
   /** Filtro por estado */
   status?: UserStatus;
+  /** Filtro por ruta turística asignada */
+  routeId?: string;
 }
 
 // --- Itinerario / Bitacora de Ruta ---
@@ -265,5 +271,89 @@ export interface CreateSosTriggerDto {
   message?: string;
   /** Timestamp epoch en milisegundos */
   timestamp?: number;
+}
+
+// --- Rutas y Usuarios (Control de Asistencia y Ficha Médica para Guías) ---
+
+/** Resumen de información médica de emergencia para el guía en campo */
+export interface IRouteParticipantMedicalSummary {
+  /** Tipo de sangre del usuario (ej: O+, A-, etc.) */
+  bloodType: string | null;
+  /** Alergias conocidas */
+  allergies: string | null;
+  /** Tipo de dieta (REGULAR, VEGETARIAN, etc.) */
+  dietType: string | null;
+  /** Nombre del contacto de emergencia */
+  emergencyContactName: string | null;
+  /** Teléfono del contacto de emergencia */
+  emergencyContactPhone: string | null;
+  /** Condiciones médicas o patologías previas */
+  medicalConditions: string | null;
+  /** Medicamentos suministrados actualmente */
+  medications: string | null;
+  /** Observaciones o notas adicionales */
+  notes: string | null;
+}
+
+/** Información del participante/usuario asignado a una ruta para control de asistencia */
+export interface IRouteRosterParticipant {
+  /** Identificador único del usuario */
+  userId: string;
+  /** Nombre completo */
+  fullName: string;
+  /** Correo electrónico */
+  email: string;
+  /** Teléfono de contacto */
+  phone: string | null;
+  /** Avatar de perfil de usuario */
+  avatarUrl: string | null;
+  /** Fotografía subida por el usuario en ficha médica */
+  photoUrl: string | null;
+  /** Si el usuario ya aceptó la ruta y confirmó asistencia */
+  attendanceConfirmed: boolean;
+  /** Si el usuario ya completó el diligenciamiento de la ficha médica */
+  hasMedicalProfile: boolean;
+  /** Fecha de última actualización médica (ISO) */
+  medicalUpdatedAt?: string | null;
+  /** Resumen médico de emergencia */
+  medicalSummary: IRouteParticipantMedicalSummary | null;
+}
+
+/** Guía asignado a una ruta */
+export interface IRouteAssignedGuide {
+  /** Identificador único del guía */
+  id: string;
+  /** Nombre completo del guía */
+  fullName: string;
+  /** Teléfono de contacto */
+  phone: string | null;
+  /** Avatar del guía */
+  avatarUrl: string | null;
+}
+
+/** Modelo de ruta activa con sus participantes asignados para el guía */
+export interface IGuideRouteRoster {
+  /** Identificador UUID de la ruta */
+  routeId: string;
+  /** Nombre de la ruta turística */
+  routeName: string;
+  /** Municipio o ubicación */
+  municipality: string;
+  /** Distancia total en kilómetros */
+  totalDistanceKm: number;
+  /** Duración estimada en minutos */
+  estimatedDurationMinutes: number;
+  /** Indica si es la ruta oficial activa en el sistema */
+  isActive: boolean;
+  /** Guías asignados a este recorrido */
+  guides: IRouteAssignedGuide[];
+  /** Total de usuarios asignados */
+  totalParticipants: number;
+  /** Total de usuarios con asistencia confirmada */
+  confirmedParticipants: number;
+  /** Porcentaje de asistencia confirmada (0 - 100) */
+  attendanceRatePercentage: number;
+  /** Lista de participantes asignados a esta ruta */
+  participants: IRouteRosterParticipant[];
 }
 

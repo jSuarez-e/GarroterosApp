@@ -55,9 +55,22 @@ export interface AuthSuccessPayload {
      */
     phone?: string | null;
     /**
-     *
+     * URL del avatar de perfil del usuario.
      */
     avatarUrl?: string | null;
+    /**
+     * Identificador UUID de la ruta turística asignada.
+     */
+    routeId?: string | null;
+    /**
+     * Resumen de la ruta turística asignada.
+     */
+    route?: {
+      /** Identificador UUID de la ruta */
+      id: string;
+      /** Nombre del recorrido */
+      name: string;
+    } | null;
   };
 }
 
@@ -100,10 +113,10 @@ export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   /**
-   *
-   * @param usersService
-   * @param jwtService
-   * @param configService
+   * Inicializa el servicio de autenticación con dependencias requeridas.
+   * @param usersService Servicio de usuarios para consulta y validación.
+   * @param jwtService Servicio de emisión y verificación de JSON Web Tokens.
+   * @param configService Servicio de configuración del entorno.
    */
   constructor(
     private readonly usersService: UsersService,
@@ -199,6 +212,8 @@ export class AuthService {
         status: user.status,
         phone: user.phone,
         avatarUrl: user.avatarUrl,
+        routeId: user.routeId ?? null,
+        route: user.route ? { id: user.route.id, name: user.route.name } : null,
       },
     };
   }
@@ -245,6 +260,8 @@ export class AuthService {
           status: user.status,
           phone: user.phone,
           avatarUrl: user.avatarUrl,
+          routeId: user.routeId ?? null,
+          route: user.route ? { id: user.route.id, name: user.route.name } : null,
         },
       };
     } catch (error) {

@@ -71,13 +71,14 @@ export class RoutesController {
 
   /**
    * Obtiene la polilinea oficial del recorrido en formato GeoJSON coordinates.
+   * @param routeId Identificador opcional de la ruta.
    * @returns Estructura con metadatos del sendero y arreglo de coordenadas [lng, lat].
    */
   @Get('path')
-  @ApiOperation({ summary: 'Obtener trazado y polilínea oficial del sendero activo' })
+  @ApiOperation({ summary: 'Obtener trazado y polilínea oficial del sendero activo o específico' })
   @ApiResponse({ status: 200, description: 'Trazado obtenido exitosamente' })
-  async getRoutePath(): Promise<RoutePathDto> {
-    return this.routesService.getRoutePath();
+  async getRoutePath(@Query('routeId') routeId?: string): Promise<RoutePathDto> {
+    return this.routesService.getRoutePath(routeId);
   }
 
   /**

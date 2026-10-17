@@ -151,11 +151,21 @@ export class HomePage implements OnInit, ViewWillEnter {
     return it.length > 0 ? it[0].plannedTime : '08:30 AM';
   });
 
+  public readonly hasActiveRoute = computed(() => {
+    return this.isAdmin() || Boolean(this.currentUser()?.routeId);
+  });
+
   public readonly routeTitle = computed(() => {
+    if (!this.hasActiveRoute()) {
+      return 'Sin ruta activa';
+    }
     return this.routePath()?.name || 'Ruta Garroteros';
   });
 
   public readonly routeSubtitle = computed(() => {
+    if (!this.hasActiveRoute()) {
+      return 'No tienes una ruta asignada en el momento';
+    }
     const muni = this.routePath()?.municipality;
     return muni ? `Recorrido Oficial ${muni}` : 'Itinerario Guiado Centro Histórico';
   });
@@ -192,13 +202,49 @@ export class HomePage implements OnInit, ViewWillEnter {
 
   /**
    * Carga los datos reactivos del recorrido, waypoints, meteorología e itinerario desde RoutesService.
+   * Si el usuario no es admin y no tiene ruta asignada, refresca el perfil y omite la carga de rutas globales.
    * @param forceRefresh Indica si se debe omitir la memoria caché.
    */
   public fetchHomeData(forceRefresh = false): void {
-    this.routesService.getRoutePath(forceRefresh).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-    this.routesService.getWaypoints(undefined, forceRefresh).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    const user = this.currentUser();
+    const userRouteId = user?.routeId;
+
+    if (!this.isAdmin() && !userRouteId) {
+      this.authService
+        .refreshProfile()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (updatedUser) => {
+            if (updatedUser?.routeId) {
+              this.loadUserRouteData(updatedUser.routeId, forceRefresh);
+            } else {
+              this.routesService.routePath.set(null);
+              this.routesService.waypoints.set([]);
+              this.routesService.itinerary.set([]);
+            }
+          },
+          error: () => {
+            this.routesService.routePath.set(null);
+            this.routesService.waypoints.set([]);
+            this.routesService.itinerary.set([]);
+          },
+        });
+      return;
+    }
+
+    this.loadUserRouteData(userRouteId || undefined, forceRefresh);
+  }
+
+  /**
+   * Carga datos específicos de la ruta y meteorología.
+   * @param routeId Identificador UUID opcional de la ruta.
+   * @param forceRefresh Forzar consulta al backend.
+   */
+  private loadUserRouteData(routeId?: string, forceRefresh = false): void {
+    this.routesService.getRoutePath(routeId, forceRefresh).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    this.routesService.getWaypoints(routeId, forceRefresh).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     this.routesService.getWeather(forceRefresh).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-    this.routesService.getItinerary(undefined, forceRefresh).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    this.routesService.getItinerary(routeId, forceRefresh).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
 
   /**

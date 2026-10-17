@@ -1,0 +1,481 @@
+<!--
+  @sdd
+  [Objetivo]: Vista de control y verificación de asistencia de usuarios por ruta para el Guía (SDD-005-USER-MODULES-AND-ADMIN).
+  [I/O - Reusabilidad]: Selectores de ruta tipo pills, buscador, filtros por badge, cards con fotos de usuarios y modal de ficha médica.
+  [Edge Cases - UI]: Carga condicional OnPush (@if), fotos con fallback de avatar/iniciales, estados vacíos atractivos.
+-->
+
+<ion-header class="roster-header">
+  <ion-toolbar class="roster-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button class="roster-toolbar__menu-btn"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="roster-toolbar__title">Rutas y Usuarios</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="loadRoster()"
+        [disabled]="loading()"
+        class="roster-toolbar__refresh-btn"
+        aria-label="Refrescar lista"
+      >
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="roster-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadRoster($event)">
+    <ion-refresher-content pullingText="Desliza para actualizar"></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="roster-container">
+    <!-- Banner de Encabezado Guía -->
+    <section class="roster-hero">
+      <div class="roster-hero__badge">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        <span>Control de Guianza Oficial</span>
+      </div>
+      <h1 class="roster-hero__title">Verificación de Asistencia</h1>
+      <p class="roster-hero__subtitle">
+        Gestiona y supervisa a los excursionistas asignados a cada sendero en tiempo real.
+      </p>
+    </section>
+
+    <!-- Estado de Carga -->
+    @if (loading() && rosterList().length === 0) {
+      <div class="roster-loading">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p class="roster-loading__text">Cargando rutas y participantes...</p>
+      </div>
+    } @else if (rosterList().length === 0) {
+      <!-- Estado Vacío Sin Rutas -->
+      <div class="roster-empty">
+        <div class="roster-empty__icon-wrapper">
+          <ion-icon name="location-outline" class="roster-empty__icon"></ion-icon>
+        </div>
+        <h2 class="roster-empty__title">Sin Rutas Activas Asignadas</h2>
+        <p class="roster-empty__desc">
+          Actualmente no tienes senderos vinculados como guía o no hay rutas oficiales activas en el sistema.
+        </p>
+        <ion-button expand="block" fill="outline" (click)="loadRoster()" class="roster-empty__btn">
+          <ion-icon name="refresh-outline" slot="start"></ion-icon>
+          <span>Comprobar de nuevo</span>
+        </ion-button>
+      </div>
+    } @else {
+      <!-- Selector de Rutas (Pills Deslizables) -->
+      @if (rosterList().length > 1) {
+        <section class="route-selector-section">
+          <label class="section-label">Selecciona el Sendero:</label>
+          <div class="route-pills">
+            @for (routeItem of rosterList(); track routeItem.routeId) {
+              <button
+                type="button"
+                class="route-pill"
+                [class.route-pill--active]="selectedRoute()?.routeId === routeItem.routeId"
+                (click)="onSelectRoute(routeItem.routeId)"
+              >
+                <span class="route-pill__name">{{ routeItem.routeName }}</span>
+                <span class="route-pill__badge">{{ routeItem.totalParticipants }}</span>
+              </button>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Resumen de la Ruta Seleccionada -->
+      @if (selectedRoute(); as activeRoute) {
+        <section class="route-summary-card">
+          <div class="route-summary-card__header">
+            <div>
+              <span class="route-summary-card__municipality">
+                <ion-icon name="location-outline"></ion-icon>
+                {{ activeRoute.municipality }}
+              </span>
+              <h2 class="route-summary-card__title">{{ activeRoute.routeName }}</h2>
+            </div>
+            @if (activeRoute.isActive) {
+              <span class="route-tag route-tag--active">Ruta Oficial</span>
+            }
+          </div>
+
+          <div class="route-metrics-grid">
+            <div class="metric-item">
+              <span class="metric-item__value">{{ activeRoute.totalDistanceKm }} km</span>
+              <span class="metric-item__label">Distancia</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-item__value">{{ activeRoute.estimatedDurationMinutes }} min</span>
+              <span class="metric-item__label">Duración</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-item__value">{{ totalConfirmedCount() }} / {{ totalParticipantsCount() }}</span>
+              <span class="metric-item__label">Confirmados</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-item__value">{{ activeRoute.attendanceRatePercentage }}%</span>
+              <span class="metric-item__label">Asistencia</span>
+            </div>
+          </div>
+
+          <!-- Barra de Progreso de Asistencia -->
+          <div class="attendance-progress">
+            <div class="attendance-progress__bar">
+              <div
+                class="attendance-progress__fill"
+                [class.attendance-progress__fill--complete]="activeRoute.attendanceRatePercentage === 100"
+                [style.width.%]="activeRoute.attendanceRatePercentage"
+              ></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Barra de Búsqueda y Filtros -->
+        <section class="roster-filters">
+          <ion-searchbar
+            [(ngModel)]="searchTerm"
+            placeholder="Buscar por nombre, correo o celular..."
+            debounce="200"
+            class="roster-searchbar"
+          ></ion-searchbar>
+
+          <!-- Filtros de Asistencia y Ficha Médica -->
+          <div class="filter-chips">
+            <button
+              type="button"
+              class="filter-chip"
+              [class.filter-chip--active]="filterStatus() === 'all'"
+              (click)="onFilterChange('all')"
+            >
+              Todos ({{ totalParticipantsCount() }})
+            </button>
+            <button
+              type="button"
+              class="filter-chip filter-chip--success"
+              [class.filter-chip--active]="filterStatus() === 'confirmed'"
+              (click)="onFilterChange('confirmed')"
+            >
+              Confirmados ({{ totalConfirmedCount() }})
+            </button>
+            <button
+              type="button"
+              class="filter-chip filter-chip--warning"
+              [class.filter-chip--active]="filterStatus() === 'pending'"
+              (click)="onFilterChange('pending')"
+            >
+              Pendientes
+            </button>
+            <button
+              type="button"
+              class="filter-chip filter-chip--info"
+              [class.filter-chip--active]="filterStatus() === 'has_medical'"
+              (click)="onFilterChange('has_medical')"
+            >
+              Con Ficha
+            </button>
+            <button
+              type="button"
+              class="filter-chip filter-chip--danger"
+              [class.filter-chip--active]="filterStatus() === 'no_medical'"
+              (click)="onFilterChange('no_medical')"
+            >
+              Sin Ficha
+            </button>
+          </div>
+        </section>
+
+        <!-- Listado de Excursionistas / Participantes -->
+        <section class="participants-section">
+          @if (filteredParticipants().length === 0) {
+            <div class="participants-empty">
+              <ion-icon name="people-outline" class="participants-empty__icon"></ion-icon>
+              <h3 class="participants-empty__title">Sin participantes que coincidan</h3>
+              <p class="participants-empty__desc">
+                No encontramos excursionistas para el filtro o término de búsqueda aplicado.
+              </p>
+            </div>
+          } @else {
+            <div class="participants-list">
+              @for (participant of filteredParticipants(); track participant.userId) {
+                <article class="participant-card" (click)="onOpenParticipantModal(participant)">
+                  <div class="participant-card__main">
+                    <!-- Foto de Usuario con Fallback -->
+                    <div class="participant-avatar">
+                      @if (participant.photoUrl || participant.avatarUrl) {
+                        <img
+                          [src]="participant.photoUrl || participant.avatarUrl"
+                          [alt]="participant.fullName"
+                          class="participant-avatar__img"
+                        />
+                      } @else {
+                        <div class="participant-avatar__fallback">
+                          <ion-icon name="person-circle-outline"></ion-icon>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Datos Principales -->
+                    <div class="participant-info">
+                      <div class="participant-info__top">
+                        <h3 class="participant-info__name">{{ participant.fullName }}</h3>
+                        @if (participant.medicalSummary?.bloodType) {
+                          <span class="blood-chip">
+                            {{ participant.medicalSummary.bloodType }}
+                          </span>
+                        }
+                      </div>
+
+                      <div class="participant-info__meta">
+                        <span class="participant-info__meta-item">
+                          <ion-icon name="mail-outline"></ion-icon>
+                          {{ participant.email }}
+                        </span>
+                        @if (participant.phone) {
+                          <span class="participant-info__meta-item">
+                            <ion-icon name="call-outline"></ion-icon>
+                            {{ participant.phone }}
+                          </span>
+                        }
+                      </div>
+
+                      <!-- Badges de Control Obligatorios -->
+                      <div class="participant-badges">
+                        <!-- Badge Asistencia -->
+                        @if (participant.attendanceConfirmed) {
+                          <span class="badge badge--confirmed">
+                            <ion-icon name="checkmark-circle-outline"></ion-icon>
+                            Asistencia Confirmada
+                          </span>
+                        } @else {
+                          <span class="badge badge--pending">
+                            <ion-icon name="time-outline"></ion-icon>
+                            Asistencia Pendiente
+                          </span>
+                        }
+
+                        <!-- Badge Ficha Médica -->
+                        @if (participant.hasMedicalProfile) {
+                          <span class="badge badge--medical-done">
+                            <ion-icon name="medkit-outline"></ion-icon>
+                            Ficha Diligenciada
+                          </span>
+                        } @else {
+                          <span class="badge badge--medical-pending">
+                            <ion-icon name="alert-circle-outline"></ion-icon>
+                            Sin Ficha Médica
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Botón de acción rápida -->
+                  <div class="participant-card__footer">
+                    <button
+                      type="button"
+                      class="btn-inspect"
+                      (click)="onOpenParticipantModal(participant); $event.stopPropagation()"
+                    >
+                      <ion-icon name="information-circle-outline"></ion-icon>
+                      <span>Ver Ficha y Emergencia</span>
+                    </button>
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </section>
+      }
+    }
+  </div>
+
+  <!-- Modal Detallado de Ficha Médica y Contacto de Emergencia -->
+  <ion-modal [isOpen]="isModalOpen()" (didDismiss)="onCloseParticipantModal()" class="emergency-modal">
+    <ng-template>
+      <ion-header class="modal-header">
+        <ion-toolbar class="modal-toolbar">
+          <ion-title class="modal-toolbar__title">Detalle del Excursionista</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="onCloseParticipantModal()" class="modal-toolbar__close-btn">
+              <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="modal-content">
+        @if (selectedParticipant(); as currentParticipant) {
+          <div class="modal-body">
+            <!-- Tarjeta de Identificación -->
+            <div class="user-summary-card">
+              <div class="user-summary-card__avatar">
+                @if (currentParticipant.photoUrl || currentParticipant.avatarUrl) {
+                  <img
+                    [src]="currentParticipant.photoUrl || currentParticipant.avatarUrl"
+                    [alt]="currentParticipant.fullName"
+                    class="user-summary-card__img"
+                  />
+                } @else {
+                  <ion-icon name="person-circle-outline" class="user-summary-card__avatar-icon"></ion-icon>
+                }
+              </div>
+              <h2 class="user-summary-card__name">{{ currentParticipant.fullName }}</h2>
+              <p class="user-summary-card__email">{{ currentParticipant.email }}</p>
+              @if (currentParticipant.phone) {
+                <a [href]="'tel:' + currentParticipant.phone" class="user-summary-card__phone-link">
+                  <ion-icon name="call-outline"></ion-icon>
+                  <span>Llamar: {{ currentParticipant.phone }}</span>
+                </a>
+              }
+            </div>
+
+            <!-- Estado de Asistencia -->
+            <div class="detail-section">
+              <h3 class="detail-section__title">Estado de Asistencia a la Ruta</h3>
+              <div class="attendance-status-box">
+                @if (currentParticipant.attendanceConfirmed) {
+                  <div class="status-indicator status-indicator--confirmed">
+                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                    <div>
+                      <strong>Asistencia Aceptada y Confirmada</strong>
+                      <p>El excursionista confirmó su asistencia y condiciones del sendero.</p>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="status-indicator status-indicator--pending">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <div>
+                      <strong>Asistencia Pendiente de Confirmación</strong>
+                      <p>Aún no ha marcado la aceptación en su ficha de asistencia.</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Datos Médicos y de Emergencia -->
+            <div class="detail-section">
+              <h3 class="detail-section__title">Ficha Médica y Salud</h3>
+
+              @if (currentParticipant.hasMedicalProfile && currentParticipant.medicalSummary; as med) {
+                <div class="medical-data-grid">
+                  <!-- Grupo Sanguíneo -->
+                  <div class="medical-data-item">
+                    <span class="medical-data-item__label">
+                      <ion-icon name="heart-outline"></ion-icon>
+                      Grupo Sanguíneo:
+                    </span>
+                    <span class="medical-data-item__value highlight">
+                      {{ med.bloodType || 'No especificado' }}
+                    </span>
+                  </div>
+
+                  <!-- Tipo de Dieta -->
+                  <div class="medical-data-item">
+                    <span class="medical-data-item__label">
+                      <ion-icon name="restaurant-outline"></ion-icon>
+                      Alimentación:
+                    </span>
+                    <span class="medical-data-item__value">
+                      {{ med.dietType || 'Regular' }}
+                    </span>
+                  </div>
+
+                  <!-- Alergias -->
+                  <div class="medical-data-item medical-data-item--full">
+                    <span class="medical-data-item__label">
+                      <ion-icon name="alert-circle-outline"></ion-icon>
+                      Alergias Conocidas:
+                    </span>
+                    <span
+                      class="medical-data-item__value"
+                      [class.alert-text]="med.allergies && med.allergies !== 'Ninguna'"
+                    >
+                      {{ med.allergies || 'Ninguna reportada' }}
+                    </span>
+                  </div>
+
+                  <!-- Condiciones Médicas -->
+                  @if (med.medicalConditions) {
+                    <div class="medical-data-item medical-data-item--full">
+                      <span class="medical-data-item__label">
+                        <ion-icon name="fitness-outline"></ion-icon>
+                        Condiciones / Patologías:
+                      </span>
+                      <span class="medical-data-item__value">
+                        {{ med.medicalConditions }}
+                      </span>
+                    </div>
+                  }
+
+                  <!-- Medicamentos -->
+                  @if (med.medications) {
+                    <div class="medical-data-item medical-data-item--full">
+                      <span class="medical-data-item__label">
+                        <ion-icon name="medkit-outline"></ion-icon>
+                        Medicamentos Actuales:
+                      </span>
+                      <span class="medical-data-item__value">
+                        {{ med.medications }}
+                      </span>
+                    </div>
+                  }
+
+                  <!-- Observaciones -->
+                  @if (med.notes) {
+                    <div class="medical-data-item medical-data-item--full">
+                      <span class="medical-data-item__label">
+                        <ion-icon name="information-circle-outline"></ion-icon>
+                        Notas Adicionales:
+                      </span>
+                      <span class="medical-data-item__value">
+                        {{ med.notes }}
+                      </span>
+                    </div>
+                  }
+                </div>
+
+                <!-- Contacto de Emergencia -->
+                <div class="emergency-contact-box">
+                  <div class="emergency-contact-box__header">
+                    <ion-icon name="call-outline"></ion-icon>
+                    <span>Contacto de Emergencia</span>
+                  </div>
+                  <div class="emergency-contact-box__body">
+                    <p class="emergency-contact-box__name">
+                      {{ med.emergencyContactName || 'No registrado' }}
+                    </p>
+                    @if (med.emergencyContactPhone) {
+                      <a
+                        [href]="'tel:' + med.emergencyContactPhone"
+                        class="emergency-contact-box__call-btn"
+                      >
+                        <ion-icon name="call-outline"></ion-icon>
+                        <span>Llamar: {{ med.emergencyContactPhone }}</span>
+                      </a>
+                    } @else {
+                      <span class="emergency-contact-box__empty">Sin teléfono de emergencia</span>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="no-medical-box">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  <p>El excursionista aún no ha diligenciado su ficha médica de registro.</p>
+                </div>
+              }
+            </div>
+
+            <!-- Botón Cerrar -->
+            <div class="modal-actions">
+              <ion-button expand="block" (click)="onCloseParticipantModal()" class="modal-close-btn">
+                <span>Cerrar Detalles</span>
+              </ion-button>
+            </div>
+          </div>
+        }
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

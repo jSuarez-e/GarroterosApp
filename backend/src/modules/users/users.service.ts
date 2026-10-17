@@ -16,8 +16,8 @@ import { User } from './entities/user.entity.js';
 @Injectable()
 export class UsersService {
   /**
-   *
-   * @param userRepository
+   * Inicializa el servicio inyectando el repositorio de persistencia de usuarios.
+   * @param userRepository Repositorio TypeORM para la entidad User.
    */
   constructor(
     @InjectRepository(User)
@@ -32,6 +32,7 @@ export class UsersService {
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { email: email.toLowerCase().trim() },
+      relations: { route: true },
     });
   }
 
@@ -44,6 +45,7 @@ export class UsersService {
     return this.userRepository
       .createQueryBuilder('user')
       .addSelect('user.passwordHash')
+      .leftJoinAndSelect('user.route', 'route')
       .where('LOWER(user.email) = :email', { email: email.toLowerCase().trim() })
       .getOne();
   }
@@ -55,7 +57,10 @@ export class UsersService {
    * @throws NotFoundException si no existe.
    */
   async findById(id: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: { route: true },
+    });
     if (!user) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }

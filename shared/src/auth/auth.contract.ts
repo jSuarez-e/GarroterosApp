@@ -60,6 +60,20 @@ export interface LoginRequest {
 }
 
 /**
+ * Resumen de ruta asignada para un usuario.
+ */
+export interface IAssignedRouteSummary {
+  /**
+   * Identificador UUID de la ruta.
+   */
+  id: string;
+  /**
+   * Nombre del sendero o recorrido.
+   */
+  name: string;
+}
+
+/**
  *
  */
 export interface IUser {
@@ -91,6 +105,14 @@ export interface IUser {
    *
    */
   avatarUrl?: string | null;
+  /**
+   * Identificador UUID de la ruta turística asignada al usuario.
+   */
+  routeId?: string | null;
+  /**
+   * Resumen de la ruta turística asignada.
+   */
+  route?: IAssignedRouteSummary | null;
   /**
    *
    */

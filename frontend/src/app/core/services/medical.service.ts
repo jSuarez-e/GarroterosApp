@@ -24,6 +24,11 @@ export interface IMedicalProfile {
   id: string;
   userId: string;
   attendanceConfirmed: boolean;
+  routeId?: string | null;
+  route?: {
+    id: string;
+    name: string;
+  } | null;
   medicalConditions: string | null;
   allergies: string | null;
   medications: string | null;
@@ -39,6 +44,7 @@ export interface IMedicalProfile {
 
 export interface SaveMedicalProfileDto {
   attendanceConfirmed: boolean;
+  routeId?: string | null;
   medicalConditions?: string | null;
   allergies?: string | null;
   medications?: string | null;

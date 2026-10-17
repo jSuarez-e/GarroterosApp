@@ -14,7 +14,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Route } from '../../routes/entities/route.entity.js';
 
 export enum DietType {
   REGULAR = 'REGULAR',
@@ -25,22 +28,35 @@ export enum DietType {
 }
 
 /**
- *
+ * Entidad TypeORM para persistencia relacional de la ficha médica y confirmación de asistencia.
  */
 @Entity('medical_profiles')
 export class MedicalProfile {
   /**
-   *
+   * Identificador único UUID de la ficha médica.
    */
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   /**
-   *
+   * Identificador del usuario propietario de la ficha.
    */
   @Index({ unique: true })
   @Column({ type: 'uuid' })
   userId: string;
+
+  /**
+   * Identificador UUID de la ruta turística asociada a la ficha médica.
+   */
+  @Column({ name: 'route_id', type: 'uuid', nullable: true })
+  routeId: string | null;
+
+  /**
+   * Ruta turística asociada a la ficha médica y asistencia.
+   */
+  @ManyToOne(() => Route, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'route_id' })
+  route?: Route | null;
 
   /**
    * Estado de confirmación de asistencia del excursionista a la ruta oficial.

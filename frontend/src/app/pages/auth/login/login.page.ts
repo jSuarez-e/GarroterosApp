@@ -28,6 +28,7 @@ import {
   IonIcon,
   IonSpinner,
   ToastController,
+  ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -62,7 +63,7 @@ import { MedicalService } from '../../../core/services/medical.service';
     IonSpinner,
   ],
 })
-export class LoginPage {
+export class LoginPage implements ViewWillEnter {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly medicalService = inject(MedicalService);
@@ -88,6 +89,25 @@ export class LoginPage {
   }
 
   /**
+   * Ciclo de vida Ionic ejecutado cada vez que la vista entra en pantalla.
+   * Limpia los campos del formulario para evitar que persistan credenciales anteriores.
+   */
+  public ionViewWillEnter(): void {
+    this.resetForm();
+  }
+
+  /**
+   * Restablece el estado del formulario de login y sus señales reactivas.
+   */
+  private resetForm(): void {
+    this.loginForm.reset({ email: '', password: '' });
+    this.loginForm.markAsPristine();
+    this.loginForm.markAsUntouched();
+    this.errorMessage.set(null);
+    this.isLoading.set(false);
+  }
+
+  /**
    * Procesa el envio del formulario de inicio de sesion.
    */
   public async onSubmit(): Promise<void> {
@@ -107,6 +127,7 @@ export class LoginPage {
       .subscribe({
       next: async () => {
         this.isLoading.set(false);
+        this.resetForm();
         const toast = await this.toastCtrl.create({
           message: 'Bienvenido a la Ruta Turística Piedecuesta',
           duration: 2500,

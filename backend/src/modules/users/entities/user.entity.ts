@@ -12,7 +12,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Route } from '../../routes/entities/route.entity.js';
 
 /**
  * Roles de usuario admitidos en la plataforma para autorizacion RBAC.
@@ -83,6 +86,19 @@ export class User {
    */
   @Column({ type: 'varchar', nullable: true })
   avatarUrl: string | null;
+
+  /**
+   * Identificador UUID de la ruta turística asignada al usuario.
+   */
+  @Column({ name: 'route_id', type: 'uuid', nullable: true })
+  routeId: string | null;
+
+  /**
+   * Ruta turística a la que está asignado el usuario.
+   */
+  @ManyToOne(() => Route, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'route_id' })
+  route?: Route | null;
 
   /**
    * Fecha de creación del registro.

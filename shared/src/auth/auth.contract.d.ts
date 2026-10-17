@@ -18,6 +18,10 @@ export interface LoginRequest {
     email: string;
     password: string;
 }
+export interface IAssignedRouteSummary {
+    id: string;
+    name: string;
+}
 export interface IUser {
     id: string;
     email: string;
@@ -26,6 +30,8 @@ export interface IUser {
     status: UserStatus;
     phone?: string | null;
     avatarUrl?: string | null;
+    routeId?: string | null;
+    route?: IAssignedRouteSummary | null;
     createdAt?: string | Date;
     updatedAt?: string | Date;
 }

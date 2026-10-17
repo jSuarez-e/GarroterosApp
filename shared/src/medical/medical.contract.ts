@@ -5,6 +5,8 @@
  * [Edge Cases]: Tipado estricto sin any, validacion de campos opcionales y contactos de emergencia.
  */
 
+import { IAssignedRouteSummary } from '../auth/auth.contract.js';
+
 export enum DietType {
   REGULAR = 'REGULAR',
   VEGETARIAN = 'VEGETARIAN',
@@ -23,6 +25,10 @@ export interface IMedicalProfile {
   userId: string;
   /** Estado de confirmacion de asistencia */
   attendanceConfirmed: boolean;
+  /** Identificador UUID de la ruta turística asociada */
+  routeId?: string | null;
+  /** Resumen de la ruta turística asociada a la ficha */
+  route?: IAssignedRouteSummary | null;
   /** Condiciones medicas preexistentes */
   medicalConditions: string | null;
   /** Alergias conocidas */
@@ -53,6 +59,8 @@ export interface IMedicalProfile {
 export interface SaveMedicalProfileDto {
   /** Estado de confirmacion de asistencia */
   attendanceConfirmed: boolean;
+  /** Identificador UUID opcional de la ruta asignada */
+  routeId?: string | null;
   /** Condiciones medicas */
   medicalConditions?: string | null;
   /** Alergias */

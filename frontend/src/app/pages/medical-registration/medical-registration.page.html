@@ -62,6 +62,36 @@
         </div>
       </app-info-card>
 
+      <!-- Tarjeta de Ruta Turística Asignada al Usuario -->
+      <app-info-card
+        title="Ruta Asignada para el Recorrido"
+        subtitle="Recorrido oficial en el que estás inscrito"
+        iconName="trail-sign-outline"
+        variant="elevated"
+      >
+        @if (assignedRoute(); as route) {
+          <div class="assigned-route-card">
+            <div class="assigned-route-card__header">
+              <span class="assigned-route-card__badge">Ruta Asignada</span>
+            </div>
+            <strong class="assigned-route-card__title">{{ route.name }}</strong>
+            <p class="assigned-route-card__desc">
+              Esta es la ruta asignada a tu perfil. Al confirmar tu asistencia, tu ficha quedará vinculada a este recorrido y el equipo de guías será notificado.
+            </p>
+          </div>
+        } @else {
+          <div class="assigned-route-card assigned-route-card--empty">
+            <ion-icon name="alert-circle-outline" class="assigned-route-card__empty-icon"></ion-icon>
+            <div class="assigned-route-card__empty-content">
+              <strong class="assigned-route-card__empty-title">Sin ruta activa asignada</strong>
+              <p class="assigned-route-card__empty-desc">
+                Actualmente no tienes una ruta activa asignada a tu perfil en el sistema. Solicita a un administrador o guía que configure tu recorrido.
+              </p>
+            </div>
+          </div>
+        }
+      </app-info-card>
+
       <!-- Tarjeta 2: Fotografía del Excursionista (Opcional) -->
       <app-info-card
         title="Fotografía del Excursionista"

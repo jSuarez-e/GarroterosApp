@@ -23,8 +23,8 @@
   <!-- Banner Curvo Hero estilo Mockup -->
   <app-hero-banner
     [title]="'¡Hola, ' + (currentUser()?.fullName || 'Visitante') + '!'"
-    subtitle="Descubre la riqueza histórica y cultural de Piedecuesta"
-    [badgeText]="routePath() ? 'Guianza Activa' : 'Explora Piedecuesta'"
+    [subtitle]="hasActiveRoute() ? 'Descubre la riqueza histórica y cultural de Piedecuesta' : 'Actualmente no tienes un recorrido activo asignado'"
+    [badgeText]="hasActiveRoute() ? (routePath() ? 'Guianza Activa' : 'Explora Piedecuesta') : 'Sin Asignación'"
     iconName="trail-sign-outline"
   >
     <div class="home-hero-stats">
@@ -39,17 +39,38 @@
   </app-hero-banner>
 
   <main class="home-body">
-    <!-- Selector de Píldoras Segmentadas (VIP / Economy style) -->
-    <section class="home-selector-wrapper">
-      <app-segmented-pill
-        [options]="tabOptions"
-        [(selectedId)]="activeTab"
-        (selectionChange)="onTabChange($event)"
-      ></app-segmented-pill>
-    </section>
+    @if (!hasActiveRoute()) {
+      <section class="home-empty-route-banner">
+        <div class="home-empty-route-card">
+          <div class="home-empty-route-card__icon-box">
+            <ion-icon name="trail-sign-outline" class="home-empty-route-card__icon"></ion-icon>
+          </div>
+          <div class="home-empty-route-card__content">
+            <h3 class="home-empty-route-card__title">No tienes una ruta activa asignada</h3>
+            <p class="home-empty-route-card__desc">
+              Actualmente tu cuenta no tiene una ruta turística configurada en el sistema. Para visualizar el recorrido, mapas y puntos de interés, contacta a tu guía o administrador para que asigne tu recorrido.
+            </p>
+            <div class="home-empty-route-card__actions">
+              <ion-button fill="outline" routerLink="/medical-registration" class="gt-btn gt-btn--secondary">
+                <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
+                <span>Ficha Médica y Asistencia</span>
+              </ion-button>
+            </div>
+          </div>
+        </div>
+      </section>
+    } @else {
+      <!-- Selector de Píldoras Segmentadas (VIP / Economy style) -->
+      <section class="home-selector-wrapper">
+        <app-segmented-pill
+          [options]="tabOptions"
+          [(selectedId)]="activeTab"
+          (selectionChange)="onTabChange($event)"
+        ></app-segmented-pill>
+      </section>
 
-    <!-- Contenido dinamico segun la pestaña seleccionada -->
-    @switch (activeTab()) {
+      <!-- Contenido dinamico segun la pestaña seleccionada -->
+      @switch (activeTab()) {
       @case ('recorrido') {
         <!-- Tarjeta de Metricas Rapidas (Grid 2 columnas) -->
         <section class="gt-grid-two-cols">
@@ -238,6 +259,7 @@
         </app-info-card>
       }
     }
+  }
 
     <!-- Aviso administrativo condicional -->
     @if (isAdmin()) {

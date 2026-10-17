@@ -49,6 +49,7 @@ import {
   closeCircleOutline,
   closeOutline,
   keyOutline,
+  mapOutline,
 } from 'ionicons/icons';
 import {
   AdminService,
@@ -56,6 +57,8 @@ import {
   AdminUpdateUserDto,
 } from '../../../core/services/admin.service';
 import { AuthService, UserRole, UserStatus, IUser } from '../../../core/services/auth.service';
+import { RoutesService } from '../../../core/services/routes.service';
+import type { RouteEntityDto } from '../../../../../../shared/src/index';
 import {
   HeroBannerComponent,
 } from '../../../shared/components';
@@ -89,14 +92,17 @@ import {
 export class AdminUsersPage implements OnInit, ViewWillEnter {
   private readonly adminService = inject(AdminService);
   private readonly authService = inject(AuthService);
+  private readonly routesService = inject(RoutesService);
   private readonly destroyRef = inject(DestroyRef);
 
   public readonly users = signal<IUser[]>([]);
+  public readonly availableRoutes = signal<RouteEntityDto[]>([]);
   public readonly isLoading = signal<boolean>(true);
   public readonly errorMessage = signal<string | null>(null);
   public readonly isSubmitting = signal<boolean>(false);
   public readonly searchQuery = signal<string>('');
   public readonly roleFilter = signal<string>('ALL');
+  public readonly routeFilter = signal<string>('ALL');
 
   public readonly isModalOpen = signal<boolean>(false);
   public readonly editingUser = signal<IUser | null>(null);
@@ -107,6 +113,7 @@ export class AdminUsersPage implements OnInit, ViewWillEnter {
   public readonly formFullName = signal<string>('');
   public readonly formRole = signal<UserRole>(UserRole.USER);
   public readonly formPhone = signal<string>('');
+  public readonly formRouteId = signal<string>('');
 
   public readonly showToast = signal<boolean>(false);
   public readonly toastMessage = signal<string>('');
@@ -127,11 +134,13 @@ export class AdminUsersPage implements OnInit, ViewWillEnter {
       closeCircleOutline,
       closeOutline,
       keyOutline,
+      mapOutline,
     });
   }
 
   ngOnInit(): void {
     this.fetchUsers();
+    this.loadRoutes();
   }
 
   /**
@@ -139,6 +148,20 @@ export class AdminUsersPage implements OnInit, ViewWillEnter {
    */
   ionViewWillEnter(): void {
     this.fetchUsers();
+    this.loadRoutes();
+  }
+
+  /**
+   * Carga el catálogo de rutas turísticas disponibles para asignación y filtrado.
+   */
+  public loadRoutes(): void {
+    this.routesService
+      .getAllRoutes()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (routes) => this.availableRoutes.set(routes),
+        error: () => this.availableRoutes.set([]),
+      });
   }
 
   /**
@@ -148,10 +171,12 @@ export class AdminUsersPage implements OnInit, ViewWillEnter {
     this.isLoading.set(true);
     this.errorMessage.set(null);
     const role = this.roleFilter() !== 'ALL' ? (this.roleFilter() as UserRole) : undefined;
+    const routeId = this.routeFilter() !== 'ALL' ? this.routeFilter() : undefined;
     this.adminService
       .getUsers({
         search: this.searchQuery() || undefined,
         role,
+        routeId,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -191,6 +216,46 @@ export class AdminUsersPage implements OnInit, ViewWillEnter {
   }
 
   /**
+   * Maneja el cambio de filtro de ruta.
+   * @param event Evento del selector de ruta.
+   */
+  public onRouteFilterChange(event: CustomEvent): void {
+    this.routeFilter.set(event.detail.value);
+    this.fetchUsers();
+  }
+
+  /**
+   * Asigna de manera ágil una ruta a un usuario directamente desde la tarjeta del listado.
+   * @param user Usuario a configurar.
+   * @param event Evento emitido por el selector de ruta.
+   */
+  public onAssignRoute(user: IUser, event: CustomEvent): void {
+    const targetRouteId = (event.detail.value as string) || null;
+    if ((user.routeId || null) === targetRouteId) {
+      return;
+    }
+
+    this.adminService
+      .assignUserRoute(user.id, targetRouteId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updatedUser) => {
+          this.users.update((currentList) =>
+            currentList.map((item) => (item.id === updatedUser.id ? updatedUser : item)),
+          );
+          const routeName = updatedUser.route?.name || 'Sin ruta';
+          this.toastMessage.set(`Ruta asignada a ${updatedUser.fullName}: ${routeName}`);
+          this.showToast.set(true);
+        },
+        error: () => {
+          this.toastMessage.set('Error al asignar la ruta al usuario.');
+          this.showToast.set(true);
+          this.fetchUsers();
+        },
+      });
+  }
+
+  /**
    * Abre el modal para crear un nuevo usuario.
    */
   public openCreateModal(): void {
@@ -200,6 +265,7 @@ export class AdminUsersPage implements OnInit, ViewWillEnter {
     this.formFullName.set('');
     this.formRole.set(UserRole.USER);
     this.formPhone.set('');
+    this.formRouteId.set('');
     this.isModalOpen.set(true);
   }
 
@@ -214,6 +280,7 @@ export class AdminUsersPage implements OnInit, ViewWillEnter {
     this.formFullName.set(user.fullName);
     this.formRole.set(user.role);
     this.formPhone.set(user.phone || '');
+    this.formRouteId.set(user.routeId || '');
     this.isModalOpen.set(true);
   }
 
@@ -254,6 +321,7 @@ export class AdminUsersPage implements OnInit, ViewWillEnter {
         fullName: this.formFullName().trim(),
         role: this.formRole(),
         phone: this.formPhone().trim() || null,
+        routeId: this.formRouteId().trim() || null,
       };
 
       this.adminService
@@ -287,6 +355,7 @@ export class AdminUsersPage implements OnInit, ViewWillEnter {
         fullName: this.formFullName().trim(),
         role: this.formRole(),
         phone: this.formPhone().trim() || null,
+        routeId: this.formRouteId().trim() || null,
       };
 
       this.adminService

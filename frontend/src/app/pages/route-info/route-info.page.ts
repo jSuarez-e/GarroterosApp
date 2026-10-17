@@ -5,7 +5,7 @@
  * [Edge Cases]: Detiene y libera automaticamente el audio al abandonar la pagina (ViewDidLeave/ngOnDestroy).
  */
 
-import { Component, OnInit, OnDestroy, inject, signal, DestroyRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -37,8 +37,10 @@ import {
   imagesOutline,
   mapOutline,
   informationCircleOutline,
+  trailSignOutline,
 } from 'ionicons/icons';
 import { RoutesService } from '../../core/services/routes.service';
+import { AuthService } from '../../core/services/auth.service';
 import { AudioPlayerService } from '../../core/services/audio-player.service';
 import { HeroBannerComponent } from '../../shared/components';
 import type { PoiDto, RoutePathDto } from '../../../../../shared/src/index';
@@ -70,12 +72,17 @@ import type { PoiDto, RoutePathDto } from '../../../../../shared/src/index';
 })
 export class RouteInfoPage implements OnInit, OnDestroy, ViewDidLeave, ViewWillEnter {
   private readonly routesService = inject(RoutesService);
+  private readonly authService = inject(AuthService);
   public readonly audioPlayer = inject(AudioPlayerService);
   private readonly destroyRef = inject(DestroyRef);
 
   public waypoints = signal<PoiDto[]>([]);
   public activeRoute = signal<RoutePathDto | null>(null);
   public isLoading = signal<boolean>(true);
+
+  public readonly hasActiveRoute = computed(() => {
+    return this.authService.isAdmin() || Boolean(this.authService.currentUser()?.routeId);
+  });
 
   constructor() {
     addIcons({
@@ -87,6 +94,7 @@ export class RouteInfoPage implements OnInit, OnDestroy, ViewDidLeave, ViewWillE
       imagesOutline,
       mapOutline,
       informationCircleOutline,
+      trailSignOutline,
     });
   }
 
@@ -99,14 +107,50 @@ export class RouteInfoPage implements OnInit, OnDestroy, ViewDidLeave, ViewWillE
   }
 
   /**
-   * Carga los puntos de interés de la ruta activa desde el servicio.
+   * Carga los puntos de interés de la ruta asignada al usuario desde el servicio.
    * @param forceRefresh Indica si se debe forzar la recarga ignorando la caché.
    */
   public fetchWaypoints(forceRefresh = false): void {
+    const user = this.authService.currentUser();
+    const userRouteId = user?.routeId;
+
+    if (!this.authService.isAdmin() && !userRouteId) {
+      this.isLoading.set(true);
+      this.authService
+        .refreshProfile()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (updatedUser) => {
+            if (updatedUser?.routeId) {
+              this.loadRouteData(updatedUser.routeId, forceRefresh);
+            } else {
+              this.activeRoute.set(null);
+              this.waypoints.set([]);
+              this.isLoading.set(false);
+            }
+          },
+          error: () => {
+            this.activeRoute.set(null);
+            this.waypoints.set([]);
+            this.isLoading.set(false);
+          },
+        });
+      return;
+    }
+
+    this.loadRouteData(userRouteId || undefined, forceRefresh);
+  }
+
+  /**
+   * Carga trazado y waypoints de la ruta especificada.
+   * @param routeId Identificador UUID opcional de la ruta.
+   * @param forceRefresh Forzar recarga desde el backend.
+   */
+  private loadRouteData(routeId?: string, forceRefresh = false): void {
     this.isLoading.set(true);
 
     this.routesService
-      .getRoutePath(forceRefresh)
+      .getRoutePath(routeId, forceRefresh)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((path) => {
         if (path) {
@@ -115,7 +159,7 @@ export class RouteInfoPage implements OnInit, OnDestroy, ViewDidLeave, ViewWillE
       });
 
     this.routesService
-      .getWaypoints(undefined, forceRefresh)
+      .getWaypoints(routeId, forceRefresh)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {

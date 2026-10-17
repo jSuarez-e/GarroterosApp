@@ -43,6 +43,7 @@ import {
   locationOutline,
   lockClosedOutline,
   homeOutline,
+  checkboxOutline,
 } from 'ionicons/icons';
 import { AuthService } from './core/services/auth.service';
 import { MedicalService } from './core/services/medical.service';
@@ -95,26 +96,31 @@ export class AppComponent {
 
   // Opciones obligatorias para rol USER (y disponibles para ADMIN)
   public readonly userMenuItems: MenuItem[] = [
-    { title: 'Inicio / Recorrido', url: '/home', icon: 'home-outline' },
-    { title: 'Ficha de asistencia/médica', url: '/medical-card', icon: 'medkit-outline' },
-    { title: 'Acceder al mapa', url: '/map', icon: 'map-outline', requiresAttendance: true },
-    { title: 'Información de ruta', url: '/routes', icon: 'information-circle-outline' },
-    { title: 'Guías del recorrido', url: '/guides', icon: 'people-outline', requiresAttendance: true },
-    { title: '¿Cómo llegar?', url: '/how-to-arrive', icon: 'navigate-outline', requiresAttendance: true },
-    { title: 'Asistencia en ruta (SOS)', url: '/sos', icon: 'alert-circle-outline', requiresAttendance: true },
-    { title: 'Clima', url: '/weather', icon: 'partly-sunny-outline' },
-    { title: 'Permisos', url: '/permissions', icon: 'shield-checkmark-outline' },
+    { title: 'Revisar Recorrido', url: '/home', icon: 'home-outline' },
+    { title: 'Ficha de Asistencia', url: '/medical-card', icon: 'medkit-outline' },
+    { title: 'Mapa Interactivo', url: '/map', icon: 'map-outline', requiresAttendance: true },
+    { title: 'Información de Ruta', url: '/routes', icon: 'information-circle-outline' },
+    { title: 'Guías del Recorrido', url: '/guides', icon: 'people-outline', requiresAttendance: true },
+    { title: '¿Cómo Llegar?', url: '/how-to-arrive', icon: 'navigate-outline', requiresAttendance: true },
+    { title: 'Emergencias (SOS)', url: '/sos', icon: 'alert-circle-outline', requiresAttendance: true },
+    { title: 'Estado del Clima', url: '/weather', icon: 'partly-sunny-outline' },
+    { title: 'Permisos App', url: '/permissions', icon: 'shield-checkmark-outline' },
   ];
 
   // Opciones exclusivas de control administrativo para rol ADMIN
   public readonly adminMenuItems: MenuItem[] = [
-    { title: 'Alertas y Emergencias SOS', url: '/admin/alerts', icon: 'alert-circle-outline' },
-    { title: 'Listado de usuarios', url: '/admin/users', icon: 'people-circle-outline' },
+    { title: 'Rutas y Usuarios', url: '/admin/routes-users', icon: 'checkbox-outline' },
+    { title: 'Alertas SOS', url: '/admin/alerts', icon: 'alert-circle-outline' },
+    { title: 'Gestión de Usuarios', url: '/admin/users', icon: 'people-circle-outline' },
     { title: 'Gestión de Guías', url: '/admin/guides', icon: 'people-outline' },
-    { title: 'Log / Itinerario', url: '/admin/itinerary', icon: 'calendar-outline' },
-    { title: 'Notas', url: '/admin/notes', icon: 'document-text-outline' },
-    { title: 'Gestión de POIs / Reservas', url: '/admin/pois', icon: 'location-outline' },
     { title: 'Gestión de Rutas', url: '/admin/routes', icon: 'map-outline' },
+    { title: 'Itinerario de Ruta', url: '/admin/itinerary', icon: 'calendar-outline' },
+    { title: 'Notas de Ruta', url: '/admin/notes', icon: 'document-text-outline' },
+    { title: 'Puntos de Interés', url: '/admin/pois', icon: 'location-outline' },
+  ];
+
+  public readonly guideMenuItems: MenuItem[] = [
+    { title: 'Guías y rutas', url: '/admin/guides', icon: 'people-outline' },
   ];
 
   constructor() {
@@ -135,6 +141,7 @@ export class AppComponent {
       documentTextOutline,
       locationOutline,
       lockClosedOutline,
+      checkboxOutline,
     });
 
     // Inicializar configuraciones nativas (orientacion vertical y barra de estado)

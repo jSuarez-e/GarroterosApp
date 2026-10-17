@@ -100,6 +100,13 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     children: [
       {
+        path: 'routes-users',
+        loadComponent: () =>
+          import('./pages/admin/routes-users/admin-routes-users.page').then(
+            (m) => m.AdminRoutesUsersPage,
+          ),
+      },
+      {
         path: 'users',
         loadComponent: () =>
           import('./pages/admin/users/admin-users.page').then(

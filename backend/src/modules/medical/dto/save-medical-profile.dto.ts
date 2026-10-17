@@ -7,18 +7,25 @@
 
 // backend/src/modules/medical/dto/save-medical-profile.dto.ts
 
-import { IsBoolean, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import { DietType } from '../entities/medical-profile.entity.js';
 
 /**
- *
+ * DTO para validar la creación o actualización de la ficha médica y asistencia del usuario.
  */
 export class SaveMedicalProfileDto {
   /**
-   *
+   * Identificador único de confirmación de asistencia.
    */
   @IsBoolean()
   attendanceConfirmed: boolean;
+
+  /**
+   * Identificador UUID opcional de la ruta asignada al usuario.
+   */
+  @IsOptional()
+  @IsUUID()
+  routeId?: string | null;
 
   /**
    *

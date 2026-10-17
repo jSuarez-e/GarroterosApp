@@ -22,4 +22,10 @@ describe('HomePage', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('debe evaluar hasActiveRoute como false cuando el usuario no es admin y no tiene ruta asignada', () => {
+    expect(component.hasActiveRoute()).toBe(false);
+    expect(component.routeTitle()).toBe('Sin ruta activa');
+  });
 });
+

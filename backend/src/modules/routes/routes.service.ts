@@ -207,29 +207,37 @@ export class RoutesService implements OnModuleInit {
 
   /**
    * Retorna la polilinea oficial del recorrido en formato GeoJSON coordinates [longitud, latitud].
-   * Consulta la ruta activa en la base de datos con fallback resiliente.
+   * Consulta la ruta activa o la ruta especificada por routeId en la base de datos con fallback resiliente.
+   * @param routeId UUID opcional de la ruta a consultar.
    * @returns Metadata de la ruta y trazado del camino.
    */
-  async getRoutePath(): Promise<RoutePathDto> {
-    const activeRoute = await this.routeRepository.findOne({
-      where: { isActive: true },
-    });
+  async getRoutePath(routeId?: string): Promise<RoutePathDto> {
+    let targetRoute: Route | null = null;
+    if (routeId) {
+      targetRoute = await this.routeRepository.findOne({
+        where: { id: routeId },
+      });
+    } else {
+      targetRoute = await this.routeRepository.findOne({
+        where: { isActive: true },
+      });
+    }
 
-    if (activeRoute) {
+    if (targetRoute) {
       const waypoints = await this.waypointRepository.find({
-        where: { routeId: activeRoute.id },
+        where: { routeId: targetRoute.id },
         order: { orderIndex: 'ASC' },
       });
 
       // Si la ruta no cuenta con puntos de interés (POIs) registrados, no se dibuja polilínea en el mapa
       if (waypoints.length === 0) {
         return {
-          id: activeRoute.id,
-          name: activeRoute.name,
-          municipality: activeRoute.municipality,
-          description: activeRoute.description,
-          totalDistanceKm: Number(activeRoute.totalDistanceKm) || 0,
-          estimatedDurationMinutes: activeRoute.estimatedDurationMinutes || 0,
+          id: targetRoute.id,
+          name: targetRoute.name,
+          municipality: targetRoute.municipality,
+          description: targetRoute.description,
+          totalDistanceKm: Number(targetRoute.totalDistanceKm) || 0,
+          estimatedDurationMinutes: targetRoute.estimatedDurationMinutes || 0,
           coordinates: [],
         };
       }
@@ -242,22 +250,22 @@ export class RoutesService implements OnModuleInit {
       // se utiliza; de lo contrario, se genera la secuencia lineal conectando los waypoints en orden (orderIndex ASC).
       let coordinates: [number, number][];
       if (
-        activeRoute.coordinates &&
-        activeRoute.coordinates.length > waypoints.length &&
-        !this.isLegacyMockCoordinates(activeRoute.coordinates)
+        targetRoute.coordinates &&
+        targetRoute.coordinates.length > waypoints.length &&
+        !this.isLegacyMockCoordinates(targetRoute.coordinates)
       ) {
-        coordinates = activeRoute.coordinates;
+        coordinates = targetRoute.coordinates;
       } else {
         coordinates = waypointCoordinates.length >= 2 ? waypointCoordinates : [];
       }
 
       return {
-        id: activeRoute.id,
-        name: activeRoute.name,
-        municipality: activeRoute.municipality,
-        description: activeRoute.description,
-        totalDistanceKm: Number(activeRoute.totalDistanceKm) || 0,
-        estimatedDurationMinutes: activeRoute.estimatedDurationMinutes || 0,
+        id: targetRoute.id,
+        name: targetRoute.name,
+        municipality: targetRoute.municipality,
+        description: targetRoute.description,
+        totalDistanceKm: Number(targetRoute.totalDistanceKm) || 0,
+        estimatedDurationMinutes: targetRoute.estimatedDurationMinutes || 0,
         coordinates,
       };
     }

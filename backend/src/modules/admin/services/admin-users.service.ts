@@ -14,36 +14,53 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserStatus } from '../../users/entities/user.entity.js';
+import { Route } from '../../routes/entities/route.entity.js';
+import { Guide } from '../../guides/entities/guide.entity.js';
+import { MedicalProfile } from '../../medical/entities/medical-profile.entity.js';
 import {
   AdminCreateUserDto,
   AdminUpdateUserDto,
   AdminUserQueryDto,
+  type IGuideRouteRoster,
+  type IRouteRosterParticipant,
 } from '../dto/admin-user.dto.js';
 
 /**
- *
+ * Servicio para la gestión administrativa de usuarios y asignación de rutas turísticas.
  */
 @Injectable()
 export class AdminUsersService {
   /**
-   *
-   * @param userRepository
+   * Inicializa el servicio inyectando los repositorios necesarios.
+   * @param userRepository Repositorio de persistencia de usuarios.
+   * @param routeRepository Repositorio de persistencia de rutas turísticas.
+   * @param guideRepository Repositorio de persistencia de guías oficiales.
+   * @param medicalProfileRepository Repositorio de fichas médicas y asistencia.
    */
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Route)
+    private readonly routeRepository: Repository<Route>,
+    @InjectRepository(Guide)
+    private readonly guideRepository: Repository<Guide>,
+    @InjectRepository(MedicalProfile)
+    private readonly medicalProfileRepository: Repository<MedicalProfile>,
   ) {}
 
   /**
-   * Obtiene la lista de usuarios del sistema con filtros opcionales de búsqueda, rol y estado.
+   * Obtiene la lista de usuarios del sistema con filtros opcionales de búsqueda, rol, estado y ruta.
    * @param query Criterios de filtrado.
-   * @returns Lista de usuarios.
+   * @returns Lista de usuarios con su ruta asignada precargada.
    */
   async getUsers(query: AdminUserQueryDto): Promise<User[]> {
-    const qb = this.userRepository.createQueryBuilder('user').orderBy('user.createdAt', 'DESC');
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.route', 'route')
+      .orderBy('user.createdAt', 'DESC');
 
     if (query.search && query.search.trim().length > 0) {
       qb.andWhere(
@@ -60,17 +77,24 @@ export class AdminUsersService {
       qb.andWhere('user.status = :status', { status: query.status });
     }
 
+    if (query.routeId) {
+      qb.andWhere('user.routeId = :routeId', { routeId: query.routeId });
+    }
+
     return qb.getMany();
   }
 
   /**
-   * Obtiene un usuario específico por su ID.
+   * Obtiene un usuario específico por su ID incluyendo su relación con la ruta asignada.
    * @param id UUID del usuario.
    * @returns Entidad User.
    * @throws NotFoundException si no existe.
    */
   async getUserById(id: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: { route: true },
+    });
     if (!user) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado.`);
     }
@@ -78,7 +102,7 @@ export class AdminUsersService {
   }
 
   /**
-   * Crea un usuario de forma manual asignando credenciales y rol.
+   * Crea un usuario de forma manual asignando credenciales, rol y ruta opcional.
    * @param dto Datos del usuario a crear.
    * @returns Usuario persistido.
    * @throws ConflictException si el email ya se encuentra registrado.
@@ -104,13 +128,15 @@ export class AdminUsersService {
       status: UserStatus.ACTIVE,
       phone: dto.phone ?? null,
       avatarUrl: dto.avatarUrl ?? null,
+      routeId: dto.routeId ?? null,
     });
 
-    return this.userRepository.save(newUser);
+    const saved = await this.userRepository.save(newUser);
+    return this.getUserById(saved.id);
   }
 
   /**
-   * Actualiza los datos de un usuario existente.
+   * Actualiza los datos de un usuario existente incluyendo su ruta asignada.
    * @param id UUID del usuario a actualizar.
    * @param dto Campos a modificar.
    * @returns Usuario actualizado.
@@ -133,8 +159,25 @@ export class AdminUsersService {
     if (dto.avatarUrl !== undefined) {
       user.avatarUrl = dto.avatarUrl ?? null;
     }
+    if (dto.routeId !== undefined) {
+      user.routeId = dto.routeId ?? null;
+    }
 
-    return this.userRepository.save(user);
+    await this.userRepository.save(user);
+    return this.getUserById(id);
+  }
+
+  /**
+   * Configura o actualiza la ruta asignada a un usuario.
+   * @param id UUID del usuario.
+   * @param routeId UUID de la ruta turística o null.
+   * @returns Usuario con la ruta actualizada.
+   */
+  async assignUserRoute(id: string, routeId: string | null): Promise<User> {
+    const user = await this.getUserById(id);
+    user.routeId = routeId;
+    await this.userRepository.save(user);
+    return this.getUserById(id);
   }
 
   /**
@@ -168,5 +211,146 @@ export class AdminUsersService {
     const user = await this.getUserById(id);
     await this.userRepository.remove(user);
     return { success: true, message: `Usuario ${user.email} eliminado exitosamente.` };
+  }
+
+  /**
+   * Obtiene la lista de rutas activas vinculadas al guía en sesión (o todas las rutas activas si es administrador),
+   * junto con la lista de participantes asignados y sus estados de asistencia y ficha médica.
+   * @param currentUser Usuario autenticado que realiza la consulta (guía o admin).
+   * @returns Lista de rutas con sus participantes y métricas de asistencia.
+   */
+  async getGuideRouteRoster(currentUser: User): Promise<IGuideRouteRoster[]> {
+    // 1. Identificar si el usuario autenticado tiene un registro de Guía vinculado
+    let assignedRoutes: Route[] = [];
+    const guideProfile = await this.guideRepository.findOne({
+      where: [{ userId: currentUser.id }, { email: currentUser.email }],
+      relations: { routes: true },
+    });
+
+    if (guideProfile && guideProfile.routes && guideProfile.routes.length > 0) {
+      const routeIds = guideProfile.routes.map((routeEntity) => routeEntity.id);
+      assignedRoutes = await this.routeRepository.find({
+        where: { id: In(routeIds) },
+        relations: { guides: true },
+        order: { isActive: 'DESC', name: 'ASC' },
+      });
+    }
+
+    // 2. Si no es un guía específico con rutas asignadas, consultar rutas activas oficiales
+    if (assignedRoutes.length === 0) {
+      assignedRoutes = await this.routeRepository.find({
+        where: { isActive: true },
+        relations: { guides: true },
+        order: { name: 'ASC' },
+      });
+    }
+
+    // 3. Fallback: si aún no hay rutas activas, obtener todas las rutas disponibles
+    if (assignedRoutes.length === 0) {
+      assignedRoutes = await this.routeRepository.find({
+        relations: { guides: true },
+        order: { createdAt: 'DESC' },
+      });
+    }
+
+    if (assignedRoutes.length === 0) {
+      return [];
+    }
+
+    // 4. Obtener todos los usuarios asignados a las rutas identificadas
+    const targetRouteIds = assignedRoutes.map((targetRoute) => targetRoute.id);
+    const assignedUsers = await this.userRepository.find({
+      where: { routeId: In(targetRouteIds) },
+      order: { fullName: 'ASC' },
+    });
+
+    // 5. Obtener las fichas médicas de todos los usuarios asignados
+    const participantUserIds = assignedUsers.map((participantUser) => participantUser.id);
+    const medicalProfiles =
+      participantUserIds.length > 0
+        ? await this.medicalProfileRepository.find({
+            where: { userId: In(participantUserIds) },
+          })
+        : [];
+
+    const medicalMap = new Map<string, MedicalProfile>();
+    for (const medical of medicalProfiles) {
+      medicalMap.set(medical.userId, medical);
+    }
+
+    // Agrupar usuarios por ruta
+    const usersByRouteMap = new Map<string, User[]>();
+    for (const user of assignedUsers) {
+      if (user.routeId) {
+        const routeUsers = usersByRouteMap.get(user.routeId) ?? [];
+        routeUsers.push(user);
+        usersByRouteMap.set(user.routeId, routeUsers);
+      }
+    }
+
+    // 6. Construir el roster estructurado
+    const rosters: IGuideRouteRoster[] = assignedRoutes.map((routeEntity) => {
+      const usersInRoute = usersByRouteMap.get(routeEntity.id) ?? [];
+      const participants: IRouteRosterParticipant[] = usersInRoute.map((user) => {
+        const medical = medicalMap.get(user.id);
+        const attendanceConfirmed = medical ? medical.attendanceConfirmed : false;
+        const hasMedicalProfile = Boolean(medical);
+        const photoUrl = medical?.photoUrl ?? user.avatarUrl ?? null;
+
+        return {
+          userId: user.id,
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone ?? null,
+          avatarUrl: user.avatarUrl ?? null,
+          photoUrl,
+          attendanceConfirmed,
+          hasMedicalProfile,
+          medicalUpdatedAt: medical?.updatedAt ? medical.updatedAt.toISOString() : null,
+          medicalSummary: medical
+            ? {
+                bloodType: medical.bloodType ?? null,
+                allergies: medical.allergies ?? null,
+                dietType: medical.dietType ?? null,
+                emergencyContactName: medical.emergencyContactName ?? null,
+                emergencyContactPhone: medical.emergencyContactPhone ?? null,
+                medicalConditions: medical.medicalConditions ?? null,
+                medications: medical.medications ?? null,
+                notes: medical.notes ?? null,
+              }
+            : null,
+        };
+      });
+
+      const totalParticipants = participants.length;
+      const confirmedParticipants = participants.filter(
+        (participant) => participant.attendanceConfirmed,
+      ).length;
+      const attendanceRatePercentage =
+        totalParticipants > 0
+          ? Math.round((confirmedParticipants / totalParticipants) * 100)
+          : 0;
+
+      return {
+        routeId: routeEntity.id,
+        routeName: routeEntity.name,
+        municipality: routeEntity.municipality,
+        totalDistanceKm: Number(routeEntity.totalDistanceKm) || 0,
+        estimatedDurationMinutes: Number(routeEntity.estimatedDurationMinutes) || 0,
+        isActive: routeEntity.isActive,
+        guides: (routeEntity.guides ?? []).map((guideEntity) => ({
+          id: guideEntity.id,
+          fullName: guideEntity.fullName,
+          phone: guideEntity.phone ?? null,
+          avatarUrl: guideEntity.avatarUrl ?? null,
+        })),
+        totalParticipants,
+        confirmedParticipants,
+        attendanceRatePercentage,
+        participants,
+      };
+    });
+
+    return rosters;
   }
 }

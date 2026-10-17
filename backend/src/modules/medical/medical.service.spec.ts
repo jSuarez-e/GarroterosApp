@@ -11,6 +11,7 @@ import { DietType } from './entities/medical-profile.entity.js';
 import type { Repository } from 'typeorm';
 import type { MedicalProfile } from './entities/medical-profile.entity.js';
 import type { Route } from '../routes/entities/route.entity.js';
+import type { User } from '../users/entities/user.entity.js';
 import type { TelemetryGateway } from '../telemetry/gateways/telemetry.gateway.js';
 import type { SaveMedicalProfileDto } from './dto/save-medical-profile.dto.js';
 import type { Guide } from '../guides/entities/guide.entity.js';
@@ -19,6 +20,7 @@ describe('MedicalService', () => {
   let service: MedicalService;
   let mockProfileRepo: Partial<Repository<MedicalProfile>>;
   let mockRouteRepo: Partial<Repository<Route>>;
+  let mockUserRepo: Partial<Repository<User>>;
   let mockTelemetryGateway: Partial<TelemetryGateway>;
 
   beforeEach(() => {
@@ -32,6 +34,10 @@ describe('MedicalService', () => {
       findOne: vi.fn(),
     };
 
+    mockUserRepo = {
+      findOne: vi.fn(),
+    };
+
     mockTelemetryGateway = {
       broadcastAttendanceConfirmed: vi.fn(),
     };
@@ -39,6 +45,7 @@ describe('MedicalService', () => {
     service = new MedicalService(
       mockProfileRepo as Repository<MedicalProfile>,
       mockRouteRepo as Repository<Route>,
+      mockUserRepo as Repository<User>,
       mockTelemetryGateway as TelemetryGateway,
     );
   });
@@ -58,6 +65,7 @@ describe('MedicalService', () => {
     expect(result).toEqual(mockProfile);
     expect(mockProfileRepo.findOne).toHaveBeenCalledWith({
       where: { userId: 'user-uuid-1' },
+      relations: { route: true },
     });
   });
 
@@ -89,7 +97,9 @@ describe('MedicalService', () => {
       guides: mockGuides,
     } as Route;
 
-    vi.mocked(mockProfileRepo.findOne!).mockResolvedValue(null);
+    vi.mocked(mockProfileRepo.findOne!)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(savedProfile);
     vi.mocked(mockProfileRepo.create!).mockReturnValue(savedProfile);
     vi.mocked(mockProfileRepo.save!).mockResolvedValue(savedProfile);
     vi.mocked(mockRouteRepo.findOne!).mockResolvedValue(mockActiveRoute);
@@ -120,7 +130,9 @@ describe('MedicalService', () => {
       ...dto,
     } as MedicalProfile;
 
-    vi.mocked(mockProfileRepo.findOne!).mockResolvedValue(null);
+    vi.mocked(mockProfileRepo.findOne!)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(savedProfile);
     vi.mocked(mockProfileRepo.create!).mockReturnValue(savedProfile);
     vi.mocked(mockProfileRepo.save!).mockResolvedValue(savedProfile);
 

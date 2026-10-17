@@ -12,6 +12,7 @@ import {
   OnInit,
   inject,
   signal,
+  computed,
   ChangeDetectionStrategy,
   DestroyRef,
 } from '@angular/core';
@@ -33,6 +34,7 @@ import {
   IonSelect,
   IonSelectOption,
   IonToggle,
+  ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -47,6 +49,7 @@ import {
   cameraOutline,
   trashOutline,
   imageOutline,
+  trailSignOutline,
 } from 'ionicons/icons';
 import {
   MedicalService,
@@ -85,7 +88,7 @@ import {
     InfoCardComponent,
   ],
 })
-export class MedicalRegistrationPage implements OnInit {
+export class MedicalRegistrationPage implements OnInit, ViewWillEnter {
   private readonly medicalService = inject(MedicalService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -97,6 +100,13 @@ export class MedicalRegistrationPage implements OnInit {
   public readonly isProcessingPhoto = signal<boolean>(false);
   public readonly showToast = signal<boolean>(false);
   public readonly toastMessage = signal<string>('');
+
+  /**
+   * Resumen de la ruta turística activa asignada al usuario o a su ficha médica.
+   */
+  public readonly assignedRoute = computed(() => {
+    return this.currentUser()?.route || this.medicalService.profile()?.route || null;
+  });
 
   // Form Model con Signals
   public readonly attendanceConfirmed = signal<boolean>(true);
@@ -133,11 +143,29 @@ export class MedicalRegistrationPage implements OnInit {
       cameraOutline,
       trashOutline,
       imageOutline,
+      trailSignOutline,
     });
   }
 
-  ngOnInit(): void {
-    this.loadProfile();
+  public ngOnInit(): void {
+    this.refreshUserData();
+  }
+
+  public ionViewWillEnter(): void {
+    this.refreshUserData();
+  }
+
+  /**
+   * Sincroniza el perfil del usuario autenticado y carga la ficha médica existente.
+   */
+  private refreshUserData(): void {
+    this.authService
+      .refreshProfile()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.loadProfile(),
+        error: () => this.loadProfile(),
+      });
   }
 
   /**
@@ -268,8 +296,10 @@ export class MedicalRegistrationPage implements OnInit {
    */
   public onSave(): void {
     this.isSaving.set(true);
+    const assignedRouteId = this.currentUser()?.routeId || this.assignedRoute()?.id || null;
     const dto: SaveMedicalProfileDto = {
       attendanceConfirmed: this.attendanceConfirmed(),
+      routeId: assignedRouteId,
       medicalConditions: this.medicalConditions() || null,
       allergies: this.allergies() || null,
       medications: this.medications() || null,

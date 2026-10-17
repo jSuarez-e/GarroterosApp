@@ -6,6 +6,7 @@ export interface AdminCreateUserDto {
     role: UserRole;
     phone?: string | null;
     avatarUrl?: string | null;
+    routeId?: string | null;
 }
 export interface AdminUpdateUserDto {
     fullName?: string;
@@ -13,11 +14,13 @@ export interface AdminUpdateUserDto {
     role?: UserRole;
     status?: UserStatus;
     avatarUrl?: string | null;
+    routeId?: string | null;
 }
 export interface AdminUserQueryDto {
     search?: string;
     role?: UserRole;
     status?: UserStatus;
+    routeId?: string;
 }
 export declare enum ItineraryStatus {
     PENDING = "PENDING",
@@ -131,4 +134,45 @@ export interface CreateSosTriggerDto {
     batteryLevel?: number | null;
     message?: string;
     timestamp?: number;
+}
+export interface IRouteParticipantMedicalSummary {
+    bloodType: string | null;
+    allergies: string | null;
+    dietType: string | null;
+    emergencyContactName: string | null;
+    emergencyContactPhone: string | null;
+    medicalConditions: string | null;
+    medications: string | null;
+    notes: string | null;
+}
+export interface IRouteRosterParticipant {
+    userId: string;
+    fullName: string;
+    email: string;
+    phone: string | null;
+    avatarUrl: string | null;
+    photoUrl: string | null;
+    attendanceConfirmed: boolean;
+    hasMedicalProfile: boolean;
+    medicalUpdatedAt?: string | null;
+    medicalSummary: IRouteParticipantMedicalSummary | null;
+}
+export interface IRouteAssignedGuide {
+    id: string;
+    fullName: string;
+    phone: string | null;
+    avatarUrl: string | null;
+}
+export interface IGuideRouteRoster {
+    routeId: string;
+    routeName: string;
+    municipality: string;
+    totalDistanceKm: number;
+    estimatedDurationMinutes: number;
+    isActive: boolean;
+    guides: IRouteAssignedGuide[];
+    totalParticipants: number;
+    confirmedParticipants: number;
+    attendanceRatePercentage: number;
+    participants: IRouteRosterParticipant[];
 }

@@ -11,16 +11,17 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MedicalProfile } from './entities/medical-profile.entity.js';
 import { Route } from '../routes/entities/route.entity.js';
+import { User } from '../users/entities/user.entity.js';
 import { TelemetryModule } from '../telemetry/telemetry.module.js';
 import { MedicalService } from './medical.service.js';
 import { MedicalController } from './medical.controller.js';
 
 /**
- *
+ * Módulo NestJS para la encapsulación del dominio de fichas médicas y confirmación de asistencia.
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([MedicalProfile, Route]),
+    TypeOrmModule.forFeature([MedicalProfile, Route, User]),
     TelemetryModule,
   ],
   controllers: [MedicalController],

@@ -24,7 +24,7 @@
       </ion-card-header>
 
       <ion-card-content>
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" autocomplete="off">
           <div class="login-form__field">
             <ion-item lines="none" class="login-form__item">
               <ion-icon name="mail-outline" slot="start" class="login-form__icon"></ion-icon>
@@ -34,7 +34,7 @@
                 label="Correo Electrónico"
                 labelPlacement="floating"
                 formControlName="email"
-                autocomplete="email"
+                autocomplete="off"
                 required
               ></ion-input>
             </ion-item>
@@ -54,7 +54,7 @@
                 label="Contraseña"
                 labelPlacement="floating"
                 formControlName="password"
-                autocomplete="current-password"
+                autocomplete="off"
                 required
               ></ion-input>
             </ion-item>

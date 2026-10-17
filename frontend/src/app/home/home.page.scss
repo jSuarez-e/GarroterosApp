@@ -93,6 +93,79 @@
 }
 
 /* ==========================================================================
+   BANNER DE USUARIO SIN RUTA ASIGNADA
+   ========================================================================== */
+
+.home-empty-route-banner {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-empty-route-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: #fff;
+  border: 1px dashed rgb(59 91 219 / 35%);
+  border-radius: 20px;
+  padding: 24px 20px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 4%);
+
+  @media (width <= 480px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 14px;
+    padding: 20px 16px;
+  }
+
+  &__icon-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgb(59 91 219 / 10%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__icon {
+    font-size: 28px;
+    color: var(--app-primary);
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+
+    @media (width <= 480px) {
+      align-items: center;
+    }
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--app-text-main);
+  }
+
+  &__desc {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--app-text-secondary);
+  }
+
+  &__actions {
+    margin-top: 6px;
+  }
+}
+
+/* ==========================================================================
    ESTRUCTURA DE RUTA ESTILO TICKET DE VUELO (MOCKUP VIAJES)
    ========================================================================== */
 

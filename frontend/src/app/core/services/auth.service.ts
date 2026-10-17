@@ -29,6 +29,11 @@ export interface IUser {
   status: UserStatus;
   phone?: string | null;
   avatarUrl?: string | null;
+  routeId?: string | null;
+  route?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export interface LoginRequest {
@@ -121,6 +126,19 @@ export class AuthService {
     this.token.set(null);
     this.refreshTokenSignal.set(null);
     void this.router.navigate(['/login']);
+  }
+
+  /**
+   * Actualiza el perfil del usuario autenticado consultando el backend.
+   * @returns Observable con el perfil actualizado.
+   */
+  public refreshProfile(): Observable<IUser> {
+    return this.http.get<IUser>(`${environment.apiUrl}/auth/profile`).pipe(
+      tap((user) => {
+        localStorage.setItem(this.userKey, JSON.stringify(user));
+        this.currentUser.set(user);
+      }),
+    );
   }
 
   /**

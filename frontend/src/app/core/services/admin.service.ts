@@ -16,6 +16,9 @@ import {
   SosAlertStatus,
   type ISosAlertEntry,
   type UpdateSosAlertStatusDto,
+  type IGuideRouteRoster,
+  type IRouteRosterParticipant,
+  type IRouteParticipantMedicalSummary,
 } from '../../../../../shared/src/index';
 
 export interface AdminCreateUserDto {
@@ -25,6 +28,7 @@ export interface AdminCreateUserDto {
   role: UserRole;
   phone?: string | null;
   avatarUrl?: string | null;
+  routeId?: string | null;
 }
 
 export interface AdminUpdateUserDto {
@@ -33,12 +37,14 @@ export interface AdminUpdateUserDto {
   role?: UserRole;
   status?: UserStatus;
   avatarUrl?: string | null;
+  routeId?: string | null;
 }
 
 export interface AdminUserQueryDto {
   search?: string;
   role?: UserRole;
   status?: UserStatus;
+  routeId?: string;
 }
 
 export enum ItineraryStatus {
@@ -159,6 +165,7 @@ export class AdminService {
     if (query?.search) params = params.set('search', query.search.trim());
     if (query?.role) params = params.set('role', query.role);
     if (query?.status) params = params.set('status', query.status);
+    if (query?.routeId) params = params.set('routeId', query.routeId);
 
     return this.http.get<IUser[]>(`${this.baseAdminUrl}/users`, { params });
   }
@@ -198,6 +205,16 @@ export class AdminService {
    */
   toggleUserStatus(id: string): Observable<IUser> {
     return this.http.patch<IUser>(`${this.baseAdminUrl}/users/${id}/status`, {});
+  }
+
+  /**
+   * Configura o actualiza la ruta turística asignada a un usuario.
+   * @param id UUID del usuario.
+   * @param routeId UUID de la ruta turística o null para desasignar.
+   * @returns Observable con el usuario actualizado.
+   */
+  assignUserRoute(id: string, routeId: string | null): Observable<IUser> {
+    return this.http.patch<IUser>(`${this.baseAdminUrl}/users/${id}/route`, { routeId });
   }
 
   /**
@@ -353,5 +370,21 @@ export class AdminService {
   updateSosAlertStatus(alertId: string, dto: UpdateSosAlertStatusDto): Observable<ISosAlertEntry> {
     return this.http.patch<ISosAlertEntry>(`${this.baseAdminUrl}/alerts/${alertId}/status`, dto);
   }
+
+  // === GESTIÓN DE RUTAS Y USUARIOS (ROSTER Y CONTROL DE ASISTENCIA PARA GUÍAS) ===
+
+  /**
+   * Obtiene la lista de rutas activas con los usuarios asignados para el control y verificación de asistencia por parte del guía.
+   * @returns Observable con el listado estructurado de rutas y participantes.
+   */
+  getGuideRouteRoster(): Observable<IGuideRouteRoster[]> {
+    return this.http.get<IGuideRouteRoster[]>(`${this.baseAdminUrl}/routes-users`);
+  }
 }
+
+export type {
+  IGuideRouteRoster,
+  IRouteRosterParticipant,
+  IRouteParticipantMedicalSummary,
+};
 

@@ -15,6 +15,7 @@ import {
   ElementRef,
   ViewChild,
   effect,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -47,6 +48,7 @@ import {
   layersOutline,
   informationCircleOutline,
   alertCircleOutline,
+  trailSignOutline,
 } from 'ionicons/icons';
 import { Map as MapLibreMap, Marker, NavigationControl, setWorkerUrl, type GeoJSONSource } from 'maplibre-gl';
 import { AuthService } from '../../core/services/auth.service';
@@ -100,6 +102,10 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
   public poiCount = signal<number>(-1);
   public readonly activeSosAlert = this.telemetryService.activeSosAlert;
 
+  public readonly hasActiveRoute = computed(() => {
+    return this.authService.isAdmin() || Boolean(this.authService.currentUser()?.routeId);
+  });
+
   // Coordenadas oficiales de Piedecuesta, Santander
   private readonly DEFAULT_CENTER: [number, number] = [-73.0501, 6.9877];
   private readonly DEFAULT_ZOOM = 15;
@@ -117,6 +123,7 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
       layersOutline,
       informationCircleOutline,
       alertCircleOutline,
+      trailSignOutline,
     });
 
     // Escucha reactiva a cambios de coordenadas del GPS propio y estado SOS
@@ -219,8 +226,26 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
   private loadRouteLine(forceRefresh = false): void {
     if (!this.map) return;
 
+    if (!this.hasActiveRoute()) {
+      this.activeRouteName.set('Sin ruta activa');
+      const existingSource = this.map.getSource('route-path') as GeoJSONSource | undefined;
+      if (existingSource) {
+        existingSource.setData({
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: [],
+          },
+        });
+      }
+      return;
+    }
+
+    const targetRouteId = this.authService.currentUser()?.routeId || undefined;
+
     this.routesService
-      .getRoutePath(forceRefresh)
+      .getRoutePath(targetRouteId, forceRefresh)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((path: RoutePathDto | null) => {
         if (!this.map) return;
@@ -296,8 +321,17 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
   private loadPoiMarkers(forceRefresh = false): void {
     if (!this.map) return;
 
+    if (!this.hasActiveRoute()) {
+      this.poiCount.set(0);
+      this.poiMarkers.forEach((m) => m.remove());
+      this.poiMarkers = [];
+      return;
+    }
+
+    const targetRouteId = this.authService.currentUser()?.routeId || undefined;
+
     this.routesService
-      .getWaypoints(undefined, forceRefresh)
+      .getWaypoints(targetRouteId, forceRefresh)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((pois: PoiDto[]) => {
         if (!this.map) return;

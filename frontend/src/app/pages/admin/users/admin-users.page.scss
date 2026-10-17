@@ -42,6 +42,16 @@
   gap: 10px;
 }
 
+.filter-controls {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+
+  @media (width <= 500px) {
+    flex-direction: column;
+  }
+}
+
 .admin-searchbar {
   --background: var(--app-surface-card, #FFF);
   --border-radius: var(--app-radius-md, 14px);
@@ -50,7 +60,9 @@
   padding: 0;
 }
 
-.role-select-box {
+.role-select-box,
+.route-select-box {
+  flex: 1;
   background: var(--app-surface-card, #FFF);
   border: 1px solid var(--app-border-light, #E2E8F0);
   border-radius: var(--app-radius-md, 14px);
@@ -58,13 +70,15 @@
   box-shadow: var(--app-shadow-card, 0 4px 16px rgb(59 91 219 / 8%));
 }
 
-.role-select {
+.role-select,
+.route-select {
   --padding-start: 4px;
   --padding-end: 4px;
 
   font-size: 13px;
   font-weight: 600;
   color: var(--app-text-title, #1E293B);
+  width: 100%;
 }
 
 .admin-loading {
@@ -188,6 +202,24 @@
     gap: 5px;
   }
 
+  &__route {
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 3px;
+
+    &--assigned {
+      color: var(--app-primary, #3B5BDB);
+    }
+
+    &--unassigned {
+      color: var(--app-text-muted, #94A3B8);
+      font-style: italic;
+    }
+  }
+
   &__meta-icon {
     font-size: 13px;
     color: var(--app-primary, #3B5BDB);
@@ -199,6 +231,57 @@
     align-items: flex-end;
     gap: 6px;
     flex-shrink: 0;
+  }
+
+  &__assignment {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--app-surface-subtle, #F8FAFC);
+    border: 1px dashed var(--app-border-light, #CBD5E1);
+    border-radius: var(--app-radius-md, 12px);
+    padding: 8px 12px;
+
+    @media (width <= 480px) {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  &__assignment-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--app-text-body, #475569);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  &__assignment-icon {
+    font-size: 14px;
+    color: var(--app-primary, #3B5BDB);
+  }
+
+  &__assignment-select-box {
+    flex: 1;
+    background: var(--app-surface-card, #FFF);
+    border: 1px solid var(--app-border-light, #E2E8F0);
+    border-radius: var(--app-radius-sm, 8px);
+    padding: 0 6px;
+    min-width: 170px;
+    width: 100%;
+  }
+
+  &__assignment-select {
+    --padding-start: 4px;
+    --padding-end: 4px;
+
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--app-text-title, #1E293B);
+    width: 100%;
   }
 
   &__actions {

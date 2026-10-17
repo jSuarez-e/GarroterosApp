@@ -1,0 +1,106 @@
+/**
+ * @sdd
+ * [Objetivo]: Pruebas unitarias para MedicalRegistrationPage validando asociación de ruta asignada (SDD-005-USER-MODULES-AND-ADMIN).
+ * [I/O]: Mocks de MedicalService, AuthService, Router y ToastController.
+ * [Edge Cases]: Validación de assignedRoute computed con usuario asignado o sin asignar, y payload en onSave.
+ */
+
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
+import { of } from 'rxjs';
+import { Router } from '@angular/router';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { MedicalRegistrationPage } from './medical-registration.page';
+import { MedicalService, DietType, type IMedicalProfile } from '../../core/services/medical.service';
+import { AuthService, type IUser, UserRole, UserStatus } from '../../core/services/auth.service';
+
+describe('MedicalRegistrationPage', () => {
+  let component: MedicalRegistrationPage;
+  let fixture: ComponentFixture<MedicalRegistrationPage>;
+  let mockMedicalService: Partial<MedicalService>;
+  let mockAuthService: Partial<AuthService>;
+  let mockRouter: Partial<Router>;
+  let currentUserSignal: ReturnType<typeof signal<IUser | null>>;
+  let profileSignal: ReturnType<typeof signal<IMedicalProfile | null>>;
+
+  const mockUserWithRoute: IUser = {
+    id: 'user-123',
+    email: 'turista@piedecuesta.com',
+    fullName: 'Turista Garrotero',
+    role: UserRole.USER,
+    status: UserStatus.ACTIVE,
+    routeId: 'route-active-99',
+    route: {
+      id: 'route-active-99',
+      name: 'Ruta Histórica y Cultural de los Garroteros',
+    },
+  };
+
+  beforeEach(async () => {
+    currentUserSignal = signal<IUser | null>(mockUserWithRoute);
+    profileSignal = signal<IMedicalProfile | null>(null);
+
+    mockMedicalService = {
+      profile: profileSignal,
+      getMyProfile: vi.fn().mockReturnValue(of(null)),
+      saveMyProfile: vi.fn().mockReturnValue(of({} as IMedicalProfile)),
+    };
+
+    mockAuthService = {
+      currentUser: currentUserSignal,
+      refreshProfile: vi.fn().mockReturnValue(of(mockUserWithRoute)),
+    };
+
+    mockRouter = {
+      navigate: vi.fn().mockResolvedValue(true),
+    };
+
+    await TestBed.configureTestingModule({
+      imports: [MedicalRegistrationPage],
+      providers: [
+        { provide: MedicalService, useValue: mockMedicalService },
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: Router, useValue: mockRouter },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(MedicalRegistrationPage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('debe crearse correctamente', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('debe reflejar la ruta asignada al usuario autenticado', () => {
+    expect(component.assignedRoute()).toEqual({
+      id: 'route-active-99',
+      name: 'Ruta Histórica y Cultural de los Garroteros',
+    });
+  });
+
+  it('debe incluir routeId al guardar la ficha médica y confirmar asistencia', () => {
+    component.attendanceConfirmed.set(true);
+    component.dietType.set(DietType.REGULAR);
+
+    component.onSave();
+
+    expect(mockMedicalService.saveMyProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attendanceConfirmed: true,
+        routeId: 'route-active-99',
+      }),
+    );
+  });
+
+  it('debe reflejar null en assignedRoute si el usuario no tiene ruta asignada', () => {
+    currentUserSignal.set({
+      ...mockUserWithRoute,
+      routeId: null,
+      route: null,
+    });
+
+    expect(component.assignedRoute()).toBeNull();
+  });
+});

@@ -16,16 +16,26 @@
 <ion-content [fullscreen]="true" class="route-content">
   <!-- Banner Curvo Hero de la Ruta -->
   <app-hero-banner
-    [title]="activeRoute()?.name || 'Recorrido Turístico'"
-    [subtitle]="activeRoute()?.description || 'Explora los hitos patrimoniales y culturales del recorrido oficial.'"
-    badgeText="Itinerario Cultural Oficial"
+    [title]="hasActiveRoute() ? (activeRoute()?.name || 'Recorrido Turístico') : 'Sin ruta activa'"
+    [subtitle]="hasActiveRoute() ? (activeRoute()?.description || 'Explora los hitos patrimoniales y culturales del recorrido oficial.') : 'Actualmente no tienes un recorrido activo asignado.'"
+    [badgeText]="hasActiveRoute() ? 'Itinerario Cultural Oficial' : 'Sin Asignación'"
     iconName="map-outline"
   ></app-hero-banner>
 
   <div class="route-wrapper">
 
-    <!-- Indicador de Carga -->
-    @if (isLoading()) {
+    <!-- Caso sin ruta activa asignada -->
+    @if (!hasActiveRoute()) {
+      <div class="route-empty">
+        <div class="route-empty__icon-bubble">
+          <ion-icon name="trail-sign-outline"></ion-icon>
+        </div>
+        <h3 class="route-empty__title">Sin ruta activa asignada</h3>
+        <p class="route-empty__message">
+          No tienes una ruta activa asignada en este momento. Solicita a un administrador o guía que configure tu recorrido para ver los puntos de interés.
+        </p>
+      </div>
+    } @else if (isLoading()) {
       <div class="route-loading">
         <ion-spinner name="crescent" class="route-loading__spinner"></ion-spinner>
         <p class="route-loading__text">Cargando puntos del recorrido...</p>

@@ -1,0 +1,846 @@
+/**
+ * @sdd
+ * [Objetivo]: Estilos BEM para la vista de control y verificación de asistencia de usuarios por ruta (SDD-005-USER-MODULES-AND-ADMIN).
+ * [I/O - Reusabilidad]: Clases roster-hero, route-summary-card, participant-card, badge, filter-chip, emergency-modal.
+ * [Edge Cases - UI]: Responsividad en pantallas móviles táctiles, badges accesibles de alto contraste y scroll suave en modal.
+ */
+
+// frontend/src/app/pages/admin/routes-users/admin-routes-users.page.scss
+
+@use "../../../../theme/variables.scss" as *;
+
+.roster-toolbar {
+  --background: linear-gradient(135deg, var(--app-primary, #3B5BDB) 0%, var(--app-primary-dark, #2B44B3) 100%);
+  --color: #fff;
+
+  &__title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  &__menu-btn,
+  &__refresh-btn {
+    --color: #fff;
+  }
+}
+
+.roster-content {
+  --background: var(--app-bg-canvas, #F0F4FE);
+}
+
+.roster-container {
+  padding: 16px 16px 36px;
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+// --- Hero Banner ---
+.roster-hero {
+  background: linear-gradient(135deg, #1E1E1E 0%, #2A2C38 100%);
+  border-radius: var(--app-radius-lg, 18px);
+  padding: 20px;
+  color: #fff;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgb(136 220 204 / 15%);
+    color: #88DCCC;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    width: fit-content;
+
+    ion-icon {
+      font-size: 0.95rem;
+    }
+  }
+
+  &__title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.25;
+    color: #fff;
+  }
+
+  &__subtitle {
+    font-size: 0.88rem;
+    margin: 0;
+    color: rgb(255 255 255 / 75%);
+    line-height: 1.4;
+  }
+}
+
+// --- Loading y Empty States ---
+.roster-loading,
+.roster-empty,
+.participants-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--app-surface-card, #fff);
+  border-radius: var(--app-radius-lg, 18px);
+  box-shadow: 0 4px 16px rgb(59 91 219 / 6%);
+
+  &__text,
+  &__desc {
+    color: var(--app-text-secondary, #6C7A9C);
+    font-size: 0.92rem;
+    margin: 10px 0 0;
+  }
+
+  &__title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--app-text-primary, #1E293B);
+    margin: 12px 0 4px;
+  }
+
+  &__icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgb(59 91 219 / 10%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon {
+      font-size: 32px;
+      color: var(--app-primary, #3B5BDB);
+    }
+  }
+
+  &__btn {
+    --border-radius: 12px;
+
+    margin-top: 18px;
+  }
+}
+
+// --- Route Selector Pills ---
+.route-selector-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .section-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--app-text-secondary, #6C7A9C);
+  }
+}
+
+.route-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.route-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 24px;
+  border: 1px solid var(--app-border-color, #E2E8F0);
+  background: var(--app-surface-card, #fff);
+  color: var(--app-text-primary, #1E293B);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &__badge {
+    background: rgb(59 91 219 / 12%);
+    color: var(--app-primary, #3B5BDB);
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  &--active {
+    background: var(--app-primary, #3B5BDB);
+    color: #fff;
+    border-color: var(--app-primary, #3B5BDB);
+    box-shadow: 0 4px 12px rgb(59 91 219 / 30%);
+
+    .route-pill__badge {
+      background: rgb(255 255 255 / 25%);
+      color: #fff;
+    }
+  }
+}
+
+// --- Route Summary Card ---
+.route-summary-card {
+  background: var(--app-surface-card, #fff);
+  border-radius: var(--app-radius-lg, 18px);
+  padding: 20px;
+  box-shadow: 0 6px 20px rgb(59 91 219 / 8%);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  &__municipality {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
+    color: var(--app-primary, #3B5BDB);
+    font-weight: 600;
+    margin-bottom: 2px;
+
+    ion-icon {
+      font-size: 0.9rem;
+    }
+  }
+
+  &__title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--app-text-primary, #1E293B);
+    margin: 0;
+  }
+}
+
+.route-tag {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+
+  &--active {
+    background: rgb(34 197 94 / 15%);
+    color: #16A34A;
+  }
+}
+
+.route-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  background: var(--app-bg-canvas, #F0F4FE);
+  border-radius: 14px;
+  padding: 12px 8px;
+
+  @media (width <= 480px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  &__value {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--app-text-primary, #1E293B);
+  }
+
+  &__label {
+    font-size: 0.72rem;
+    color: var(--app-text-secondary, #6C7A9C);
+    margin-top: 2px;
+    font-weight: 600;
+  }
+}
+
+.attendance-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__bar {
+    width: 100%;
+    height: 8px;
+    background: var(--app-bg-canvas, #E2E8F0);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3B5BDB 0%, #4C6793 100%);
+    border-radius: 6px;
+    transition: width 0.4s ease;
+
+    &--complete {
+      background: linear-gradient(90deg, #10B981 0%, #059669 100%);
+    }
+  }
+}
+
+// --- Filters Section ---
+.roster-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.roster-searchbar {
+  --background: var(--app-surface-card, #fff);
+  --border-radius: 14px;
+  --box-shadow: 0 4px 14px rgb(59 91 219 / 6%);
+
+  padding: 0;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.filter-chip {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--app-border-color, #E2E8F0);
+  background: var(--app-surface-card, #fff);
+  color: var(--app-text-secondary, #6C7A9C);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &--active {
+    background: var(--app-text-primary, #1E293B);
+    color: #fff;
+    border-color: var(--app-text-primary, #1E293B);
+  }
+
+  &--success.filter-chip--active {
+    background: #16A34A;
+    border-color: #16A34A;
+    color: #fff;
+  }
+
+  &--warning.filter-chip--active {
+    background: #D97706;
+    border-color: #D97706;
+    color: #fff;
+  }
+
+  &--info.filter-chip--active {
+    background: var(--app-primary, #3B5BDB);
+    border-color: var(--app-primary, #3B5BDB);
+    color: #fff;
+  }
+
+  &--danger.filter-chip--active {
+    background: #DC2626;
+    border-color: #DC2626;
+    color: #fff;
+  }
+}
+
+// --- Participants List & Cards ---
+.participants-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.participants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.participant-card {
+  background: var(--app-surface-card, #fff);
+  border-radius: var(--app-radius-lg, 16px);
+  box-shadow: 0 4px 16px rgb(59 91 219 / 6%);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid rgb(226 232 240 / 70%);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:active {
+    transform: scale(0.99);
+  }
+
+  &__main {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid var(--app-border-color, #F1F5F9);
+    padding-top: 10px;
+  }
+}
+
+.participant-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid var(--app-primary, #3B5BDB);
+  background: var(--app-bg-canvas, #F0F4FE);
+
+  &__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--app-primary, #3B5BDB);
+
+    ion-icon {
+      font-size: 40px;
+    }
+  }
+}
+
+.participant-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+
+  &__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  &__name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--app-text-primary, #1E293B);
+    margin: 0;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  &__meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
+    color: var(--app-text-secondary, #6C7A9C);
+
+    ion-icon {
+      font-size: 0.85rem;
+    }
+  }
+}
+
+.blood-chip {
+  background: rgb(220 38 38 / 12%);
+  color: #DC2626;
+  font-weight: 800;
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: 8px;
+  letter-spacing: 0.02em;
+}
+
+.participant-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+
+  ion-icon {
+    font-size: 0.85rem;
+  }
+
+  &--confirmed {
+    background: rgb(22 163 74 / 14%);
+    color: #15803D;
+  }
+
+  &--pending {
+    background: rgb(217 119 6 / 14%);
+    color: #B45309;
+  }
+
+  &--medical-done {
+    background: rgb(59 91 219 / 14%);
+    color: #2B44B3;
+  }
+
+  &--medical-pending {
+    background: rgb(220 38 38 / 14%);
+    color: #B91C1C;
+  }
+}
+
+.btn-inspect {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--app-primary, #3B5BDB);
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+
+  ion-icon {
+    font-size: 1rem;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// --- Modal de Emergencia ---
+.emergency-modal {
+  --border-radius: 20px 20px 0 0;
+
+  .modal-toolbar {
+    --background: var(--app-primary, #3B5BDB);
+    --color: #fff;
+
+    &__title {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    &__close-btn {
+      --color: #fff;
+    }
+  }
+}
+
+.modal-content {
+  --background: var(--app-bg-canvas, #F0F4FE);
+}
+
+.modal-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.user-summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: var(--app-surface-card, #fff);
+  border-radius: 16px;
+  padding: 20px 16px;
+  box-shadow: 0 4px 16px rgb(59 91 219 / 6%);
+
+  &__avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--app-primary, #3B5BDB);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--app-bg-canvas, #F0F4FE);
+  }
+
+  &__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__avatar-icon {
+    font-size: 70px;
+    color: var(--app-primary, #3B5BDB);
+  }
+
+  &__name {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 0;
+    color: var(--app-text-primary, #1E293B);
+  }
+
+  &__email {
+    font-size: 0.85rem;
+    color: var(--app-text-secondary, #6C7A9C);
+    margin: 4px 0 10px;
+  }
+
+  &__phone-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgb(22 163 74 / 12%);
+    color: #15803D;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+}
+
+.detail-section {
+  background: var(--app-surface-card, #fff);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 4px 16px rgb(59 91 219 / 6%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &__title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    margin: 0;
+    color: var(--app-text-primary, #1E293B);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+}
+
+.attendance-status-box {
+  .status-indicator {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 12px;
+
+    ion-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    strong {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 2px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.8rem;
+    }
+
+    &--confirmed {
+      background: rgb(22 163 74 / 12%);
+      color: #15803D;
+    }
+
+    &--pending {
+      background: rgb(217 119 6 / 12%);
+      color: #B45309;
+    }
+  }
+}
+
+.medical-data-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+
+  @media (width <= 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.medical-data-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--app-bg-canvas, #F0F4FE);
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  &--full {
+    grid-column: 1 / -1;
+  }
+
+  &__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--app-text-secondary, #6C7A9C);
+    text-transform: uppercase;
+
+    ion-icon {
+      font-size: 0.85rem;
+    }
+  }
+
+  &__value {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--app-text-primary, #1E293B);
+
+    &.highlight {
+      color: #DC2626;
+      font-weight: 800;
+    }
+
+    &.alert-text {
+      color: #DC2626;
+      font-weight: 700;
+    }
+  }
+}
+
+.emergency-contact-box {
+  background: rgb(220 38 38 / 8%);
+  border: 1px solid rgb(220 38 38 / 25%);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__header {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #DC2626;
+    text-transform: uppercase;
+  }
+
+  &__name {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--app-text-primary, #1E293B);
+  }
+
+  &__call-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    background: #DC2626;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    width: fit-content;
+
+    ion-icon {
+      font-size: 0.95rem;
+    }
+  }
+
+  &__empty {
+    font-size: 0.82rem;
+    color: var(--app-text-secondary, #6C7A9C);
+    font-style: italic;
+  }
+}
+
+.no-medical-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgb(220 38 38 / 10%);
+  border-radius: 12px;
+  padding: 14px;
+  color: #B91C1C;
+
+  ion-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+}
+
+.modal-actions {
+  margin-top: 8px;
+
+  .modal-close-btn {
+    --border-radius: 14px;
+
+    font-weight: 700;
+  }
+}
