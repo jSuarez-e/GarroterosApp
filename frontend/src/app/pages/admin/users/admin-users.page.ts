@@ -17,6 +17,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader,
@@ -38,6 +39,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
   peopleCircleOutline,
+  peopleOutline,
   personCircleOutline,
   personAddOutline,
   shieldCheckmarkOutline,
@@ -51,6 +53,8 @@ import {
   closeOutline,
   keyOutline,
   mapOutline,
+  openOutline,
+  informationCircleOutline,
 } from 'ionicons/icons';
 import {
   AdminService,
@@ -72,6 +76,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
+    RouterModule,
     FormsModule,
     IonHeader,
     IonToolbar,
@@ -124,6 +129,7 @@ export class AdminUsersPage implements OnInit, ViewWillEnter {
   constructor() {
     addIcons({
       peopleCircleOutline,
+      peopleOutline,
       personCircleOutline,
       personAddOutline,
       shieldCheckmarkOutline,
@@ -137,6 +143,8 @@ export class AdminUsersPage implements OnInit, ViewWillEnter {
       closeOutline,
       keyOutline,
       mapOutline,
+      openOutline,
+      informationCircleOutline,
     });
   }
 

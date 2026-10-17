@@ -56,6 +56,7 @@ import {
   mapOutline,
   pauseCircleOutline,
   alertCircleOutline,
+  keyOutline,
 } from 'ionicons/icons';
 import { GuidesService } from '../../../core/services/guides.service';
 import { RoutesService } from '../../../core/services/routes.service';
@@ -115,6 +116,7 @@ export class AdminGuidesPage implements OnInit, ViewWillEnter {
   // Formulario reactivo
   public formFullName = '';
   public formEmail = '';
+  public formPassword = 'Guia2026*';
   public formPhone = '';
   public formAvatarUrl = '';
   public formBio = '';
@@ -186,6 +188,7 @@ export class AdminGuidesPage implements OnInit, ViewWillEnter {
       mapOutline,
       pauseCircleOutline,
       alertCircleOutline,
+      keyOutline,
     });
   }
 
@@ -258,6 +261,7 @@ export class AdminGuidesPage implements OnInit, ViewWillEnter {
     this.editingGuideId.set(null);
     this.formFullName = '';
     this.formEmail = '';
+    this.formPassword = 'Guia2026*';
     this.formPhone = '';
     this.formAvatarUrl = this.presetAvatars[0].url;
     this.formBio = '';
@@ -398,6 +402,7 @@ export class AdminGuidesPage implements OnInit, ViewWillEnter {
         rating: Number(this.formRating) || 5.0,
         status: this.formStatus,
         routeIds: this.formSelectedRouteIds(),
+        initialPassword: this.formPassword.trim() || 'Guia2026*',
       };
 
       this.guidesService

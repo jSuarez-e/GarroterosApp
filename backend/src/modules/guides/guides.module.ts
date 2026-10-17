@@ -11,6 +11,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Guide } from './entities/guide.entity.js';
 import { Route } from '../routes/entities/route.entity.js';
+import { User } from '../users/entities/user.entity.js';
 import { GuidesService } from './guides.service.js';
 import { GuidesController } from './guides.controller.js';
 
@@ -18,7 +19,7 @@ import { GuidesController } from './guides.controller.js';
  * Módulo para la gestión del directorio oficial de guías turísticos y su vinculación con rutas.
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([Guide, Route])],
+  imports: [TypeOrmModule.forFeature([Guide, Route, User])],
   controllers: [GuidesController],
   providers: [GuidesService],
   exports: [GuidesService],

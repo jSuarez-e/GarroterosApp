@@ -108,6 +108,22 @@ export class CreateGuideDto {
   @IsArray()
   @IsString({ each: true })
   routeIds?: string[];
+
+  /**
+   * Contraseña inicial de acceso a la plataforma para el usuario vinculado.
+   */
+  @ApiPropertyOptional({ description: 'Contraseña inicial para iniciar sesión con rol GUIDE', example: 'Guia2026*' })
+  @IsOptional()
+  @IsString()
+  initialPassword?: string;
+
+  /**
+   * Identificador UUID de la cuenta de usuario vinculada si ya existe.
+   */
+  @ApiPropertyOptional({ description: 'UUID de usuario vinculado' })
+  @IsOptional()
+  @IsString()
+  userId?: string | null;
 }
 
 /**

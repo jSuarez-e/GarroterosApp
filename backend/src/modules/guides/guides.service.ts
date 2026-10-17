@@ -15,9 +15,11 @@ import {
   type OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, IsNull } from 'typeorm';
 import { Guide } from './entities/guide.entity.js';
 import { Route } from '../routes/entities/route.entity.js';
+import { User, UserRole, UserStatus } from '../users/entities/user.entity.js';
+import * as bcrypt from 'bcrypt';
 import type { CreateGuideDto, UpdateGuideDto } from './dto/guide.dto.js';
 
 /**
@@ -62,19 +64,23 @@ export class GuidesService implements OnModuleInit {
    * Constructor con inyección de repositorios TypeORM.
    * @param guideRepository Repositorio de guías turísticos.
    * @param routeRepository Repositorio de rutas y senderos.
+   * @param userRepository Repositorio de usuarios del sistema.
    */
   constructor(
     @InjectRepository(Guide)
     private readonly guideRepository: Repository<Guide>,
     @InjectRepository(Route)
     private readonly routeRepository: Repository<Route>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   /**
-   * Inicialización del módulo con seeding de guías oficiales si la tabla está vacía.
+   * Inicialización del módulo con seeding de guías oficiales y vinculación automática a cuentas User.
    */
   async onModuleInit(): Promise<void> {
     await this.seedInitialGuidesIfEmpty();
+    await this.linkGuidesToUsersIfUnlinked();
   }
 
   /**
@@ -174,18 +180,56 @@ export class GuidesService implements OnModuleInit {
   }
 
   /**
-   * Crea un nuevo guía turístico en la base de datos.
+   * Crea un nuevo guía turístico en la base de datos y genera/vincula automáticamente su cuenta User.
    * @param dto Datos del guía a registrar.
-   * @returns Guía persistido.
-   * @throws ConflictException Si el correo electrónico ya está registrado.
+   * @returns Guía persistido con userId enlazado.
+   * @throws ConflictException Si el correo electrónico ya está registrado en guides.
    */
   async createGuide(dto: CreateGuideDto): Promise<Guide> {
     await this.validateEmailAvailability(dto.email);
     const assignedRoutes = await this.fetchAssignedRoutes(dto.routeIds || []);
+    const emailNormalized = dto.email.toLowerCase().trim();
 
+    // 1. Asegurar o crear la cuenta User correspondiente para permitir inicio de sesión
+    let user = await this.userRepository.findOne({
+      where: { email: emailNormalized },
+    });
+
+    if (!user) {
+      const saltRounds = 10;
+      const initialPassword = dto.initialPassword?.trim() || 'Guia2026*';
+      const passwordHash = await bcrypt.hash(initialPassword, saltRounds);
+
+      user = this.userRepository.create({
+        email: emailNormalized,
+        passwordHash,
+        fullName: dto.fullName.trim(),
+        role: UserRole.GUIDE,
+        status: dto.status === 'INACTIVE' ? UserStatus.INACTIVE : UserStatus.ACTIVE,
+        phone: dto.phone.trim(),
+        avatarUrl: dto.avatarUrl ?? null,
+        routeId: dto.routeIds && dto.routeIds.length > 0 ? dto.routeIds[0] : null,
+      });
+      user = await this.userRepository.save(user);
+      this.logger.log(`[CREATE-GUIDE] Cuenta User (GUIDE) creada automáticamente para ${emailNormalized}`);
+    } else {
+      user.role = UserRole.GUIDE;
+      user.fullName = dto.fullName.trim();
+      user.phone = dto.phone.trim();
+      if (dto.avatarUrl !== undefined) {
+        user.avatarUrl = dto.avatarUrl;
+      }
+      if (dto.routeIds && dto.routeIds.length > 0) {
+        user.routeId = dto.routeIds[0];
+      }
+      user = await this.userRepository.save(user);
+      this.logger.log(`[CREATE-GUIDE] Cuenta User existente promovida a rol GUIDE para ${emailNormalized}`);
+    }
+
+    // 2. Crear la entidad Guide con su userId formalmente enlazado
     const guide = this.guideRepository.create({
       fullName: dto.fullName.trim(),
-      email: dto.email.toLowerCase().trim(),
+      email: emailNormalized,
       phone: dto.phone.trim(),
       avatarUrl: dto.avatarUrl ?? null,
       bio: dto.bio ?? null,
@@ -193,6 +237,7 @@ export class GuidesService implements OnModuleInit {
       rating: dto.rating ?? 5.0,
       experienceYears: dto.experienceYears ?? 1,
       status: dto.status ?? 'ACTIVE',
+      userId: user.id,
       routes: assignedRoutes,
     });
 
@@ -200,7 +245,7 @@ export class GuidesService implements OnModuleInit {
   }
 
   /**
-   * Actualiza los datos de un guía turístico.
+   * Actualiza los datos de un guía turístico y sincroniza campos comunes en su cuenta User.
    * @param id Identificador del guía.
    * @param dto Datos modificados.
    * @returns Guía actualizado.
@@ -219,7 +264,37 @@ export class GuidesService implements OnModuleInit {
       guide.routes = await this.fetchAssignedRoutes(dto.routeIds);
     }
 
-    return this.guideRepository.save(guide);
+    const savedGuide = await this.guideRepository.save(guide);
+
+    if (guide.userId) {
+      await this.syncLinkedUserFields(guide.userId, dto);
+    }
+
+    return savedGuide;
+  }
+
+  /**
+   * Sincroniza campos comunes del perfil de guía hacia la cuenta de usuario vinculada.
+   * @param userId Identificador del usuario.
+   * @param dto Datos modificados del guía.
+   */
+  private async syncLinkedUserFields(userId: string, dto: UpdateGuideDto): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      return;
+    }
+
+    if (dto.fullName) user.fullName = dto.fullName.trim();
+    if (dto.email) user.email = dto.email.toLowerCase().trim();
+    if (dto.phone) user.phone = dto.phone.trim();
+    if (dto.avatarUrl !== undefined) user.avatarUrl = dto.avatarUrl;
+    if (dto.status) {
+      user.status = dto.status === 'ACTIVE' ? UserStatus.ACTIVE : UserStatus.INACTIVE;
+    }
+    if (dto.routeIds && dto.routeIds.length > 0) {
+      user.routeId = dto.routeIds[0];
+    }
+    await this.userRepository.save(user);
   }
 
   /**
@@ -265,7 +340,7 @@ export class GuidesService implements OnModuleInit {
   }
 
   /**
-   * Elimina permanentemente o desactiva un guía del sistema.
+   * Elimina permanentemente un guía y su cuenta de usuario asociada con rol GUIDE.
    * @param id Identificador del guía.
    */
   async deleteGuide(id: string): Promise<void> {
@@ -276,6 +351,16 @@ export class GuidesService implements OnModuleInit {
     if (!guide) {
       throw new NotFoundException(`Guía con ID ${id} no encontrado`);
     }
+
+    // Desvincular o eliminar usuario asociado si su rol es exclusivamente GUIDE
+    if (guide.userId) {
+      const user = await this.userRepository.findOne({ where: { id: guide.userId } });
+      if (user && user.role === UserRole.GUIDE) {
+        await this.userRepository.remove(user);
+        this.logger.log(`[DELETE-GUIDE] Cuenta User asociada eliminada: ${user.email}`);
+      }
+    }
+
     guide.routes = [];
     await this.guideRepository.save(guide);
     await this.guideRepository.remove(guide);
@@ -334,5 +419,49 @@ export class GuidesService implements OnModuleInit {
     }
 
     this.logger.log('✅ Seeding de guías oficiales completado con éxito.');
+  }
+
+  /**
+   * Vincula guías existentes en la tabla guides con sus cuentas de usuario User correspondientes
+   * por correo electrónico si aún no tienen un userId asignado.
+   */
+  private async linkGuidesToUsersIfUnlinked(): Promise<void> {
+    const unlinkedGuides = await this.guideRepository.find({
+      where: { userId: IsNull() },
+    });
+
+    if (unlinkedGuides.length === 0) {
+      return;
+    }
+
+    for (const guide of unlinkedGuides) {
+      const emailNormalized = guide.email.toLowerCase().trim();
+      let user = await this.userRepository.findOne({
+        where: { email: emailNormalized },
+      });
+
+      if (!user) {
+        const saltRounds = 10;
+        const passwordHash = await bcrypt.hash('Guia2026*', saltRounds);
+        user = this.userRepository.create({
+          email: emailNormalized,
+          passwordHash,
+          fullName: guide.fullName.trim(),
+          role: UserRole.GUIDE,
+          status: guide.status === 'INACTIVE' ? UserStatus.INACTIVE : UserStatus.ACTIVE,
+          phone: guide.phone,
+          avatarUrl: guide.avatarUrl,
+        });
+        user = await this.userRepository.save(user);
+        this.logger.log(`[LINK-GUIDE] Cuenta User creada y vinculada para guía: ${guide.email}`);
+      } else if (user.role !== UserRole.GUIDE) {
+        user.role = UserRole.GUIDE;
+        await this.userRepository.save(user);
+      }
+
+      guide.userId = user.id;
+      await this.guideRepository.save(guide);
+      this.logger.log(`[LINK-GUIDE] Guía ${guide.email} vinculado a User ${user.id}`);
+    }
   }
 }

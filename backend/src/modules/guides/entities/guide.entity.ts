@@ -14,8 +14,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToMany,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Route } from '../../routes/entities/route.entity.js';
+import { User } from '../../users/entities/user.entity.js';
 
 /**
  * Entidad que representa la tabla 'guides' en la base de datos PostgreSQL.
@@ -87,6 +90,13 @@ export class Guide {
    */
   @Column({ name: 'user_id', type: 'uuid', nullable: true })
   userId: string | null;
+
+  /**
+   * Cuenta de usuario vinculada para autenticación y control RBAC.
+   */
+  @OneToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'user_id' })
+  user?: User | null;
 
   /**
    * Rutas turísticas en las que este guía se encuentra asignado.

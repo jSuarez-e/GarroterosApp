@@ -33,6 +33,7 @@ import {
   IonRefresher,
   IonRefresherContent,
   IonModal,
+  IonProgressBar,
   ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -61,6 +62,7 @@ import {
   type IRouteRosterParticipant,
 } from '../../../core/services/admin.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { HeroBannerComponent } from '../../../shared/components/hero-banner/hero-banner.component';
 
 type AttendanceFilter = 'all' | 'confirmed' | 'pending' | 'has_medical' | 'no_medical';
 
@@ -89,6 +91,8 @@ type AttendanceFilter = 'all' | 'confirmed' | 'pending' | 'has_medical' | 'no_me
     IonRefresher,
     IonRefresherContent,
     IonModal,
+    IonProgressBar,
+    HeroBannerComponent,
   ],
 })
 export class AdminRoutesUsersPage implements OnInit, ViewWillEnter {

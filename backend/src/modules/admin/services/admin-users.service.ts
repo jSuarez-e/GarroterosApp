@@ -16,7 +16,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { User, UserStatus } from '../../users/entities/user.entity.js';
+import { User, UserRole, UserStatus } from '../../users/entities/user.entity.js';
 import { Route } from '../../routes/entities/route.entity.js';
 import { Guide } from '../../guides/entities/guide.entity.js';
 import { MedicalProfile } from '../../medical/entities/medical-profile.entity.js';
@@ -171,6 +171,9 @@ export class AdminUsersService {
     });
 
     const saved = await this.userRepository.save(newUser);
+    if (saved.role === UserRole.GUIDE) {
+      await this.ensureGuideProfileForUser(saved);
+    }
     return this.getUserById(saved.id);
   }
 
@@ -203,6 +206,9 @@ export class AdminUsersService {
     }
 
     await this.userRepository.save(user);
+    if (user.role === UserRole.GUIDE) {
+      await this.ensureGuideProfileForUser(user);
+    }
     return this.getUserById(id);
   }
 
@@ -216,6 +222,9 @@ export class AdminUsersService {
     const user = await this.getUserById(id);
     user.routeId = routeId;
     await this.userRepository.save(user);
+    if (user.role === UserRole.GUIDE) {
+      await this.ensureGuideProfileForUser(user);
+    }
     return this.getUserById(id);
   }
 
@@ -248,8 +257,64 @@ export class AdminUsersService {
     }
 
     const user = await this.getUserById(id);
+
+    if (user.role === UserRole.GUIDE) {
+      const guide = await this.guideRepository.findOne({
+        where: [{ userId: user.id }, { email: user.email.toLowerCase().trim() }],
+      });
+      if (guide) {
+        guide.routes = [];
+        await this.guideRepository.save(guide);
+        await this.guideRepository.remove(guide);
+      }
+    }
+
     await this.userRepository.remove(user);
     return { success: true, message: `Usuario ${user.email} eliminado exitosamente.` };
+  }
+
+  /**
+   * Asegura que exista un perfil en la tabla guides cuando un usuario es creado o promovido al rol GUIDE.
+   * @param user Usuario con rol GUIDE.
+   */
+  private async ensureGuideProfileForUser(user: User): Promise<void> {
+    const existingGuide = await this.guideRepository.findOne({
+      where: [{ userId: user.id }, { email: user.email.toLowerCase().trim() }],
+      relations: { routes: true },
+    });
+
+    let assignedRoutes: Route[] = [];
+    if (user.routeId) {
+      const route = await this.routeRepository.findOne({ where: { id: user.routeId } });
+      if (route) {
+        assignedRoutes = [route];
+      }
+    }
+
+    if (!existingGuide) {
+      const newGuide = this.guideRepository.create({
+        fullName: user.fullName,
+        email: user.email.toLowerCase().trim(),
+        phone: user.phone || '+573000000000',
+        avatarUrl: user.avatarUrl,
+        bio: 'Guía oficial registrado en la plataforma.',
+        certifications: ['Guía Oficial'],
+        rating: 5.0,
+        experienceYears: 1,
+        status: user.status === UserStatus.ACTIVE ? 'ACTIVE' : 'INACTIVE',
+        userId: user.id,
+        routes: assignedRoutes,
+      });
+      await this.guideRepository.save(newGuide);
+    } else {
+      existingGuide.userId = user.id;
+      existingGuide.fullName = user.fullName;
+      existingGuide.status = user.status === UserStatus.ACTIVE ? 'ACTIVE' : 'INACTIVE';
+      if (user.routeId && assignedRoutes.length > 0 && !existingGuide.routes?.some((r) => r.id === user.routeId)) {
+        existingGuide.routes = [...(existingGuide.routes || []), ...assignedRoutes];
+      }
+      await this.guideRepository.save(existingGuide);
+    }
   }
 
   /**

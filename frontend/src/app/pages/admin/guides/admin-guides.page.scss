@@ -632,3 +632,18 @@
   width: 14px;
   height: 14px;
 }
+
+.auth-credentials-group {
+  background: var(--app-surface-subtle, #f8fafc);
+  border: 1px dashed var(--app-border-light, #cbd5e1);
+  border-radius: var(--app-radius-md, 14px);
+  padding: 12px;
+}
+
+.form-help-text {
+  font-size: 11.5px;
+  color: var(--app-text-muted, #64748b);
+  line-height: 1.4;
+  margin-top: 4px;
+  display: block;
+}

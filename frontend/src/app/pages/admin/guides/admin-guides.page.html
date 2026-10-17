@@ -303,6 +303,26 @@
             </div>
           </div>
 
+          <!-- Credenciales de Inicio de Sesión de la Cuenta GUIDE -->
+          @if (!editingGuideId()) {
+            <div class="form-group auth-credentials-group">
+              <label class="form-label" for="guide-password">
+                <ion-icon name="key-outline"></ion-icon>
+                <span>Contraseña Inicial de Acceso a la App *</span>
+              </label>
+              <input
+                id="guide-password"
+                type="text"
+                class="form-input"
+                [(ngModel)]="formPassword"
+                placeholder="Ej. Guia2026*"
+              />
+              <span class="form-help-text">
+                Se creará automáticamente la cuenta de usuario con rol <strong>GUIDE</strong> para que pueda ingresar a la app y gestionar la sección <strong>Rutas y Usuarios</strong>.
+              </span>
+            </div>
+          }
+
           <!-- Biografía y Perfil Profesional -->
           <div class="form-group">
             <label class="form-label" for="guide-bio">Biografía y Especialidad</label>

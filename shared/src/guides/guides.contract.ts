@@ -45,6 +45,8 @@ export interface IGuideProfile {
   routes?: IGuideAssignedRoute[];
   /** IDs de rutas turísticas asociadas */
   routeIds?: string[];
+  /** Identificador UUID de la cuenta de usuario vinculada en el sistema */
+  userId?: string | null;
 }
 
 /**
@@ -71,6 +73,10 @@ export interface CreateGuideDto {
   status?: 'ACTIVE' | 'INACTIVE';
   /** IDs de rutas a asociar al guía */
   routeIds?: string[];
+  /** Contraseña de acceso inicial a la app para el usuario con rol GUIDE */
+  initialPassword?: string;
+  /** Identificador UUID de la cuenta de usuario vinculada si ya existe */
+  userId?: string | null;
 }
 
 /**

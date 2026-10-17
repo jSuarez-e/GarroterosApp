@@ -5,7 +5,7 @@
   [Edge Cases - UI]: Carga condicional OnPush (@if), fotos con fallback de avatar/iniciales, estados vacíos atractivos.
 -->
 
-<ion-header class="roster-header">
+<ion-header class="ion-no-border">
   <ion-toolbar class="roster-toolbar">
     <ion-buttons slot="start">
       <ion-menu-button class="roster-toolbar__menu-btn"></ion-menu-button>
@@ -24,23 +24,20 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="roster-content">
+<ion-content class="roster-content" [fullscreen]="true">
   <ion-refresher slot="fixed" (ionRefresh)="loadRoster($event)">
     <ion-refresher-content pullingText="Desliza para actualizar"></ion-refresher-content>
   </ion-refresher>
 
+  <!-- Banner Curvo Hero Reutilizable -->
+  <app-hero-banner
+    title="Rutas y Usuarios"
+    subtitle="Verificación de asistencia y fichas médicas de excursionistas en tiempo real."
+    badgeText="Control de Guianza"
+    iconName="shield-checkmark-outline"
+  ></app-hero-banner>
+
   <div class="roster-container">
-    <!-- Banner de Encabezado Guía -->
-    <section class="roster-hero">
-      <div class="roster-hero__badge">
-        <ion-icon name="shield-checkmark-outline"></ion-icon>
-        <span>Control de Guianza Oficial</span>
-      </div>
-      <h1 class="roster-hero__title">Verificación de Asistencia</h1>
-      <p class="roster-hero__subtitle">
-        Gestiona y supervisa a los excursionistas asignados a cada sendero en tiempo real.
-      </p>
-    </section>
 
     <!-- Estado de Carga -->
     @if (loading() && rosterList().length === 0) {
@@ -121,13 +118,14 @@
 
           <!-- Barra de Progreso de Asistencia -->
           <div class="attendance-progress">
-            <div class="attendance-progress__bar">
-              <div
-                class="attendance-progress__fill"
-                [class.attendance-progress__fill--complete]="activeRoute.attendanceRatePercentage === 100"
-                [style.width.%]="activeRoute.attendanceRatePercentage"
-              ></div>
+            <div class="attendance-progress__info">
+              <span class="attendance-progress__label">Progreso de Asistencia</span>
+              <span class="attendance-progress__percentage">{{ activeRoute.attendanceRatePercentage }}%</span>
             </div>
+            <ion-progress-bar
+              [value]="activeRoute.attendanceRatePercentage / 100"
+              class="attendance-progress__bar"
+            ></ion-progress-bar>
           </div>
         </section>
 
