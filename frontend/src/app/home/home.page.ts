@@ -92,6 +92,8 @@ export class HomePage implements OnInit, ViewWillEnter {
 
   public readonly currentUser = this.authService.currentUser;
   public readonly isAdmin = this.authService.isAdmin;
+  public readonly isGuide = this.authService.isGuide;
+  public readonly isStaff = this.authService.isStaff;
 
   public readonly routePath = this.routesService.routePath;
   public readonly waypoints = this.routesService.waypoints;

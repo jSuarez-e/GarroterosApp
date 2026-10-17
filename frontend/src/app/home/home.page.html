@@ -32,7 +32,11 @@
         <ion-icon name="compass-outline" class="home-hero-stats__icon"></ion-icon>
         <span class="home-hero-stats__text">{{ routeTitle() }}</span>
       </span>
-      <span class="home-hero-stats__role" [class.home-hero-stats__role--admin]="isAdmin()">
+      <span
+        class="home-hero-stats__role"
+        [class.home-hero-stats__role--admin]="isAdmin()"
+        [class.home-hero-stats__role--guide]="isGuide()"
+      >
         {{ currentUser()?.role || 'TURISTA' }}
       </span>
     </div>

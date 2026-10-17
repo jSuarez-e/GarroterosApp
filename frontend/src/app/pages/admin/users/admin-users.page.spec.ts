@@ -163,4 +163,24 @@ describe('AdminUsersPage', () => {
     expect(img).toBeTruthy();
     expect(img.src).toContain('https://cdn.example.com/carlos.jpg');
   });
+
+  it('debe renderizar la etiqueta badge-role--guide para usuarios con rol GUIDE', () => {
+    const guideUser: IUser = {
+      id: 'guide-1',
+      email: 'guia@garroteros.com',
+      fullName: 'Pedro Guía',
+      role: UserRole.GUIDE,
+      status: UserStatus.ACTIVE,
+      routeId: 'route-1',
+      route: { id: 'route-1', name: 'Ruta de los Garroteros' },
+    };
+
+    component.users.set([guideUser]);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const guideBadge = compiled.querySelector('.badge-role--guide');
+    expect(guideBadge).toBeTruthy();
+    expect(guideBadge?.textContent).toContain('GUIDE');
+  });
 });

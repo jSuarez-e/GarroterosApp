@@ -18,8 +18,8 @@ export const attendanceGuard: CanActivateFn = async () => {
   const router = inject(Router);
   const toastCtrl = inject(ToastController);
 
-  // Los administradores poseen acceso de supervisión y gestión
-  if (authService.isAdmin()) {
+  // Los administradores y personal de guianza poseen acceso de supervisión y gestión
+  if (authService.isAdmin() || authService.isGuide()) {
     return true;
   }
 

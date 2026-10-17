@@ -91,10 +91,12 @@ export class AppComponent {
 
   public currentUser = this.authService.currentUser;
   public isAdmin = this.authService.isAdmin;
+  public isGuide = this.authService.isGuide;
+  public isStaff = this.authService.isStaff;
   public isAuthenticated = this.authService.isAuthenticated;
   public attendanceConfirmed = this.medicalService.attendanceConfirmed;
 
-  // Opciones obligatorias para rol USER (y disponibles para ADMIN)
+  // Opciones obligatorias para rol USER (y disponibles para ADMIN y GUIDE)
   public readonly userMenuItems: MenuItem[] = [
     { title: 'Revisar Recorrido', url: '/home', icon: 'home-outline' },
     { title: 'Ficha de Asistencia', url: '/medical-card', icon: 'medkit-outline' },
@@ -107,6 +109,11 @@ export class AppComponent {
     { title: 'Permisos App', url: '/permissions', icon: 'shield-checkmark-outline' },
   ];
 
+  // Opción de supervisión para el rol GUIDE
+  public readonly guideMenuItems: MenuItem[] = [
+    { title: 'Rutas y Usuarios', url: '/admin/routes-users', icon: 'checkbox-outline' },
+  ];
+
   // Opciones exclusivas de control administrativo para rol ADMIN
   public readonly adminMenuItems: MenuItem[] = [
     { title: 'Rutas y Usuarios', url: '/admin/routes-users', icon: 'checkbox-outline' },
@@ -117,10 +124,6 @@ export class AppComponent {
     { title: 'Itinerario de Ruta', url: '/admin/itinerary', icon: 'calendar-outline' },
     { title: 'Notas de Ruta', url: '/admin/notes', icon: 'document-text-outline' },
     { title: 'Puntos de Interés', url: '/admin/pois', icon: 'location-outline' },
-  ];
-
-  public readonly guideMenuItems: MenuItem[] = [
-    { title: 'Guías y rutas', url: '/admin/guides', icon: 'people-outline' },
   ];
 
   constructor() {

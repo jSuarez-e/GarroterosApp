@@ -43,8 +43,9 @@
             class="role-select"
           >
             <ion-select-option value="ALL">Todos los roles</ion-select-option>
-            <ion-select-option value="ADMIN">Guías / Admin</ion-select-option>
-            <ion-select-option value="USER">Turistas / User</ion-select-option>
+            <ion-select-option value="ADMIN">Administradores (ADMIN)</ion-select-option>
+            <ion-select-option value="GUIDE">Guías (GUIDE)</ion-select-option>
+            <ion-select-option value="USER">Turistas (USER)</ion-select-option>
           </ion-select>
         </div>
 
@@ -123,11 +124,18 @@
               <div class="user-card__badges">
                 <span
                   class="badge-role"
-                  [ngClass]="user.role === 'ADMIN' ? 'badge-role--admin' : 'badge-role--user'"
+                  [ngClass]="{
+                    'badge-role--admin': user.role === 'ADMIN',
+                    'badge-role--guide': user.role === 'GUIDE',
+                    'badge-role--user': user.role === 'USER'
+                  }"
                 >
                   @if (user.role === 'ADMIN') {
                     <ion-icon name="shield-checkmark-outline" class="badge-role__icon"></ion-icon>
                     ADMIN
+                  } @else if (user.role === 'GUIDE') {
+                    <ion-icon name="people-outline" class="badge-role__icon"></ion-icon>
+                    GUIDE
                   } @else {
                     <ion-icon name="person-outline" class="badge-role__icon"></ion-icon>
                     USER
@@ -264,7 +272,8 @@
                 (ionChange)="formRole.set($event.detail.value)"
               >
                 <ion-select-option value="USER">USER (Turista / Excursionista)</ion-select-option>
-                <ion-select-option value="ADMIN">ADMIN (Guía Oficial / Administrador)</ion-select-option>
+                <ion-select-option value="GUIDE">GUIDE (Guía Oficial de Ruta)</ion-select-option>
+                <ion-select-option value="ADMIN">ADMIN (Administrador Principal)</ion-select-option>
               </ion-select>
             </div>
           </div>

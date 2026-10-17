@@ -121,6 +121,11 @@
       background: #fcc419;
       color: #212529;
     }
+
+    &--guide {
+      background: #20c997;
+      color: #084936;
+    }
   }
 }
 
@@ -144,6 +149,11 @@
 
     &--admin {
       color: #b45309;
+      margin-top: 20px;
+    }
+
+    &--guide {
+      color: #0ca678;
       margin-top: 20px;
     }
   }
@@ -200,6 +210,17 @@
 
       .menu-item__icon {
         color: #b45309;
+      }
+    }
+  }
+
+  &--guide {
+    &.menu-item--active {
+      --background: #e6fcf5;
+      --color: #0ca678;
+
+      .menu-item__icon {
+        color: #0ca678;
       }
     }
   }

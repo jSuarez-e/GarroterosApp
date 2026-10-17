@@ -173,4 +173,19 @@ describe('AdminRoutesUsersPage', () => {
     expect(component.isModalOpen()).toBe(false);
     expect(component.selectedParticipant()).toBeNull();
   });
+
+  it('debe inicializarse correctamente para un usuario con rol GUIDE', () => {
+    mockAuthService.currentUser.mockReturnValue({
+      id: 'guide-1',
+      email: 'guia@garroteros.com',
+      fullName: 'Guía Operativo',
+      role: UserRole.GUIDE,
+      status: UserStatus.ACTIVE,
+    });
+    mockAuthService.isAdmin.mockReturnValue(false);
+
+    component.ngOnInit();
+    expect(mockAdminService.getGuideRouteRoster).toHaveBeenCalled();
+    expect(component.rosterList()).toHaveLength(1);
+  });
 });

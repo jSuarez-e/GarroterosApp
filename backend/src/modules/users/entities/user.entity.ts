@@ -23,6 +23,7 @@ import { Route } from '../../routes/entities/route.entity.js';
 export enum UserRole {
   ADMIN = 'ADMIN',
   USER = 'USER',
+  GUIDE = 'GUIDE',
 }
 
 /**

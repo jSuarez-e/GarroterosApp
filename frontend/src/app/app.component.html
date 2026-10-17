@@ -29,7 +29,11 @@
           </div>
           <div class="menu-header__info">
             <h2 class="menu-header__name">{{ currentUser()?.fullName || 'Usuario Guianza' }}</h2>
-            <div class="menu-header__role-badge" [class.menu-header__role-badge--admin]="isAdmin()">
+            <div
+              class="menu-header__role-badge"
+              [class.menu-header__role-badge--admin]="isAdmin()"
+              [class.menu-header__role-badge--guide]="isGuide()"
+            >
               {{ currentUser()?.role || 'TURISTA' }}
             </div>
           </div>
@@ -50,12 +54,12 @@
               routerDirection="root"
               routerLinkActive="menu-item--active"
               class="menu-item"
-              [class.menu-item--locked]="item.requiresAttendance && !isAdmin() && attendanceConfirmed() === false"
+              [class.menu-item--locked]="item.requiresAttendance && !isStaff() && attendanceConfirmed() === false"
               detail="false"
             >
               <ion-icon [name]="item.icon" slot="start" class="menu-item__icon"></ion-icon>
               <ion-label class="menu-item__label">{{ item.title }}</ion-label>
-              @if (item.requiresAttendance && !isAdmin() && attendanceConfirmed() === false) {
+              @if (item.requiresAttendance && !isStaff() && attendanceConfirmed() === false) {
                 <ion-icon name="lock-closed-outline" slot="end" class="menu-item__lock"></ion-icon>
               }
             </ion-item>
@@ -74,6 +78,25 @@
                 routerDirection="root"
                 routerLinkActive="menu-item--active"
                 class="menu-item menu-item--admin"
+                detail="false"
+              >
+                <ion-icon [name]="item.icon" slot="start" class="menu-item__icon"></ion-icon>
+                <ion-label class="menu-item__label">{{ item.title }}</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+          }
+        } @else if (isGuide()) {
+          <ion-list-header class="menu-list__header menu-list__header--guide">
+            <ion-label>Gestión de Guianza</ion-label>
+          </ion-list-header>
+
+          @for (item of guideMenuItems; track item.url) {
+            <ion-menu-toggle auto-hide="true">
+              <ion-item
+                [routerLink]="[item.url]"
+                routerDirection="root"
+                routerLinkActive="menu-item--active"
+                class="menu-item menu-item--guide"
                 detail="false"
               >
                 <ion-icon [name]="item.icon" slot="start" class="menu-item__icon"></ion-icon>

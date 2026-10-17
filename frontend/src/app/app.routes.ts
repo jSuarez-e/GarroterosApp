@@ -8,6 +8,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { routesUsersGuard } from './core/guards/routes-users.guard';
 import { attendanceGuard } from './core/guards/attendance.guard';
 
 export const routes: Routes = [
@@ -97,10 +98,11 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    canActivate: [authGuard, roleGuard],
+    canActivate: [authGuard],
     children: [
       {
         path: 'routes-users',
+        canActivate: [routesUsersGuard],
         loadComponent: () =>
           import('./pages/admin/routes-users/admin-routes-users.page').then(
             (m) => m.AdminRoutesUsersPage,
@@ -108,6 +110,7 @@ export const routes: Routes = [
       },
       {
         path: 'users',
+        canActivate: [roleGuard],
         loadComponent: () =>
           import('./pages/admin/users/admin-users.page').then(
             (m) => m.AdminUsersPage,
@@ -115,6 +118,7 @@ export const routes: Routes = [
       },
       {
         path: 'guides',
+        canActivate: [roleGuard],
         loadComponent: () =>
           import('./pages/admin/guides/admin-guides.page').then(
             (m) => m.AdminGuidesPage,
@@ -122,6 +126,7 @@ export const routes: Routes = [
       },
       {
         path: 'itinerary',
+        canActivate: [roleGuard],
         loadComponent: () =>
           import('./pages/admin/log/admin-log.page').then(
             (m) => m.AdminLogPage,
@@ -134,6 +139,7 @@ export const routes: Routes = [
       },
       {
         path: 'notes',
+        canActivate: [roleGuard],
         loadComponent: () =>
           import('./pages/admin/notes/admin-notes.page').then(
             (m) => m.AdminNotesPage,
@@ -141,6 +147,7 @@ export const routes: Routes = [
       },
       {
         path: 'pois',
+        canActivate: [roleGuard],
         loadComponent: () =>
           import('./pages/admin/pois/admin-pois.page').then(
             (m) => m.AdminPoisPage,
@@ -148,6 +155,7 @@ export const routes: Routes = [
       },
       {
         path: 'alerts',
+        canActivate: [roleGuard],
         loadComponent: () =>
           import('./pages/admin/alerts/admin-alerts.page').then(
             (m) => m.AdminAlertsPage,
@@ -155,6 +163,7 @@ export const routes: Routes = [
       },
       {
         path: 'routes',
+        canActivate: [roleGuard],
         loadComponent: () =>
           import('./pages/admin/routes/admin-routes.page').then(
             (m) => m.AdminRoutesPage,

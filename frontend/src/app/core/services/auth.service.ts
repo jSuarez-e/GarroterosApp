@@ -14,6 +14,7 @@ import { environment } from '../../../environments/environment';
 export enum UserRole {
   ADMIN = 'ADMIN',
   USER = 'USER',
+  GUIDE = 'GUIDE',
 }
 
 export enum UserStatus {
@@ -65,6 +66,8 @@ export class AuthService {
 
   public isAuthenticated = computed(() => !!this.currentUser());
   public isAdmin = computed(() => this.currentUser()?.role === UserRole.ADMIN);
+  public isGuide = computed(() => this.currentUser()?.role === UserRole.GUIDE);
+  public isStaff = computed(() => this.isAdmin() || this.isGuide());
 
   constructor() {
     this.restoreSession();

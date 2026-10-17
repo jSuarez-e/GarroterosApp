@@ -250,4 +250,39 @@ describe('AdminUsersService', () => {
     expect(roster[0].participants[0].photoUrl).toBe('https://cdn.example.com/photo.jpg');
     expect(roster[0].participants[0].medicalSummary?.bloodType).toBe('O+');
   });
+
+  it('debe obtener el roster de rutas para un usuario con rol GUIDE vinculado a rutas específicas', async () => {
+    const mockGuideUser = {
+      id: 'guide-user-1',
+      email: 'guia@garroteros.com',
+      fullName: 'Guía Especialista',
+      role: UserRole.GUIDE,
+      status: UserStatus.ACTIVE,
+    } as User;
+
+    const mockGuideEntity = {
+      id: 'guide-ent-1',
+      userId: 'guide-user-1',
+      routes: [{ id: 'route-assigned-1' } as Route],
+    } as Guide;
+
+    const mockAssignedRoute = {
+      id: 'route-assigned-1',
+      name: 'Sendero de las Flores',
+      municipality: 'Piedecuesta',
+      totalDistanceKm: 4.0,
+      estimatedDurationMinutes: 90,
+      isActive: true,
+      guides: [],
+    } as unknown as Route;
+
+    vi.mocked(mockGuideRepo.findOne!).mockResolvedValue(mockGuideEntity);
+    vi.mocked(mockRouteRepo.find!).mockResolvedValue([mockAssignedRoute]);
+    vi.mocked(mockUserRepo.find!).mockResolvedValue([]);
+
+    const roster = await service.getGuideRouteRoster(mockGuideUser);
+
+    expect(roster).toHaveLength(1);
+    expect(roster[0].routeId).toBe('route-assigned-1');
+  });
 });

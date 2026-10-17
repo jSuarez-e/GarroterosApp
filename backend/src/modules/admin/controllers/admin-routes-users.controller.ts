@@ -21,7 +21,7 @@ import type { IGuideRouteRoster } from '../dto/admin-user.dto.js';
  */
 @Controller('admin/routes-users')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.ADMIN, UserRole.GUIDE)
 export class AdminRoutesUsersController {
   /**
    * Inicializa el controlador inyectando el servicio de usuarios y control de asistencia.
