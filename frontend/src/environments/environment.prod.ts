@@ -7,6 +7,8 @@
 
 export const environment = {
   production: true,
-  apiUrl: 'http://172.17.208.1:3000/api/v1',
-  wsUrl: 'http://172.17.208.1:3000',
+  apiUrl: 'https://garroterosapp.onrender.com/api/v1',
+  wsUrl: 'https://garroterosapp.onrender.com',
+  // apiUrl: 'http://172.17.208.1:3000/api/v1',
+  // wsUrl: 'http://172.17.208.1:3000',
 };
