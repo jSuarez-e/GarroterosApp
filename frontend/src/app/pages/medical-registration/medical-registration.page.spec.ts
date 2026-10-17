@@ -49,6 +49,7 @@ describe('MedicalRegistrationPage', () => {
     mockAuthService = {
       currentUser: currentUserSignal,
       refreshProfile: vi.fn().mockReturnValue(of(mockUserWithRoute)),
+      updateCurrentUserAvatar: vi.fn(),
     };
 
     mockRouter = {

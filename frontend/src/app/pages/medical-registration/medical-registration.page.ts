@@ -317,6 +317,9 @@ export class MedicalRegistrationPage implements OnInit, ViewWillEnter {
       .subscribe({
         next: () => {
           this.isSaving.set(false);
+          if (dto.photoUrl !== undefined) {
+            this.authService.updateCurrentUserAvatar(dto.photoUrl);
+          }
           const isConfirmed = this.attendanceConfirmed();
           if (isConfirmed) {
             this.toastMessage.set('¡Asistencia confirmada! Ahora tienes acceso al mapa y herramientas del recorrido.');

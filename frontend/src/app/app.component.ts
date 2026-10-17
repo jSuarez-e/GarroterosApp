@@ -147,9 +147,18 @@ export class AppComponent {
     // Inicializar configuraciones nativas (orientacion vertical y barra de estado)
     this.nativeBridge.initNativeFeatures();
 
-    // Inicializar comprobación de asistencia en segundo plano si hay sesión
+    // Inicializar comprobación de asistencia y sincronización de foto médica en segundo plano si hay sesión
     if (this.authService.token()) {
-      this.medicalService.checkAttendance().pipe(takeUntilDestroyed()).subscribe();
+      this.medicalService
+        .getMyProfile()
+        .pipe(takeUntilDestroyed())
+        .subscribe({
+          next: (profile) => {
+            if (profile?.photoUrl && profile.photoUrl !== this.currentUser()?.avatarUrl) {
+              this.authService.updateCurrentUserAvatar(profile.photoUrl);
+            }
+          },
+        });
     }
 
     // Gestionar ciclo de vida de WebSockets y notificaciones push locales según autenticación

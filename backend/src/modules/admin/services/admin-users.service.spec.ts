@@ -86,6 +86,29 @@ describe('AdminUsersService', () => {
     });
   });
 
+  it('debe completar el avatarUrl del usuario a partir de su ficha médica si no tiene avatar directo', async () => {
+    const mockUserWithoutAvatar = {
+      id: 'user-sin-avatar',
+      email: 'sinfoto@piedecuesta.com',
+      fullName: 'Sin Foto',
+      role: UserRole.USER,
+      status: UserStatus.ACTIVE,
+      avatarUrl: null,
+    } as unknown as User;
+
+    vi.mocked(mockQueryBuilder.getMany!).mockResolvedValue([mockUserWithoutAvatar]);
+    vi.mocked(mockMedicalProfileRepo.find!).mockResolvedValue([
+      {
+        id: 'med-1',
+        userId: 'user-sin-avatar',
+        photoUrl: 'https://cdn.example.com/foto-ficha.jpg',
+      } as unknown as MedicalProfile,
+    ]);
+
+    const result = await service.getUsers({});
+    expect(result[0].avatarUrl).toBe('https://cdn.example.com/foto-ficha.jpg');
+  });
+
   it('debe asignar una ruta a un usuario y retornar los datos actualizados', async () => {
     const existingUser = {
       id: 'user-1',

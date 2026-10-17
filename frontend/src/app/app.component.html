@@ -17,7 +17,15 @@
         </div>
         <div class="menu-header">
           <div class="menu-header__avatar">
-            <ion-icon name="person-circle-outline" class="menu-header__avatar-icon"></ion-icon>
+            @if (currentUser()?.avatarUrl) {
+              <img
+                [src]="currentUser()?.avatarUrl"
+                [alt]="currentUser()?.fullName || 'Avatar de usuario'"
+                class="menu-header__avatar-img"
+              />
+            } @else {
+              <ion-icon name="person-circle-outline" class="menu-header__avatar-icon"></ion-icon>
+            }
           </div>
           <div class="menu-header__info">
             <h2 class="menu-header__name">{{ currentUser()?.fullName || 'Usuario Guianza' }}</h2>

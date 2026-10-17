@@ -38,6 +38,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
   peopleCircleOutline,
+  personCircleOutline,
   personAddOutline,
   shieldCheckmarkOutline,
   personOutline,
@@ -123,6 +124,7 @@ export class AdminUsersPage implements OnInit, ViewWillEnter {
   constructor() {
     addIcons({
       peopleCircleOutline,
+      personCircleOutline,
       personAddOutline,
       shieldCheckmarkOutline,
       personOutline,

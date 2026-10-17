@@ -103,6 +103,15 @@ export class MedicalService {
 
     await this.medicalProfileRepository.save(profile);
 
+    // Sincronizar fotografía con la entidad User para disponibilidad transversal
+    if (dto.photoUrl !== undefined) {
+      const userEntity = await this.userRepository.findOne({ where: { id: userId } });
+      if (userEntity && userEntity.avatarUrl !== dto.photoUrl) {
+        userEntity.avatarUrl = dto.photoUrl ?? null;
+        await this.userRepository.save(userEntity);
+      }
+    }
+
     if (dto.attendanceConfirmed) {
       await this.notifyAssignedGuidesOfRegistration(userId, userFullName, targetRouteId);
     }

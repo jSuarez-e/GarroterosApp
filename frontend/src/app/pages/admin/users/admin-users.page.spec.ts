@@ -142,4 +142,25 @@ describe('AdminUsersPage', () => {
       routeId: 'route-1',
     });
   });
+
+  it('debe renderizar la imagen de avatar si el usuario tiene foto, o el placeholder si es null', () => {
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    // sampleUsers[0] no tiene avatarUrl -> debe mostrar placeholder
+    const placeholder = compiled.querySelector('.user-card__avatar-placeholder');
+    expect(placeholder).toBeTruthy();
+
+    // Ahora simular usuario con avatarUrl
+    component.users.set([
+      {
+        ...sampleUsers[0],
+        avatarUrl: 'https://cdn.example.com/carlos.jpg',
+      },
+    ]);
+    fixture.detectChanges();
+
+    const img = compiled.querySelector('.user-card__avatar-img') as HTMLImageElement;
+    expect(img).toBeTruthy();
+    expect(img.src).toContain('https://cdn.example.com/carlos.jpg');
+  });
 });

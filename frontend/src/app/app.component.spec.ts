@@ -18,11 +18,13 @@ describe('AppComponent', () => {
       isAuthenticated: signal(false),
       token: signal(null),
       logout: vi.fn(),
+      updateCurrentUserAvatar: vi.fn(),
     };
 
     const mockMedicalService = {
       attendanceConfirmed: signal(false),
       checkAttendance: vi.fn().mockReturnValue(of(false)),
+      getMyProfile: vi.fn().mockReturnValue(of(null)),
     };
 
     const mockSocketService = {
@@ -52,6 +54,7 @@ describe('AppComponent', () => {
 
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
+    fixture.detectChanges();
     expect(app).toBeTruthy();
   });
 });

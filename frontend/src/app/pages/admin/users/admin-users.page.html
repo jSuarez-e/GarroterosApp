@@ -88,25 +88,35 @@
         @for (user of users(); track user.id) {
           <div class="user-card">
             <div class="user-card__main">
-              <div class="user-card__identity">
-                <span class="user-card__name">{{ user.fullName }}</span>
-                <span class="user-card__email">
-                  <ion-icon name="mail-outline" class="user-card__meta-icon"></ion-icon>
-                  {{ user.email }}
-                </span>
-                @if (user.phone) {
-                  <span class="user-card__phone">
-                    <ion-icon name="call-outline" class="user-card__meta-icon"></ion-icon>
-                    {{ user.phone }}
+              <div class="user-card__profile">
+                <div class="user-card__avatar">
+                  @if (user.avatarUrl) {
+                    <img [src]="user.avatarUrl" [alt]="user.fullName" class="user-card__avatar-img" />
+                  } @else {
+                    <ion-icon name="person-circle-outline" class="user-card__avatar-placeholder"></ion-icon>
+                  }
+                </div>
+
+                <div class="user-card__identity">
+                  <span class="user-card__name">{{ user.fullName }}</span>
+                  <span class="user-card__email">
+                    <ion-icon name="mail-outline" class="user-card__meta-icon"></ion-icon>
+                    {{ user.email }}
                   </span>
-                }
-                <span
-                  class="user-card__route"
-                  [ngClass]="user.route ? 'user-card__route--assigned' : 'user-card__route--unassigned'"
-                >
-                  <ion-icon name="map-outline" class="user-card__meta-icon"></ion-icon>
-                  {{ user.route ? user.route.name : 'Sin ruta asignada' }}
-                </span>
+                  @if (user.phone) {
+                    <span class="user-card__phone">
+                      <ion-icon name="call-outline" class="user-card__meta-icon"></ion-icon>
+                      {{ user.phone }}
+                    </span>
+                  }
+                  <span
+                    class="user-card__route"
+                    [ngClass]="user.route ? 'user-card__route--assigned' : 'user-card__route--unassigned'"
+                  >
+                    <ion-icon name="map-outline" class="user-card__meta-icon"></ion-icon>
+                    {{ user.route ? user.route.name : 'Sin ruta asignada' }}
+                  </span>
+                </div>
               </div>
 
               <!-- Badges de Rol y Estado -->

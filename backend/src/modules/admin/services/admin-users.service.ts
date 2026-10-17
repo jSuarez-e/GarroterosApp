@@ -81,7 +81,46 @@ export class AdminUsersService {
       qb.andWhere('user.routeId = :routeId', { routeId: query.routeId });
     }
 
-    return qb.getMany();
+    const users = await qb.getMany();
+    return this.populateUsersMedicalAvatars(users);
+  }
+
+  /**
+   * Completa los avatares faltantes de los usuarios consultando sus fichas médicas.
+   * @param users Lista de usuarios a enriquecer.
+   * @returns Lista de usuarios con avatares sincronizados.
+   */
+  private async populateUsersMedicalAvatars(users: User[]): Promise<User[]> {
+    if (users.length === 0) {
+      return users;
+    }
+
+    const userIdsWithoutAvatar = users
+      .filter((userItem) => !userItem.avatarUrl)
+      .map((userItem) => userItem.id);
+
+    if (userIdsWithoutAvatar.length === 0) {
+      return users;
+    }
+
+    const medicalProfiles = await this.medicalProfileRepository.find({
+      where: { userId: In(userIdsWithoutAvatar) },
+    });
+
+    const photoMap = new Map<string, string>();
+    for (const medical of medicalProfiles) {
+      if (medical.photoUrl) {
+        photoMap.set(medical.userId, medical.photoUrl);
+      }
+    }
+
+    for (const userItem of users) {
+      if (!userItem.avatarUrl && photoMap.has(userItem.id)) {
+        userItem.avatarUrl = photoMap.get(userItem.id) ?? null;
+      }
+    }
+
+    return users;
   }
 
   /**

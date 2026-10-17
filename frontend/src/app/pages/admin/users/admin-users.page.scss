@@ -179,6 +179,38 @@
     gap: 12px;
   }
 
+  &__profile {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--app-bg-canvas, #F0F4FE);
+    border: 2px solid var(--app-primary, #3B5BDB);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__avatar-placeholder {
+    font-size: 42px;
+    color: var(--app-primary, #3B5BDB);
+  }
+
   &__identity {
     display: flex;
     flex-direction: column;

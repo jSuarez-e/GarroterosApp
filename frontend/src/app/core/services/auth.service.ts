@@ -142,6 +142,19 @@ export class AuthService {
   }
 
   /**
+   * Actualiza la fotografía o avatar del usuario activo en memoria y en localStorage.
+   * @param avatarUrl URL de la fotografía o null para restablecer.
+   */
+  public updateCurrentUserAvatar(avatarUrl: string | null): void {
+    const user = this.currentUser();
+    if (user) {
+      const updatedUser: IUser = { ...user, avatarUrl };
+      this.currentUser.set(updatedUser);
+      localStorage.setItem(this.userKey, JSON.stringify(updatedUser));
+    }
+  }
+
+  /**
    * Restaura la sesion guardada si existe en el almacenamiento local.
    */
   private restoreSession(): void {
