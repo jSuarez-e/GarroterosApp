@@ -467,7 +467,7 @@ export class HomePage implements OnInit, ViewWillEnter, OnDestroy {
    */
   public fetchHomeData(forceRefresh = false): void {
     const user = this.currentUser();
-    const userRouteId = user?.routeId || user?.route?.id;
+    const userRouteId = this.isAdmin() ? undefined : (user?.routeId || user?.route?.id);
 
     if (!this.isAdmin() && !userRouteId) {
       this.authService

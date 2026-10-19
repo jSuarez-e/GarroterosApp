@@ -97,13 +97,11 @@
                 <span class="metric-item__value">{{ route.estimatedDurationMinutes }} min</span>
                 <span class="metric-item__label">Duración</span>
               </div>
-              @if (route.startDate) {
-                <div class="metric-item">
-                  <ion-icon name="calendar-outline" class="metric-item__icon"></ion-icon>
-                  <span class="metric-item__value">{{ route.startDate }}</span>
-                  <span class="metric-item__label">{{ route.startTime || 'Salida' }}</span>
-                </div>
-              }
+              <div class="metric-item">
+                <ion-icon name="calendar-outline" class="metric-item__icon"></ion-icon>
+                <span class="metric-item__value">{{ route.startDate || 'Por programar' }}</span>
+                <span class="metric-item__label">{{ route.startTime || 'Salida' }}</span>
+              </div>
               <div class="metric-item">
                 <ion-icon name="people-outline" class="metric-item__icon"></ion-icon>
                 <span class="metric-item__value">{{ (route.guides || []).length }}</span>
@@ -126,7 +124,7 @@
               } @else {
                 <div class="guides-chips-list">
                   @for (guide of route.guides; track guide.id) {
-                    <div class="guide-chip">
+                    <div class="guide-chip" [title]="guide.fullName">
                       <img
                         [src]="guide.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'"
                         [alt]="guide.fullName"

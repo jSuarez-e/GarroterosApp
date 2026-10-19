@@ -84,6 +84,8 @@ describe('MedicalRegistrationPage', () => {
   it('debe incluir routeId al guardar la ficha médica y confirmar asistencia', () => {
     component.attendanceConfirmed.set(true);
     component.dietType.set(DietType.REGULAR);
+    component.emergencyContactName.set('María Pérez');
+    component.emergencyContactPhone.set('+57 300 123 4567');
 
     component.onSave();
 
@@ -91,8 +93,37 @@ describe('MedicalRegistrationPage', () => {
       expect.objectContaining({
         attendanceConfirmed: true,
         routeId: 'route-active-99',
+        emergencyContactName: 'María Pérez',
+        emergencyContactPhone: '+57 300 123 4567',
       }),
     );
+  });
+
+  it('debe deshabilitar el guardado si falta el nombre o el teléfono del contacto de emergencia', () => {
+    component.emergencyContactName.set('');
+    component.emergencyContactPhone.set('');
+    expect(component.isFormValid()).toBe(false);
+
+    component.emergencyContactName.set('María Pérez');
+    component.emergencyContactPhone.set('');
+    expect(component.isFormValid()).toBe(false);
+
+    component.emergencyContactName.set('');
+    component.emergencyContactPhone.set('+57 300 123 4567');
+    expect(component.isFormValid()).toBe(false);
+
+    // No debe invocar saveMyProfile si el formulario es inválido
+    component.onSave();
+    expect(mockMedicalService.saveMyProfile).not.toHaveBeenCalled();
+  });
+
+  it('debe habilitar el guardado cuando el nombre y teléfono del contacto de emergencia son válidos', () => {
+    component.emergencyContactName.set('María Pérez');
+    component.emergencyContactPhone.set('3001234567');
+
+    expect(component.isContactNameValid()).toBe(true);
+    expect(component.isContactPhoneValid()).toBe(true);
+    expect(component.isFormValid()).toBe(true);
   });
 
   it('debe reflejar null en assignedRoute si el usuario no tiene ruta asignada', () => {

@@ -18,7 +18,6 @@
   <app-hero-banner
     [title]="hasActiveRoute() ? (activeRoute()?.name || 'Recorrido Turístico') : 'Sin ruta activa'"
     [subtitle]="hasActiveRoute() ? (activeRoute()?.description || 'Explora los hitos patrimoniales y culturales del recorrido oficial.') : 'Actualmente no tienes un recorrido activo asignado.'"
-    [badgeText]="hasActiveRoute() ? 'Itinerario Cultural Oficial' : 'Sin Asignación'"
     iconName="map-outline"
   ></app-hero-banner>
 

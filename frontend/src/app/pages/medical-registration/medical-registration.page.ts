@@ -120,6 +120,27 @@ export class MedicalRegistrationPage implements OnInit, ViewWillEnter {
   public readonly bloodType = signal<string>('O+');
   public readonly notes = signal<string>('');
 
+  /**
+   * Determina si el nombre del contacto de emergencia ingresado es válido.
+   */
+  public readonly isContactNameValid = computed(() => {
+    return this.emergencyContactName().trim().length >= 2;
+  });
+
+  /**
+   * Determina si el teléfono de contacto de emergencia ingresado es válido (mínimo 7 caracteres).
+   */
+  public readonly isContactPhoneValid = computed(() => {
+    return this.emergencyContactPhone().trim().length >= 7;
+  });
+
+  /**
+   * Determina si todos los campos obligatorios del contacto de emergencia están debidamente diligenciados.
+   */
+  public readonly isFormValid = computed(() => {
+    return this.isContactNameValid() && this.isContactPhoneValid();
+  });
+
   public readonly dietOptions = [
     { label: 'Regular / Estándar', value: DietType.REGULAR },
     { label: 'Vegetariana', value: DietType.VEGETARIAN },
@@ -295,6 +316,12 @@ export class MedicalRegistrationPage implements OnInit, ViewWillEnter {
    * Guarda los datos de asistencia y ficha médica en el backend.
    */
   public onSave(): void {
+    if (!this.isFormValid()) {
+      this.toastMessage.set('Por favor completa todos los campos obligatorios del contacto de emergencia (nombre y teléfono).');
+      this.showToast.set(true);
+      return;
+    }
+
     this.isSaving.set(true);
     const assignedRouteId = this.currentUser()?.routeId || this.assignedRoute()?.id || null;
     const dto: SaveMedicalProfileDto = {

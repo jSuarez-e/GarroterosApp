@@ -208,11 +208,12 @@
   }
 
   &__metrics {
-    display: flex;
-    gap: 12px;
-    padding: 12px 14px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 12px;
     background: var(--app-bg-canvas, #F0F4FE);
-    border-radius: 12px;
+    border-radius: 14px;
     margin-bottom: 14px;
   }
 
@@ -272,27 +273,42 @@
 .metric-item {
   display: flex;
   flex-direction: column;
-  flex: 1;
   align-items: center;
+  justify-content: center;
   text-align: center;
-  gap: 2px;
+  padding: 10px 8px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid rgb(59 91 219 / 8%);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 2%);
+  gap: 3px;
+  min-width: 0;
 
   &__icon {
-    font-size: 16px;
+    font-size: 18px;
     color: var(--app-primary, #3B5BDB);
   }
 
   &__value {
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 700;
     color: #1E293B;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   &__label {
-    font-size: 11px;
+    font-size: 10.5px;
     color: var(--app-text-muted, #64748B);
     text-transform: uppercase;
     font-weight: 600;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 }
 
@@ -319,32 +335,37 @@
 }
 
 .guides-chips-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
 
 .guide-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px 4px 6px;
+  gap: 8px;
+  padding: 6px 10px 6px 6px;
   background: #fff;
   border: 1px solid var(--app-border, #E2E8F0);
   border-radius: 20px;
   box-shadow: 0 1px 3px rgb(0 0 0 / 4%);
+  min-width: 0;
 
   &__avatar {
     width: 24px;
     height: 24px;
     border-radius: 50%;
     object-fit: cover;
+    flex-shrink: 0;
   }
 
   &__name {
     font-size: 12px;
     font-weight: 600;
     color: #1E293B;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 

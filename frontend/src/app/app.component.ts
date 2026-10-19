@@ -98,7 +98,7 @@ export class AppComponent {
 
   // Opciones obligatorias para rol USER (y disponibles para ADMIN y GUIDE)
   public readonly userMenuItems: MenuItem[] = [
-    { title: 'Revisar Recorrido', url: '/home', icon: 'home-outline' },
+    { title: 'Información del Recorrido', url: '/home', icon: 'home-outline' },
     { title: 'Ficha de Asistencia', url: '/medical-card', icon: 'medkit-outline' },
     { title: 'Mapa Interactivo', url: '/map', icon: 'map-outline', requiresAttendance: true },
     { title: 'Información de Ruta', url: '/routes', icon: 'information-circle-outline' },

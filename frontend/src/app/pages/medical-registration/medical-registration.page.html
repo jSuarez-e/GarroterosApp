@@ -13,7 +13,6 @@
   <app-hero-banner
     title="Ficha Médica y Asistencia"
     subtitle="Confirma tu participación y registra tus condiciones de salud para una experiencia segura en la ruta."
-    badgeText="Seguridad Turística"
     badgeIcon="shield-checkmark-outline"
     badgeVariant="accent"
   ></app-hero-banner>
@@ -31,7 +30,7 @@
         <div class="medical-requirement-banner__info">
           <strong class="medical-requirement-banner__title">Validación Requerida para el Recorrido</strong>
           <p class="medical-requirement-banner__text">
-            Para poder utilizar el Mapa, consultar Guías, ver ¿Cómo llegar? y activar Asistencia en Ruta (SOS), primero debes validar que participarás en la ruta confirmando tu asistencia a continuación.
+            Para poder utilizar todas las funciones del aplicativo y activar Asistencia en Ruta (SOS), primero debes validar que participarás en la ruta confirmando tu asistencia a continuación.
           </p>
         </div>
       </div>
@@ -280,7 +279,8 @@
           <div class="form-group">
             <label class="form-group__label" for="emergency-name">
               <ion-icon name="person-outline" class="form-group__icon"></ion-icon>
-              Nombre del Contacto
+              <span>Nombre del Contacto</span>
+              <span class="form-group__required">*</span>
             </label>
             <input
               id="emergency-name"
@@ -289,13 +289,15 @@
               placeholder="Ej. María Pérez (Familiar / Pareja)"
               [value]="emergencyContactName()"
               (input)="onInputChange(emergencyContactName, $event)"
+              required
             />
           </div>
 
           <div class="form-group">
             <label class="form-group__label" for="emergency-phone">
               <ion-icon name="call-outline" class="form-group__icon"></ion-icon>
-              Teléfono de Contacto
+              <span>Teléfono de Contacto</span>
+              <span class="form-group__required">*</span>
             </label>
             <input
               id="emergency-phone"
@@ -304,12 +306,14 @@
               placeholder="+57 300 123 4567"
               [value]="emergencyContactPhone()"
               (input)="onInputChange(emergencyContactPhone, $event)"
+              required
             />
           </div>
 
           <div class="form-group">
             <label class="form-group__label" for="notes-input">
-              Observaciones Adicionales para los Guías
+              <span>Observaciones Adicionales para los Guías</span>
+              <span class="form-group__optional">(Opcional)</span>
             </label>
             <textarea
               id="notes-input"
@@ -325,10 +329,18 @@
 
       <!-- Botón de Guardar -->
       <div class="submit-container">
+        @if (!isFormValid()) {
+          <div class="required-fields-hint">
+            <ion-icon name="alert-circle-outline" class="required-fields-hint__icon"></ion-icon>
+            <span class="required-fields-hint__text">
+              Diligencia el nombre y teléfono del contacto de emergencia para habilitar el guardado.
+            </span>
+          </div>
+        }
         <ion-button
           expand="block"
           class="btn-save"
-          [disabled]="isSaving()"
+          [disabled]="isSaving() || !isFormValid()"
           (click)="onSave()"
         >
           @if (isSaving()) {
