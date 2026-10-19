@@ -70,10 +70,10 @@
           <ion-button
             fill="solid"
             class="poi-audio-card__play-btn"
-            [class.poi-audio-card__play-btn--playing]="audioPlayer.currentUrl() === poi.audioUrl && audioPlayer.isPlaying()"
+            [class.poi-audio-card__play-btn--playing]="audioPlayer.isCurrentTrack(poi.audioUrl) && audioPlayer.isPlaying()"
             (click)="toggleAudio()"
           >
-            @if (audioPlayer.currentUrl() === poi.audioUrl && audioPlayer.isPlaying()) {
+            @if (audioPlayer.isCurrentTrack(poi.audioUrl) && audioPlayer.isPlaying()) {
               <ion-icon name="pause-outline" slot="icon-only"></ion-icon>
             } @else {
               <ion-icon name="play-outline" slot="icon-only"></ion-icon>
@@ -81,7 +81,7 @@
           </ion-button>
         </div>
 
-        @if (audioPlayer.currentUrl() === poi.audioUrl) {
+        @if (audioPlayer.isCurrentTrack(poi.audioUrl)) {
           <div class="poi-audio-card__progress-container">
             <ion-progress-bar
               [value]="audioPlayer.progress()"

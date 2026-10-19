@@ -116,4 +116,36 @@ describe('AdminPoisPage', () => {
     expect(component.toastMessage()).toContain('No fue posible obtener la ubicación GPS');
     expect(component.isLocatingGps()).toBe(false);
   });
+
+  describe('isGoogleDriveFolder', () => {
+    it('debe detectar correctamente URLs de carpetas de Google Drive', () => {
+      const folderUrl1 = 'https://drive.google.com/drive/u/0/folders/1WZbljAhtIhQJ1uiKcHGLgqGSKR0uytaw';
+      const folderUrl2 = 'https://drive.google.com/drive/folders/1WZbljAhtIhQJ1uiKcHGLgqGSKR0uytaw';
+
+      expect(component.isGoogleDriveFolder(folderUrl1)).toBe(true);
+      expect(component.isGoogleDriveFolder(folderUrl2)).toBe(true);
+    });
+
+    it('no debe marcar como carpeta los enlaces a archivos específicos de Google Drive ni URLs estándar', () => {
+      const fileUrl = 'https://drive.google.com/file/d/1WkvoRKw0sA0MESL9RUlS-KdnLKhENx27/view';
+      const audioUrl = 'https://example.com/audio.ogg';
+
+      expect(component.isGoogleDriveFolder(fileUrl)).toBe(false);
+      expect(component.isGoogleDriveFolder(audioUrl)).toBe(false);
+      expect(component.isGoogleDriveFolder('')).toBe(false);
+      expect(component.isGoogleDriveFolder(null)).toBe(false);
+    });
+
+    it('debe bloquear el guardado en onSavePoi si la URL de audio corresponde a una carpeta', () => {
+      component.formTitle.set('Parque La Libertad');
+      component.formDescription.set('Centro histórico.');
+      component.formAudioUrl.set('https://drive.google.com/drive/u/0/folders/1WZbljAhtIhQJ1uiKcHGLgqGSKR0uytaw');
+
+      component.onSavePoi();
+
+      expect(mockAdminService.createPoi).not.toHaveBeenCalled();
+      expect(component.showToast()).toBe(true);
+      expect(component.toastMessage()).toContain('corresponde a una carpeta de Google Drive');
+    });
+  });
 });

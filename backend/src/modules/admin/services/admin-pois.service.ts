@@ -125,6 +125,21 @@ export class AdminPoisService {
   }
 
   /**
+   * Normaliza enlaces de Google Drive para streaming multimedia directo en HTMLAudioElement.
+   * @param url URL de audio original.
+   * @returns URL compatible con streaming binario.
+   */
+  public normalizeGoogleDriveUrl(url?: string | null): string | null {
+    if (!url) return null;
+    const cleaned = url.trim();
+    const driveMatch = cleaned.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || cleaned.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (driveMatch && driveMatch[1]) {
+      return `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
+    }
+    return cleaned;
+  }
+
+  /**
    * Crea un nuevo Punto de Interés georreferenciado en el sistema asignado a una ruta.
    * @param dto Datos del POI incluyendo latitud, longitud y routeId.
    * @returns POI persistido.
@@ -139,7 +154,7 @@ export class AdminPoisService {
         type: 'Point',
         coordinates: [dto.longitude, dto.latitude],
       },
-      audioUrl: dto.audioUrl ?? null,
+      audioUrl: this.normalizeGoogleDriveUrl(dto.audioUrl),
       photoUrls: dto.photoUrls ?? [],
     });
 
@@ -163,7 +178,7 @@ export class AdminPoisService {
     if (dto.title !== undefined) wp.title = dto.title.trim();
     if (dto.description !== undefined) wp.description = dto.description.trim();
     if (dto.orderIndex !== undefined) wp.orderIndex = dto.orderIndex;
-    if (dto.audioUrl !== undefined) wp.audioUrl = dto.audioUrl ?? null;
+    if (dto.audioUrl !== undefined) wp.audioUrl = this.normalizeGoogleDriveUrl(dto.audioUrl);
     if (dto.photoUrls !== undefined) wp.photoUrls = dto.photoUrls ?? [];
 
     if (dto.latitude !== undefined || dto.longitude !== undefined) {

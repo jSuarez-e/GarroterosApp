@@ -89,10 +89,10 @@
                   <ion-button
                     fill="solid"
                     class="audio-strip__play-btn"
-                    [class.audio-strip__play-btn--active]="audioPlayer.currentUrl() === wp.audioUrl && audioPlayer.isPlaying()"
+                    [class.audio-strip__play-btn--active]="audioPlayer.isCurrentTrack(wp.audioUrl) && audioPlayer.isPlaying()"
                     (click)="toggleAudio(wp.audioUrl)"
                   >
-                    @if (audioPlayer.currentUrl() === wp.audioUrl && audioPlayer.isPlaying()) {
+                    @if (audioPlayer.isCurrentTrack(wp.audioUrl) && audioPlayer.isPlaying()) {
                       <ion-icon name="pause-outline" slot="icon-only"></ion-icon>
                     } @else {
                       <ion-icon name="play-outline" slot="icon-only"></ion-icon>
@@ -100,7 +100,7 @@
                   </ion-button>
                 </div>
 
-                @if (audioPlayer.currentUrl() === wp.audioUrl) {
+                @if (audioPlayer.isCurrentTrack(wp.audioUrl)) {
                   <div class="audio-strip__progress">
                     <ion-progress-bar
                       [value]="audioPlayer.progress()"

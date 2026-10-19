@@ -228,10 +228,17 @@
               id="poi-audio"
               type="url"
               class="form-input"
-              placeholder="https://.../audio.ogg"
+              [class.form-input--invalid]="isGoogleDriveFolder(formAudioUrl())"
+              placeholder="https://.../audio.ogg o enlace de archivo de Drive"
               [value]="formAudioUrl()"
               (input)="onInputChange(formAudioUrl, $event)"
             />
+            @if (isGoogleDriveFolder(formAudioUrl())) {
+              <div class="form-group__error-hint">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                <span>Este enlace es de una carpeta, no de un archivo. Abre el archivo de audio específico en Drive y copia su enlace de compartir.</span>
+              </div>
+            }
           </div>
 
           <div class="form-group">

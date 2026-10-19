@@ -47,6 +47,7 @@ import {
   closeOutline,
   locateOutline,
   informationCircleOutline,
+  alertCircleOutline,
 } from 'ionicons/icons';
 import { Map as MapLibreMap, Marker, NavigationControl, GeolocateControl, setWorkerUrl } from 'maplibre-gl';
 import { Geolocation } from '@capacitor/geolocation';
@@ -130,6 +131,7 @@ export class AdminPoisPage implements OnInit, ViewWillEnter, OnDestroy {
       closeOutline,
       locateOutline,
       informationCircleOutline,
+      alertCircleOutline,
     });
   }
 
@@ -418,11 +420,28 @@ export class AdminPoisPage implements OnInit, ViewWillEnter, OnDestroy {
   }
 
   /**
+   * Determina si una URL ingresada corresponde a una carpeta de Google Drive en lugar de un archivo específico.
+   * @param url URL a evaluar.
+   * @returns true si la URL es una carpeta de Drive.
+   */
+  public isGoogleDriveFolder(url?: string | null): boolean {
+    if (!url) return false;
+    return /\/drive\/(?:u\/\d+\/)?folders\//i.test(url.trim());
+  }
+
+  /**
    * Guarda o actualiza el POI en el backend.
    */
   public onSavePoi(): void {
     if (!this.formTitle().trim() || !this.formDescription().trim()) {
       this.toastMessage.set('Título y descripción del POI son obligatorios.');
+      this.showToast.set(true);
+      return;
+    }
+
+    const audioUrl = this.formAudioUrl().trim();
+    if (audioUrl && this.isGoogleDriveFolder(audioUrl)) {
+      this.toastMessage.set('El enlace ingresado corresponde a una carpeta de Google Drive, no a un archivo de audio. Debes abrir el archivo específico y copiar su enlace.');
       this.showToast.set(true);
       return;
     }

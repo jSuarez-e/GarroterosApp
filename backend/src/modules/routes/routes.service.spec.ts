@@ -162,4 +162,57 @@ describe('RoutesService', () => {
       expect(mockRouteRepo.save).toHaveBeenCalled();
     });
   });
+
+  describe('extractGoogleDriveId', () => {
+    it('debe extraer el ID desde un enlace /file/d/', () => {
+      const driveUrl = 'https://drive.google.com/file/d/1WkvoRKw0sA0MESL9RUlS-KdnLKhENx27/view';
+      expect(service.extractGoogleDriveId(driveUrl)).toBe('1WkvoRKw0sA0MESL9RUlS-KdnLKhENx27');
+    });
+
+    it('debe extraer el ID desde un enlace con parámetro ?id=', () => {
+      const driveUrl = 'https://drive.google.com/uc?export=download&id=1WkvoRKw0sA0MESL9RUlS-KdnLKhENx27';
+      expect(service.extractGoogleDriveId(driveUrl)).toBe('1WkvoRKw0sA0MESL9RUlS-KdnLKhENx27');
+    });
+
+    it('debe aceptar identificadores alfanuméricos directos', () => {
+      const rawId = '1WkvoRKw0sA0MESL9RUlS-KdnLKhENx27';
+      expect(service.extractGoogleDriveId(rawId)).toBe(rawId);
+    });
+
+    it('debe retornar null para enlaces inválidos o vacíos', () => {
+      expect(service.extractGoogleDriveId(null)).toBeNull();
+      expect(service.extractGoogleDriveId('')).toBeNull();
+      expect(service.extractGoogleDriveId('https://example.com/audio.ogg')).toBeNull();
+    });
+  });
+
+  describe('normalizeGoogleDriveUrl', () => {
+    it('debe transformar enlaces de visualización de Google Drive en endpoint de streaming optimizado', () => {
+      const driveUrl = 'https://drive.google.com/file/d/1WkvoRKw0sA0MESL9RUlS-KdnLKhENx27/view?usp=sharing';
+      const expected = '/api/v1/routes/audio-stream?driveId=1WkvoRKw0sA0MESL9RUlS-KdnLKhENx27';
+
+      expect(service.normalizeGoogleDriveUrl(driveUrl)).toBe(expected);
+    });
+
+    it('debe mantener intactas URLs de audio que no pertenezcan a Google Drive', () => {
+      const standardUrl = 'https://example.com/audios/guia.ogg';
+      expect(service.normalizeGoogleDriveUrl(standardUrl)).toBe(standardUrl);
+    });
+
+    it('debe retornar null cuando la URL es vacía o nula', () => {
+      expect(service.normalizeGoogleDriveUrl(null)).toBeNull();
+      expect(service.normalizeGoogleDriveUrl('')).toBeNull();
+    });
+  });
+
+  describe('streamAudio', () => {
+    it('debe lanzar BadRequestException si el identificador es inválido', async () => {
+      const mockResponse = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      } as unknown as import('express').Response;
+
+      await expect(service.streamAudio('short-id', undefined, mockResponse)).rejects.toThrow();
+    });
+  });
 });

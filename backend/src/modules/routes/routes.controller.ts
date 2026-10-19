@@ -16,12 +16,17 @@ import {
   Param,
   Body,
   Query,
+  Headers,
+  Res,
+  BadRequestException,
   UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
+import { Public } from '../auth/decorators/public.decorator.js';
 import { UserRole } from '../users/entities/user.entity.js';
 import { RoutesService } from './routes.service.js';
 import { Route } from './entities/route.entity.js';
@@ -56,6 +61,31 @@ export class RoutesController {
    * @param routesService Servicio de cartografía y rutas.
    */
   constructor(private readonly routesService: RoutesService) {}
+
+  /**
+   * Transmite un stream de audio para reproduccion multimedia (publico para elementos HTMLAudioElement).
+   * @param driveId Identificador de archivo en Google Drive.
+   * @param audioUrl URL alternativa completa o relativa de Google Drive.
+   * @param rangeHeader Cabecera de rango de bytes enviada por el navegador.
+   * @param res Objeto Response de Express.
+   */
+  @Get('audio-stream')
+  @Public()
+  @ApiOperation({ summary: 'Transmitir stream de audio optimizado para reproductor HTML5' })
+  @ApiResponse({ status: 200, description: 'Stream de audio completo' })
+  @ApiResponse({ status: 206, description: 'Stream de audio parcial (Range)' })
+  async streamAudio(
+    @Query('driveId') driveId: string | undefined,
+    @Query('url') audioUrl: string | undefined,
+    @Headers('range') rangeHeader: string | undefined,
+    @Res() res: Response,
+  ): Promise<void> {
+    const resolvedId = this.routesService.extractGoogleDriveId(driveId || audioUrl);
+    if (!resolvedId) {
+      throw new BadRequestException('Se requiere un identificador o enlace válido de Google Drive');
+    }
+    await this.routesService.streamAudio(resolvedId, rangeHeader, res);
+  }
 
   /**
    * Obtiene la lista completa de Puntos de Interes ordenados por su posicion en el itinerario, opcionalmente filtrados por ruta.

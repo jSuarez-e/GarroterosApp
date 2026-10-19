@@ -5,7 +5,8 @@
  * [Edge Cases]: Seeding idempotente en onModuleInit, fallback resiliente ante fallos de red en Open-Meteo, tipos estrictos sin 'any'.
  */
 
-import { Injectable, Logger, NotFoundException, type OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, type OnModuleInit } from '@nestjs/common';
+import type { Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, IsNull } from 'typeorm';
 import { Waypoint } from './entities/waypoint.entity.js';
@@ -83,6 +84,18 @@ interface OpenMeteoResponse {
      */
     weather_code: number[];
   };
+}
+
+/**
+ * Estructura de almacenamiento en caché para streams de audio remotos.
+ */
+interface CachedAudioStream {
+  /** Buffer binario del archivo de audio */
+  buffer: Buffer;
+  /** Tipo MIME validado (audio/ogg o audio/mpeg) */
+  contentType: string;
+  /** Marca de tiempo de almacenamiento en milisegundos */
+  cachedAt: number;
 }
 
 /**
@@ -182,9 +195,157 @@ export class RoutesService implements OnModuleInit {
         latitude: wp.location.coordinates[1],
         longitude: wp.location.coordinates[0],
       },
-      audioUrl: wp.audioUrl,
+      audioUrl: this.normalizeGoogleDriveUrl(wp.audioUrl),
       photoUrls: wp.photoUrls || [],
     }));
+  }
+
+
+  /**
+   * Caché en memoria para streams de audio normalizados (evita límites de cuota de Google Drive).
+   */
+  private readonly audioCache = new Map<string, CachedAudioStream>();
+
+  /**
+   * Extrae y valida un identificador seguro de archivo de Google Drive.
+   * @param rawParam ID directo o URL completa de Google Drive.
+   * @returns Identificador alfanumérico validado o null.
+   */
+  public extractGoogleDriveId(rawParam?: string | null): string | null {
+    if (!rawParam) return null;
+    const cleaned = rawParam.trim();
+    if (/^[a-zA-Z0-9_-]{20,60}$/.test(cleaned)) {
+      return cleaned;
+    }
+    const match = cleaned.match(/\/file\/d\/([a-zA-Z0-9_-]{20,60})/i) || cleaned.match(/[?&]id=([a-zA-Z0-9_-]{20,60})/i);
+    return match ? match[1] : null;
+  }
+
+  /**
+   * Normaliza enlaces de Google Drive para streaming multimedia directo en HTMLAudioElement.
+   * @param url URL de audio original ingresada por el usuario o administrador.
+   * @returns URL de streaming compatible con el navegador.
+   */
+  public normalizeGoogleDriveUrl(url?: string | null): string | null {
+    if (!url) return null;
+    const cleaned = url.trim();
+    const driveId = this.extractGoogleDriveId(cleaned);
+    if (driveId) {
+      return `/api/v1/routes/audio-stream?driveId=${driveId}`;
+    }
+    return cleaned;
+  }
+
+  /**
+   * Descarga un archivo de audio desde Google Drive y determina su tipo MIME por magic bytes.
+   * @param driveId Identificador alfanumérico de Google Drive.
+   * @returns Estructura con el buffer y el tipo MIME detectado.
+   * @throws NotFoundException si la descarga remota falla o el archivo está vacío.
+   */
+  private async fetchRemoteAudioBuffer(driveId: string): Promise<CachedAudioStream> {
+    this.logger.log(`Descargando audio remoto desde Google Drive para ID ${driveId}...`);
+    const upstreamUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+    let upstreamRes: globalThis.Response;
+    try {
+      upstreamRes = await fetch(upstreamUrl, { redirect: 'follow' });
+    } catch (networkError) {
+      this.logger.error(`Error de red al conectar con Google Drive: ${networkError}`);
+      throw new NotFoundException('No fue posible contactar el almacenamiento remoto de audio');
+    }
+
+    if (!upstreamRes.ok) {
+      throw new NotFoundException(`No fue posible descargar el archivo de audio (HTTP ${upstreamRes.status})`);
+    }
+
+    const arrayBuffer = await upstreamRes.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    if (buffer.length === 0) {
+      throw new NotFoundException('El archivo de audio remoto está vacío');
+    }
+
+    let contentType = 'audio/ogg';
+    if (buffer.subarray(0, 4).toString('ascii') === 'OggS') {
+      contentType = 'audio/ogg';
+    } else if (
+      buffer.subarray(0, 3).toString('ascii') === 'ID3' ||
+      (buffer[0] === 0xff && (buffer[1] & 0xe0) === 0xe0)
+    ) {
+      contentType = 'audio/mpeg';
+    }
+
+    const cachedData: CachedAudioStream = { buffer, contentType, cachedAt: Date.now() };
+    this.audioCache.set(driveId, cachedData);
+    this.logger.log(`Audio para ID ${driveId} descargado y almacenado en caché (${buffer.length} bytes, ${contentType}).`);
+    return cachedData;
+  }
+
+  /**
+   * Maneja solicitudes parciales de bytes (HTTP 206) para soporte de scrubbing y reproducción móvil.
+   * @param rangeHeader Cabecera Range de la solicitud HTTP.
+   * @param cached Objeto con el buffer binario en memoria.
+   * @param response Objeto Response de Express.
+   */
+  private handleRangeStreaming(
+    rangeHeader: string,
+    cached: CachedAudioStream,
+    response: Response,
+  ): void {
+    const totalSize = cached.buffer.length;
+    const parts = rangeHeader.replace(/bytes=/, '').split('-');
+    const start = parseInt(parts[0], 10);
+    const end = parts[1] ? parseInt(parts[1], 10) : totalSize - 1;
+
+    if (isNaN(start) || start >= totalSize || end >= totalSize || start > end) {
+      response.status(416).setHeader('Content-Range', `bytes */${totalSize}`);
+      response.end();
+      return;
+    }
+
+    const chunk = cached.buffer.subarray(start, end + 1);
+    response.writeHead(206, {
+      'Content-Range': `bytes ${start}-${end}/${totalSize}`,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': chunk.length,
+      'Content-Type': cached.contentType,
+      'Content-Disposition': 'inline',
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'public, max-age=86400',
+    });
+    response.end(chunk);
+  }
+
+  /**
+   * Transmite un stream de audio con soporte de cabeceras Range, MIME audio/ogg o audio/mpeg, y caché en memoria.
+   * @param driveId Identificador de Google Drive validado.
+   * @param rangeHeader Cabecera Range de la solicitud HTTP del navegador.
+   * @param response Objeto Response de Express para piping HTTP.
+   */
+  public async streamAudio(
+    driveId: string,
+    rangeHeader: string | undefined,
+    response: Response,
+  ): Promise<void> {
+    if (!/^[a-zA-Z0-9_-]{20,60}$/.test(driveId)) {
+      throw new BadRequestException('Identificador de audio inválido o potencialmente malicioso');
+    }
+
+    const cached = this.audioCache.get(driveId) || (await this.fetchRemoteAudioBuffer(driveId));
+
+    if (rangeHeader && rangeHeader.startsWith('bytes=')) {
+      this.handleRangeStreaming(rangeHeader, cached, response);
+      return;
+    }
+
+    response.writeHead(200, {
+      'Accept-Ranges': 'bytes',
+      'Content-Length': cached.buffer.length,
+      'Content-Type': cached.contentType,
+      'Content-Disposition': 'inline',
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'public, max-age=86400',
+    });
+    response.end(cached.buffer);
   }
 
   /**
