@@ -48,6 +48,12 @@ describe('LocalNotificationService', () => {
   };
 
   beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(LocalNotifications, 'checkPermissions').mockResolvedValue({ display: 'granted' });
+    vi.spyOn(LocalNotifications, 'requestPermissions').mockResolvedValue({ display: 'granted' });
+    vi.spyOn(LocalNotifications, 'createChannel').mockResolvedValue(undefined as never);
+    vi.spyOn(LocalNotifications, 'schedule').mockResolvedValue(undefined as never);
+
     mockAuthService = {
       currentUser: vi.fn().mockReturnValue(null),
       isAdmin: vi.fn().mockReturnValue(false),
@@ -181,6 +187,47 @@ describe('LocalNotificationService', () => {
           }),
         ],
       });
+    });
+  });
+
+  describe('Deduplicación de alertas SOS recibidas por WebSocket', () => {
+    it('debe despachar únicamente una notificación si llegan eventos duplicados con el mismo ID', async () => {
+      let sosBroadcastHandler: ((payload: unknown) => Promise<void>) | undefined;
+      mockSocketService.on.mockImplementation((event: string, handler: (payload: unknown) => Promise<void>) => {
+        if (event === 'sos_broadcast') {
+          sosBroadcastHandler = handler;
+        }
+      });
+
+      mockAuthService.isAdmin.mockReturnValue(true);
+      mockAuthService.currentUser.mockReturnValue({
+        id: 'admin-id',
+        email: 'admin@garroteros.com',
+        role: UserRole.ADMIN,
+        status: UserStatus.ACTIVE,
+        fullName: 'Admin General',
+      });
+
+      await service.init();
+      expect(sosBroadcastHandler).toBeDefined();
+
+      const alertPayload = {
+        id: 'alert-unique-dedup-1',
+        userId: 'user-alert-99',
+        fullName: 'Carlos Hiker',
+        role: 'USER',
+        latitude: 7.05,
+        longitude: -73.05,
+        message: '¡Emergencia en sendero!',
+        timestamp: 1700000000000,
+      };
+
+      // Disparar dos veces el mismo evento
+      await sosBroadcastHandler!(alertPayload);
+      await sosBroadcastHandler!(alertPayload);
+
+      // Debe haberse llamado a LocalNotifications.schedule exactamente 1 vez
+      expect(LocalNotifications.schedule).toHaveBeenCalledTimes(1);
     });
   });
 });

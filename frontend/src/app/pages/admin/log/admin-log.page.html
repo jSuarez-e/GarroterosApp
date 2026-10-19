@@ -98,14 +98,14 @@
                       class="btn-status-quick btn-status-quick--progress"
                       (click)="onQuickStatusUpdate(entry, ItineraryStatus.IN_PROGRESS)"
                     >
-                      En Curso
+                      En Progreso
                     </button>
                     <button
                       type="button"
                       class="btn-status-quick btn-status-quick--completed"
                       (click)="onQuickStatusUpdate(entry, ItineraryStatus.COMPLETED)"
                     >
-                      Completado
+                      Finalizado
                     </button>
                   </div>
 
@@ -212,8 +212,8 @@
                     (ionChange)="formStatus.set($event.detail.value)"
                   >
                     <ion-select-option value="PENDING">Pendiente</ion-select-option>
-                    <ion-select-option value="IN_PROGRESS">En curso</ion-select-option>
-                    <ion-select-option value="COMPLETED">Completado</ion-select-option>
+                    <ion-select-option value="IN_PROGRESS">En progreso</ion-select-option>
+                    <ion-select-option value="COMPLETED">Finalizado</ion-select-option>
                     <ion-select-option value="DELAYED">Retrasado</ion-select-option>
                   </ion-select>
                 </div>

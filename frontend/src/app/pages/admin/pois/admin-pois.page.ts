@@ -46,8 +46,10 @@ import {
   navigateOutline,
   closeOutline,
   locateOutline,
+  informationCircleOutline,
 } from 'ionicons/icons';
-import { Map as MapLibreMap, Marker, NavigationControl, setWorkerUrl } from 'maplibre-gl';
+import { Map as MapLibreMap, Marker, NavigationControl, GeolocateControl, setWorkerUrl } from 'maplibre-gl';
+import { Geolocation } from '@capacitor/geolocation';
 import {
   AdminService,
   AdminPoi,
@@ -114,6 +116,7 @@ export class AdminPoisPage implements OnInit, ViewWillEnter, OnDestroy {
 
   public readonly showToast = signal<boolean>(false);
   public readonly toastMessage = signal<string>('');
+  public readonly isLocatingGps = signal<boolean>(false);
 
   constructor() {
     addIcons({
@@ -126,6 +129,7 @@ export class AdminPoisPage implements OnInit, ViewWillEnter, OnDestroy {
       navigateOutline,
       closeOutline,
       locateOutline,
+      informationCircleOutline,
     });
   }
 
@@ -277,6 +281,25 @@ export class AdminPoisPage implements OnInit, ViewWillEnter, OnDestroy {
     this.pickerMap = map;
 
     map.addControl(new NavigationControl({ visualizePitch: false }), 'top-right');
+
+    const geolocateControl = new GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      trackUserLocation: false,
+    });
+    map.addControl(geolocateControl, 'top-right');
+
+    geolocateControl.on('geolocate', (pos) => {
+      const positionPayload = pos as unknown as { coords?: { latitude: number; longitude: number } };
+      if (positionPayload.coords) {
+        const roundedLat = Number(positionPayload.coords.latitude.toFixed(6));
+        const roundedLng = Number(positionPayload.coords.longitude.toFixed(6));
+        this.formLatitude.set(roundedLat);
+        this.formLongitude.set(roundedLng);
+        if (this.pickerMarker) {
+          this.pickerMarker.setLngLat([roundedLng, roundedLat]);
+        }
+      }
+    });
 
     const marker = new Marker({
       draggable: true,
@@ -488,6 +511,70 @@ export class AdminPoisPage implements OnInit, ViewWillEnter, OnDestroy {
             this.showToast.set(true);
           },
         });
+    }
+  }
+
+  /**
+   * Obtiene la posición GPS actual del dispositivo y sincroniza el puntero del mapa y los campos del formulario.
+   */
+  public async loadCurrentGpsLocation(): Promise<void> {
+    this.isLocatingGps.set(true);
+    try {
+      let lat: number | null = null;
+      let lng: number | null = null;
+
+      try {
+        const pos = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 5000,
+        });
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+      } catch {
+        // Fallback resiliente a la API nativa de geolocalización del navegador
+        if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+          const browserPos = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+            });
+          });
+          lat = browserPos.coords.latitude;
+          lng = browserPos.coords.longitude;
+        }
+      }
+
+      if (lat !== null && lng !== null) {
+        const roundedLat = Number(lat.toFixed(6));
+        const roundedLng = Number(lng.toFixed(6));
+
+        this.formLatitude.set(roundedLat);
+        this.formLongitude.set(roundedLng);
+
+        if (this.pickerMarker) {
+          this.pickerMarker.setLngLat([roundedLng, roundedLat]);
+        }
+        if (this.pickerMap) {
+          this.pickerMap.flyTo({
+            center: [roundedLng, roundedLat],
+            zoom: 17,
+            essential: true,
+          });
+        }
+
+        this.toastMessage.set('Ubicación GPS obtenida y fijada en el mapa con éxito.');
+        this.showToast.set(true);
+      } else {
+        throw new Error('Coordenadas GPS no disponibles');
+      }
+    } catch {
+      this.toastMessage.set(
+        'No fue posible obtener la ubicación GPS. Verifique los permisos del dispositivo o fíjela manualmente.',
+      );
+      this.showToast.set(true);
+    } finally {
+      this.isLocatingGps.set(false);
     }
   }
 }

@@ -366,9 +366,9 @@ export class AdminLogPage implements OnInit, ViewWillEnter {
   public getStatusLabel(status: ItineraryStatus): string {
     switch (status) {
       case ItineraryStatus.COMPLETED:
-        return 'Completado';
+        return 'Finalizado';
       case ItineraryStatus.IN_PROGRESS:
-        return 'En curso';
+        return 'En progreso';
       case ItineraryStatus.DELAYED:
         return 'Retrasado';
       default:

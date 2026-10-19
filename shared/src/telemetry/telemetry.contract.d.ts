@@ -16,6 +16,7 @@ export interface TelemetryPayload extends GpsLocation {
     sosMessage?: string | null;
 }
 export interface SosAlertPayload {
+    id?: string;
     userId: string;
     fullName: string;
     role: string;

@@ -284,8 +284,52 @@
 .map-picker-header {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  margin-bottom: 2px;
+  gap: 6px;
+  margin-bottom: 4px;
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+
+.btn-gps-autofill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: var(--app-radius-pill, 9999px);
+  background: var(--app-primary-tint, #EEF2FF);
+  color: var(--app-primary, #3B5BDB);
+  border: 1px solid rgb(59 91 219 / 20%);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--app-primary, #3B5BDB);
+    color: #FFF;
+    border-color: var(--app-primary, #3B5BDB);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &__icon {
+    font-size: 14px;
+  }
+
+  &__spinner {
+    width: 14px;
+    height: 14px;
+    color: var(--app-primary, #3B5BDB);
+  }
 }
 
 .map-picker-hint {

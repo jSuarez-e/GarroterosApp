@@ -9,8 +9,9 @@
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { RoutesService } from './routes.service';
 import { UserRole, UserStatus, IUser } from './auth.service';
 import {
   SosAlertStatus,
@@ -151,6 +152,7 @@ export interface AdminUpdatePoiDto {
 })
 export class AdminService {
   private readonly http = inject(HttpClient);
+  private readonly routesService = inject(RoutesService);
   private readonly baseAdminUrl = `${environment.apiUrl}/admin`;
 
   // === USUARIOS ===
@@ -245,7 +247,9 @@ export class AdminService {
    * @returns Observable con el hito creado.
    */
   createLogEntry(dto: CreateRouteLogEntryDto): Observable<IRouteLogEntry> {
-    return this.http.post<IRouteLogEntry>(`${this.baseAdminUrl}/log`, dto);
+    return this.http.post<IRouteLogEntry>(`${this.baseAdminUrl}/log`, dto).pipe(
+      tap(() => this.routesService.clearCache()),
+    );
   }
 
   /**
@@ -255,7 +259,9 @@ export class AdminService {
    * @returns Observable con el hito actualizado.
    */
   updateLogEntry(id: string, dto: UpdateRouteLogEntryDto): Observable<IRouteLogEntry> {
-    return this.http.put<IRouteLogEntry>(`${this.baseAdminUrl}/log/${id}`, dto);
+    return this.http.put<IRouteLogEntry>(`${this.baseAdminUrl}/log/${id}`, dto).pipe(
+      tap(() => this.routesService.clearCache()),
+    );
   }
 
   /**
@@ -264,7 +270,9 @@ export class AdminService {
    * @returns Observable con la confirmación.
    */
   deleteLogEntry(id: string): Observable<{ success: boolean }> {
-    return this.http.delete<{ success: boolean }>(`${this.baseAdminUrl}/log/${id}`);
+    return this.http.delete<{ success: boolean }>(`${this.baseAdminUrl}/log/${id}`).pipe(
+      tap(() => this.routesService.clearCache()),
+    );
   }
 
   // === NOTAS COLABORATIVAS ===
@@ -326,7 +334,9 @@ export class AdminService {
    * @returns Observable con el POI creado.
    */
   createPoi(dto: AdminCreatePoiDto): Observable<AdminPoi> {
-    return this.http.post<AdminPoi>(`${this.baseAdminUrl}/pois`, dto);
+    return this.http.post<AdminPoi>(`${this.baseAdminUrl}/pois`, dto).pipe(
+      tap(() => this.routesService.clearCache()),
+    );
   }
 
   /**
@@ -336,7 +346,9 @@ export class AdminService {
    * @returns Observable con el POI actualizado.
    */
   updatePoi(id: string, dto: AdminUpdatePoiDto): Observable<AdminPoi> {
-    return this.http.put<AdminPoi>(`${this.baseAdminUrl}/pois/${id}`, dto);
+    return this.http.put<AdminPoi>(`${this.baseAdminUrl}/pois/${id}`, dto).pipe(
+      tap(() => this.routesService.clearCache()),
+    );
   }
 
   /**
@@ -345,7 +357,9 @@ export class AdminService {
    * @returns Observable con la confirmación.
    */
   deletePoi(id: string): Observable<{ success: boolean }> {
-    return this.http.delete<{ success: boolean }>(`${this.baseAdminUrl}/pois/${id}`);
+    return this.http.delete<{ success: boolean }>(`${this.baseAdminUrl}/pois/${id}`).pipe(
+      tap(() => this.routesService.clearCache()),
+    );
   }
 
   // === GESTIÓN DE ALERTAS Y EMERGENCIAS SOS ===

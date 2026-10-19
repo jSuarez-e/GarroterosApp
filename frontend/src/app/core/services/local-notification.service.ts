@@ -32,6 +32,7 @@ export class LocalNotificationService {
   private readonly router = inject(Router);
 
   private isInitialized = false;
+  private readonly notifiedSosAlertIds = new Set<string>();
 
   /**
    * Inicializa canales de notificación Android y registra la escucha de eventos WebSocket.
@@ -93,6 +94,21 @@ export class LocalNotificationService {
   private setupSocketListeners(): void {
     // Escucha de alertas SOS de emergencia
     this.socketService.on<SosAlertPayload>('sos_broadcast', async (alertPayload) => {
+      // Deduplicación en cliente: evitar despachar múltiples notificaciones push locales por el mismo incidente
+      const alertId = alertPayload.id || `${alertPayload.userId}_${alertPayload.timestamp}`;
+      if (this.notifiedSosAlertIds.has(alertId)) {
+        return;
+      }
+      this.notifiedSosAlertIds.add(alertId);
+
+      // Limitar el tamaño del Set para prevenir fugas de memoria
+      if (this.notifiedSosAlertIds.size > 100) {
+        const oldestEntry = this.notifiedSosAlertIds.values().next().value;
+        if (oldestEntry) {
+          this.notifiedSosAlertIds.delete(oldestEntry);
+        }
+      }
+
       if (!this.shouldUserReceiveGuideAlert(alertPayload.assignedGuideEmails, alertPayload.assignedGuideUserIds)) {
         return;
       }

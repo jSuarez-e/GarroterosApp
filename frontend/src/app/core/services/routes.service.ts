@@ -142,11 +142,12 @@ export class RoutesService {
   }
 
   /**
-   * Invalida y reinicia la caché en memoria de waypoints y trazado de ruta.
+   * Invalida y reinicia la caché en memoria de waypoints, trazado de ruta e itinerario.
    */
   public clearCache(): void {
     this.waypoints.set([]);
     this.routePath.set(null);
+    this.itinerary.set([]);
   }
 
   /**

@@ -158,10 +158,27 @@
           <!-- Selector Interactivo en Mapa con Puntero -->
           <div class="form-group">
             <div class="map-picker-header">
-              <label class="form-group__label">Ubicación Geográfica en Mapa</label>
+              <div class="map-picker-header__title-row">
+                <label class="form-group__label">Ubicación Geográfica en Mapa</label>
+                <button
+                  type="button"
+                  id="btnLoadGpsLocation"
+                  class="btn-gps-autofill"
+                  [disabled]="isLocatingGps()"
+                  (click)="loadCurrentGpsLocation()"
+                >
+                  @if (isLocatingGps()) {
+                    <ion-spinner name="crescent" class="btn-gps-autofill__spinner"></ion-spinner>
+                    <span>Cargando GPS...</span>
+                  } @else {
+                    <ion-icon name="locate-outline" class="btn-gps-autofill__icon"></ion-icon>
+                    <span>Cargar mi punto GPS</span>
+                  }
+                </button>
+              </div>
               <span class="map-picker-hint">
-                <ion-icon name="locate-outline"></ion-icon>
-                Haz clic en el mapa o arrastra el puntero azul para fijar las coordenadas
+                <ion-icon name="information-circle-outline"></ion-icon>
+                Haz clic en el mapa, arrastra el puntero azul o presiona "Cargar mi punto GPS"
               </span>
             </div>
             <div id="poiPickerMapContainer" #poiMapContainer class="poi-picker-map"></div>

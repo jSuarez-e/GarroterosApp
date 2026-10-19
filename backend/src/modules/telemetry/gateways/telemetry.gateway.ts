@@ -317,7 +317,21 @@ export class TelemetryGateway implements OnGatewayConnection, OnGatewayDisconnec
       timestamp: data.timestamp || Date.now(),
     });
 
-    // Consultar la ruta activa y sus guías asignados
+    // Difusión enriquecida con los guías asignados a la ruta activa
+    await this.broadcastSosAlert(payload, alertRecord.id, sanitizedMessage);
+  }
+
+  /**
+   * Difunde una alerta SOS a todos los clientes conectados, adjuntando la lista de guías asignados a la ruta activa.
+   * @param payload Datos de telemetría del usuario emisor.
+   * @param alertId UUID de la alerta persistida en base de datos.
+   * @param message Mensaje descriptivo de la emergencia.
+   */
+  async broadcastSosAlert(
+    payload: RedisTelemetryPayload,
+    alertId: string,
+    message: string,
+  ): Promise<void> {
     const activeRoute = await this.routeRepository.findOne({
       where: { isActive: true },
       relations: { guides: true },
@@ -327,17 +341,18 @@ export class TelemetryGateway implements OnGatewayConnection, OnGatewayDisconnec
       ? activeRoute.guides.map((guide) => guide.email.toLowerCase())
       : [];
     const assignedGuideUserIds = activeRoute?.guides
-      ? (activeRoute.guides.map((guide) => guide.userId).filter((id): id is string => Boolean(id)))
+      ? activeRoute.guides.map((guide) => guide.userId).filter((id): id is string => Boolean(id))
       : [];
 
-    // Emision con canal prioritario a toda la sala
-    this.server.emit('sos_broadcast', {
-      ...payload,
-      id: alertRecord.id,
-      message: sanitizedMessage,
-      assignedGuideEmails,
-      assignedGuideUserIds,
-    });
+    if (this.server) {
+      this.server.emit('sos_broadcast', {
+        ...payload,
+        id: alertId,
+        message,
+        assignedGuideEmails,
+        assignedGuideUserIds,
+      });
+    }
   }
 
   /**

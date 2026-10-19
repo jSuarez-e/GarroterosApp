@@ -121,6 +121,21 @@ export class AdminAlertsService {
    * @returns Alerta persistida.
    */
   async createAlertFromTrigger(data: CreateSosAlertTriggerData): Promise<SosAlert> {
+    // Idempotencia: evitar duplicados si ya existe una alerta PENDING del mismo usuario en los últimos 15 segundos
+    const fifteenSecondsAgo = new Date(Date.now() - 15000);
+    const existingAlert = await this.sosAlertRepository.findOne({
+      where: {
+        userId: data.userId,
+        status: SosAlertStatus.PENDING,
+      },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (existingAlert && existingAlert.createdAt >= fifteenSecondsAgo) {
+      this.logger.warn(`[SosAlert Deduplicada] Reutilizando alerta reciente ID: ${existingAlert.id} para usuario ${data.userId}`);
+      return existingAlert;
+    }
+
     const user = await this.userRepository.findOne({ where: { id: data.userId } });
 
     const alert = this.sosAlertRepository.create({

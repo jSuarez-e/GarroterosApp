@@ -74,6 +74,10 @@ export interface TelemetryPayload extends GpsLocation {
  */
 export interface SosAlertPayload {
   /**
+   * Identificador único de la alerta persistida en base de datos.
+   */
+  id?: string;
+  /**
    *
    */
   userId: string;

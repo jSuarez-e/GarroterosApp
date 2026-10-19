@@ -209,8 +209,8 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
 
     mapInstance.on('load', () => {
       this.isMapLoaded.set(true);
-      this.loadRouteLine();
-      this.loadPoiMarkers();
+      this.loadRouteLine(true);
+      this.loadPoiMarkers(true);
       this.setupParticipantsTracking();
       const currentLoc = this.telemetryService.currentLocation();
       if (currentLoc) {

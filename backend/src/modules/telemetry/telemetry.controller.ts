@@ -129,14 +129,8 @@ export class TelemetryController {
 
     const mappedEntry = this.adminAlertsService.mapToEntry(alertRecord);
 
-    // 3. Emitir via WebSocket a todos los clientes (guias, administradores, sala general)
-    if (this.telemetryGateway.server) {
-      this.telemetryGateway.server.emit('sos_broadcast', {
-        ...payload,
-        id: alertRecord.id,
-        message: sanitizedMessage,
-      });
-    }
+    // 3. Emitir via WebSocket enriqueciendo la alerta con los guías asignados a la ruta activa
+    await this.telemetryGateway.broadcastSosAlert(payload, alertRecord.id, sanitizedMessage);
 
     return mappedEntry;
   }

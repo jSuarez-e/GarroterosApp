@@ -15,7 +15,7 @@ import { SocketService } from './socket.service';
 import { AuthService } from './auth.service';
 import { AppLogger } from '../utils/logger';
 import { environment } from '../../../environments/environment';
-import type { ISosAlertEntry, CreateSosTriggerDto } from '../../../../../shared/src/index';
+import { SosAlertStatus, type ISosAlertEntry, type CreateSosTriggerDto } from '../../../../../shared/src/index';
 
 export interface GpsLocation {
   latitude: number;
@@ -325,31 +325,70 @@ export class TelemetryService {
       timestamp: Date.now(),
     };
 
-    // 1. Enviar prioritariamente via HTTP POST para garantizar persistencia en BD y registro de red
-    const result = await firstValueFrom(
-      this.http.post<ISosAlertEntry>(`${environment.apiUrl}/telemetry/sos`, payload),
-    );
+    // 1. Enviar prioritariamente via HTTP POST para garantizar persistencia en BD y difusion oficial
+    try {
+      const result = await firstValueFrom(
+        this.http.post<ISosAlertEntry>(`${environment.apiUrl}/telemetry/sos`, payload),
+      );
 
-    // 2. Emitir adicionalmente via WebSocket para difusion sub-milisegundo si hay canal activo
-    this.socketService.emit('sos_trigger', payload);
+      // 2. Actualizar estado local reactivo
+      const alertPayload: SosAlertPayload = {
+        userId: currentUser?.id || result.userId,
+        fullName: currentUser?.fullName || result.userName,
+        role: currentUser?.role || 'USER',
+        latitude: lat,
+        longitude: lng,
+        altitude,
+        batteryLevel,
+        isSos: true,
+        sosMessage: message,
+        timestamp: payload.timestamp || Date.now(),
+        message,
+      };
+      this.activeSosAlert.set(alertPayload);
 
-    // 3. Actualizar estado local reactivo
-    const alertPayload: SosAlertPayload = {
-      userId: currentUser?.id || result.userId,
-      fullName: currentUser?.fullName || result.userName,
-      role: currentUser?.role || 'USER',
-      latitude: lat,
-      longitude: lng,
-      altitude,
-      batteryLevel,
-      isSos: true,
-      sosMessage: message,
-      timestamp: payload.timestamp || Date.now(),
-      message,
-    };
-    this.activeSosAlert.set(alertPayload);
-
-    return result;
+      return result;
+    } catch (httpError) {
+      // 3. Fallback de contingencia: si HTTP falla y el socket está activo, emitir vía WebSocket
+      if (this.socketService.isConnected()) {
+        AppLogger.warn('[Telemetry] Fallo HTTP SOS. Transmitiendo por canal de contingencia WebSocket.');
+        this.socketService.emit('sos_trigger', payload);
+        const fallbackResult: ISosAlertEntry = {
+          id: `fallback-${Date.now()}`,
+          userId: currentUser?.id || 'unknown',
+          userName: currentUser?.fullName || 'Usuario',
+          userEmail: currentUser?.email || null,
+          userPhone: currentUser?.phone || null,
+          latitude: lat,
+          longitude: lng,
+          altitude,
+          batteryLevel,
+          message,
+          status: SosAlertStatus.PENDING,
+          createdAt: new Date().toISOString(),
+          resolvedAt: null,
+          resolvedById: null,
+          resolvedByName: null,
+          resolutionNote: null,
+        };
+        const alertPayload: SosAlertPayload = {
+          userId: fallbackResult.userId,
+          fullName: fallbackResult.userName,
+          role: currentUser?.role || 'USER',
+          latitude: lat,
+          longitude: lng,
+          altitude,
+          batteryLevel,
+          isSos: true,
+          sosMessage: message,
+          timestamp: payload.timestamp || Date.now(),
+          message,
+        };
+        this.activeSosAlert.set(alertPayload);
+        return fallbackResult;
+      }
+      throw httpError;
+    }
   }
 
   /**

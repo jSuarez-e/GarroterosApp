@@ -10,9 +10,11 @@ import {
   Component,
   ChangeDetectionStrategy,
   OnInit,
+  OnDestroy,
   inject,
   signal,
   computed,
+  effect,
   DestroyRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -48,6 +50,9 @@ import {
   searchOutline,
   radioOutline,
   walkOutline,
+  timerOutline,
+  alarmOutline,
+  calendarOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../core/services/auth.service';
 import { RoutesService } from '../core/services/routes.service';
@@ -55,7 +60,6 @@ import {
   HeroBannerComponent,
   InfoCardComponent,
   SegmentedPillComponent,
-  StatBadgeComponent,
   type SegmentedPillOption,
 } from '../shared/components';
 
@@ -81,11 +85,10 @@ import {
     HeroBannerComponent,
     InfoCardComponent,
     SegmentedPillComponent,
-    StatBadgeComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomePage implements OnInit, ViewWillEnter {
+export class HomePage implements OnInit, ViewWillEnter, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly routesService = inject(RoutesService);
   private readonly destroyRef = inject(DestroyRef);
@@ -149,13 +152,51 @@ export class HomePage implements OnInit, ViewWillEnter {
   });
 
   public readonly firstDepartureTime = computed(() => {
-    const it = this.itinerary();
-    return it.length > 0 ? it[0].plannedTime : '08:30 AM';
+    const itineraryItems = this.itinerary();
+    return itineraryItems.length > 0 ? itineraryItems[0].plannedTime : '08:30 AM';
   });
 
   public readonly hasActiveRoute = computed(() => {
     return this.isAdmin() || Boolean(this.currentUser()?.routeId);
   });
+
+  /**
+   * Indica si la hora programada de encuentro ya transcurrió en el ciclo activo.
+   */
+  public readonly isMeetingTimePassed = signal<boolean>(false);
+
+  /**
+   * Texto formateado de la cuenta regresiva para iniciar la ruta (HHh MMm SSs).
+   */
+  public readonly countdownText = signal<string>('00h 00m 00s');
+
+  /**
+   * Fecha y hora objetivo de inicio calculada.
+   */
+  public readonly targetDepartureDate = signal<Date | null>(null);
+
+  /**
+   * Fecha formateada de la salida programada (ej. '18 Oct 2026').
+   */
+  public readonly startDateFormatted = computed(() => {
+    const targetDate = this.targetDepartureDate();
+    const dateToFormat = targetDate || new Date();
+    const day = String(dateToFormat.getDate()).padStart(2, '0');
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const month = months[dateToFormat.getMonth()];
+    const year = dateToFormat.getFullYear();
+    return `${day} ${month} ${year}`;
+  });
+
+  /**
+   * Visibilidad de la tarjeta de aviso de salida y tiempo de encuentro.
+   * Se oculta automáticamente cuando la cuenta regresiva llega a 00:00:00.
+   */
+  public readonly isMeetingCardVisible = computed(() => {
+    return !this.isMeetingTimePassed() && this.hasActiveRoute();
+  });
+
+  private countdownTimerId: ReturnType<typeof setInterval> | null = null;
 
   public readonly routeTitle = computed(() => {
     if (!this.hasActiveRoute()) {
@@ -191,15 +232,132 @@ export class HomePage implements OnInit, ViewWillEnter {
       searchOutline,
       radioOutline,
       walkOutline,
+      timerOutline,
+      alarmOutline,
+      calendarOutline,
+    });
+
+    effect(() => {
+      const departureTime = this.firstDepartureTime();
+      if (departureTime) {
+        this.targetDepartureDate.set(this.calculateTargetMeetingDate(departureTime));
+        this.updateCountdown();
+      }
     });
   }
 
   public ngOnInit(): void {
     this.fetchHomeData();
+    this.startCountdownTimer();
   }
 
   public ionViewWillEnter(): void {
     this.fetchHomeData(true);
+    this.startCountdownTimer();
+  }
+
+  public ngOnDestroy(): void {
+    this.clearCountdownTimer();
+  }
+
+  /**
+   * Inicia el temporizador de cuenta regresiva hacia la hora de inicio de la ruta.
+   */
+  public startCountdownTimer(): void {
+    this.clearCountdownTimer();
+    this.targetDepartureDate.set(this.calculateTargetMeetingDate(this.firstDepartureTime()));
+    this.updateCountdown();
+    this.countdownTimerId = setInterval(() => {
+      this.updateCountdown();
+    }, 1000);
+  }
+
+  /**
+   * Limpia el temporizador activo para prevenir fugas de memoria.
+   */
+  public clearCountdownTimer(): void {
+    if (this.countdownTimerId) {
+      clearInterval(this.countdownTimerId);
+      this.countdownTimerId = null;
+    }
+  }
+
+  /**
+   * Actualiza el contador de tiempo restante hacia la salida.
+   * Si el tiempo llega a cero, oculta la tarjeta reactivamente.
+   */
+  public updateCountdown(): void {
+    if (!this.targetDepartureDate()) {
+      this.targetDepartureDate.set(this.calculateTargetMeetingDate(this.firstDepartureTime()));
+    }
+
+    const currentTarget = this.targetDepartureDate();
+
+    if (!currentTarget) {
+      this.isMeetingTimePassed.set(true);
+      this.clearCountdownTimer();
+      return;
+    }
+
+    const currentTime = new Date();
+    const differenceMilliseconds = currentTarget.getTime() - currentTime.getTime();
+
+    if (differenceMilliseconds <= 0) {
+      this.countdownText.set('00h 00m 00s');
+      this.isMeetingTimePassed.set(true);
+      this.clearCountdownTimer();
+      return;
+    }
+
+    const totalSeconds = Math.floor(differenceMilliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    const formattedSeconds = String(seconds).padStart(2, '0');
+
+    this.countdownText.set(`${formattedHours}h ${formattedMinutes}m ${formattedSeconds}s`);
+    this.isMeetingTimePassed.set(false);
+  }
+
+  /**
+   * Resuelve la fecha y hora de la próxima salida a partir de una cadena horaria.
+   * Si la hora ya transcurrió en el día de hoy, proyecta la cita para la jornada siguiente.
+   * @param timeString Hora en formato HH:mm o HH:mm AM/PM.
+   * @returns Instancia Date con la hora programada o null si no es válida.
+   */
+  public calculateTargetMeetingDate(timeString: string): Date | null {
+    if (!timeString) {
+      return null;
+    }
+
+    const cleanedTimeString = timeString.trim();
+    const timeRegexMatch = cleanedTimeString.match(/^(\d{1,2}):(\d{2})(?:\s*([APap][Mm]))?$/);
+    if (!timeRegexMatch) {
+      return null;
+    }
+
+    let parsedHours = parseInt(timeRegexMatch[1], 10);
+    const parsedMinutes = parseInt(timeRegexMatch[2], 10);
+    const amPmModifier = timeRegexMatch[3]?.toUpperCase();
+
+    if (amPmModifier === 'PM' && parsedHours < 12) {
+      parsedHours += 12;
+    } else if (amPmModifier === 'AM' && parsedHours === 12) {
+      parsedHours = 0;
+    }
+
+    const calculatedTarget = new Date();
+    calculatedTarget.setHours(parsedHours, parsedMinutes, 0, 0);
+
+    const currentTime = new Date();
+    if (calculatedTarget.getTime() <= currentTime.getTime()) {
+      calculatedTarget.setDate(calculatedTarget.getDate() + 1);
+    }
+
+    return calculatedTarget;
   }
 
   /**
@@ -255,5 +413,25 @@ export class HomePage implements OnInit, ViewWillEnter {
    */
   public onTabChange(tabId: string): void {
     this.activeTab.set(tabId);
+  }
+
+  /**
+   * Retorna la etiqueta localizada en español para el estado del hito en el itinerario.
+   * @param status Estado en formato enum del hito.
+   * @returns Etiqueta amigable en español.
+   */
+  public getItineraryStatusLabel(status?: string | null): string {
+    switch (status) {
+      case 'COMPLETED':
+      case 'FINISHED':
+        return 'Finalizado';
+      case 'IN_PROGRESS':
+        return 'En progreso';
+      case 'DELAYED':
+        return 'Retrasado';
+      case 'PENDING':
+      default:
+        return 'Pendiente';
+    }
   }
 }

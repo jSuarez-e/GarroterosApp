@@ -23,21 +23,12 @@
   <!-- Banner Curvo Hero estilo Mockup -->
   <app-hero-banner
     [title]="'¡Hola, ' + (currentUser()?.fullName || 'Visitante') + '!'"
-    [subtitle]="hasActiveRoute() ? 'Descubre la riqueza histórica y cultural de Piedecuesta' : 'Actualmente no tienes un recorrido activo asignado'"
-    [badgeText]="hasActiveRoute() ? (routePath() ? 'Guianza Activa' : 'Explora Piedecuesta') : 'Sin Asignación'"
     iconName="trail-sign-outline"
   >
     <div class="home-hero-stats">
       <span class="home-hero-stats__chip">
         <ion-icon name="compass-outline" class="home-hero-stats__icon"></ion-icon>
         <span class="home-hero-stats__text">{{ routeTitle() }}</span>
-      </span>
-      <span
-        class="home-hero-stats__role"
-        [class.home-hero-stats__role--admin]="isAdmin()"
-        [class.home-hero-stats__role--guide]="isGuide()"
-      >
-        {{ currentUser()?.role || 'TURISTA' }}
       </span>
     </div>
   </app-hero-banner>
@@ -76,39 +67,112 @@
       <!-- Contenido dinamico segun la pestaña seleccionada -->
       @switch (activeTab()) {
       @case ('recorrido') {
-        <!-- Tarjeta de Metricas Rapidas (Grid 2 columnas) -->
-        <section class="gt-grid-two-cols">
-          <app-stat-badge
-            icon="footsteps-outline"
-            [value]="formattedDistance()"
-            label="Distancia Total"
-            variant="primary"
-          ></app-stat-badge>
-          <app-stat-badge
-            icon="time-outline"
-            [value]="formattedDuration()"
-            label="Tiempo Estimado"
-            variant="default"
-          ></app-stat-badge>
-          <app-stat-badge
-            icon="pin-outline"
-            [value]="poiCount()"
-            label="POIs Culturales"
-            variant="default"
-          ></app-stat-badge>
-          <app-stat-badge
-            icon="sunny-outline"
-            [value]="currentTemp()"
-            label="Temperatura"
-            variant="warning"
-          ></app-stat-badge>
-        </section>
+        <!-- Tarjeta Unificada de Información Importante de Ruta -->
+        <article class="home-route-info-card" aria-label="Información importante de la ruta">
+          <header class="home-route-info-card__header">
+            <h2 class="home-route-info-card__title">¡Información importante de Ruta!</h2>
+            @if (!isMeetingTimePassed()) {
+              <div class="home-route-info-card__notice-pill">
+                <ion-icon name="information-circle-outline" class="home-route-info-card__notice-icon"></ion-icon>
+                <span class="home-route-info-card__notice-text">
+                  Llegar con 15 minutos de anticipación al punto de encuentro
+                </span>
+              </div>
+            }
+          </header>
+
+          <div class="home-route-info-card__grid">
+            <!-- 1. Distancia Total -->
+            <div class="home-route-info-card__cell">
+              <div class="home-route-info-card__icon-wrap home-route-info-card__icon-wrap--primary">
+                <ion-icon name="footsteps-outline" class="home-route-info-card__icon"></ion-icon>
+              </div>
+              <div class="home-route-info-card__data">
+                <span class="home-route-info-card__value home-route-info-card__value--primary">{{ formattedDistance() }}</span>
+                <span class="home-route-info-card__label">Distancia Total</span>
+              </div>
+            </div>
+
+            <!-- 2. Tiempo Estimado -->
+            <div class="home-route-info-card__cell">
+              <div class="home-route-info-card__icon-wrap home-route-info-card__icon-wrap--default">
+                <ion-icon name="time-outline" class="home-route-info-card__icon"></ion-icon>
+              </div>
+              <div class="home-route-info-card__data">
+                <span class="home-route-info-card__value">{{ formattedDuration() }}</span>
+                <span class="home-route-info-card__label">Tiempo Estimado</span>
+              </div>
+            </div>
+
+            <!-- 3. Puntos de Interés -->
+            <div class="home-route-info-card__cell">
+              <div class="home-route-info-card__icon-wrap home-route-info-card__icon-wrap--default">
+                <ion-icon name="pin-outline" class="home-route-info-card__icon"></ion-icon>
+              </div>
+              <div class="home-route-info-card__data">
+                <span class="home-route-info-card__value">{{ poiCount() }}</span>
+                <span class="home-route-info-card__label">Puntos de Interés</span>
+              </div>
+            </div>
+
+            <!-- 4. Temperatura -->
+            <div class="home-route-info-card__cell">
+              <div class="home-route-info-card__icon-wrap home-route-info-card__icon-wrap--warning">
+                <ion-icon name="sunny-outline" class="home-route-info-card__icon"></ion-icon>
+              </div>
+              <div class="home-route-info-card__data">
+                <span class="home-route-info-card__value">{{ currentTemp() }}</span>
+                <span class="home-route-info-card__label">Temperatura</span>
+              </div>
+            </div>
+
+            <!-- 5. Hora de Inicio -->
+            <div class="home-route-info-card__cell">
+              <div class="home-route-info-card__icon-wrap home-route-info-card__icon-wrap--primary">
+                <ion-icon name="alarm-outline" class="home-route-info-card__icon"></ion-icon>
+              </div>
+              <div class="home-route-info-card__data">
+                <span class="home-route-info-card__value home-route-info-card__value--primary">{{ firstDepartureTime() }}</span>
+                <span class="home-route-info-card__label">Hora de Inicio</span>
+              </div>
+            </div>
+
+            <!-- 6. Fecha de Inicio -->
+            <div class="home-route-info-card__cell">
+              <div class="home-route-info-card__icon-wrap home-route-info-card__icon-wrap--default">
+                <ion-icon name="calendar-outline" class="home-route-info-card__icon"></ion-icon>
+              </div>
+              <div class="home-route-info-card__data">
+                <span class="home-route-info-card__value">{{ startDateFormatted() }}</span>
+                <span class="home-route-info-card__label">Fecha de Inicio</span>
+              </div>
+            </div>
+
+            <!-- 7. Tiempo Restante (ocupa el espacio por dos) -->
+            @if (!isMeetingTimePassed()) {
+              <div class="home-route-info-card__cell home-route-info-card__cell--full">
+                <div class="home-route-info-card__countdown-info">
+                  <div class="home-route-info-card__icon-wrap home-route-info-card__icon-wrap--highlight">
+                    <ion-icon name="timer-outline" class="home-route-info-card__icon"></ion-icon>
+                  </div>
+                  <div class="home-route-info-card__data">
+                    <span class="home-route-info-card__label">Tiempo para Iniciar</span>
+                    <span class="home-route-info-card__sublabel">Encuentro programado</span>
+                  </div>
+                </div>
+                <div class="home-route-info-card__countdown-badge">
+                  <span class="home-route-info-card__countdown-val">{{ countdownText() }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </article>
 
         <!-- Tarjeta de Itinerario Principal estilo Flight Ticket -->
         <app-info-card
           [title]="routeTitle()"
           [subtitle]="routeSubtitle()"
-          [badge]="routePath() ? 'En Curso' : 'Sin Ruta'"
+          [badge]="routePath() ? 'En progreso' : 'Sin Ruta'"
           badgeColor="success"
           icon="map-outline"
         >
@@ -177,7 +241,7 @@
                         [class.itinerary-milestone__status--in-progress]="item.status === 'IN_PROGRESS'"
                         [class.itinerary-milestone__status--delayed]="item.status === 'DELAYED'"
                       >
-                        {{ item.status }}
+                        {{ getItineraryStatusLabel(item.status) }}
                       </span>
                     </div>
                     @if (item.notes) {

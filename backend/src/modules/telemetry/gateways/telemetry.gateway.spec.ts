@@ -138,4 +138,40 @@ describe('TelemetryGateway', () => {
       assignedGuideUserIds: ['user-julio', 'user-mayerly'],
     });
   });
+
+  it('debe difundir broadcastSosAlert enriqueciendo el payload con guías asignados a la ruta', async () => {
+    const mockGuides = [
+      { id: 'g-3', email: 'daniel@garroterosapp.com', userId: 'user-daniel' } as Guide,
+    ];
+
+    const mockActiveRoute = {
+      id: 'route-active-2',
+      name: 'Ruta Piedecuesta Alta',
+      isActive: true,
+      guides: mockGuides,
+    } as Route;
+
+    vi.mocked(mockRouteRepo.findOne!).mockResolvedValue(mockActiveRoute);
+
+    const payload = {
+      userId: 'user-sender-1',
+      fullName: 'Carlos Hiker',
+      role: 'USER',
+      latitude: 6.99,
+      longitude: -73.04,
+      isSos: true,
+      sosMessage: 'Ayuda inmediata',
+      timestamp: 1700000000000,
+    };
+
+    await gateway.broadcastSosAlert(payload, 'alert-test-id-99', 'Ayuda inmediata');
+
+    expect(mockServer.emit).toHaveBeenCalledWith('sos_broadcast', {
+      ...payload,
+      id: 'alert-test-id-99',
+      message: 'Ayuda inmediata',
+      assignedGuideEmails: ['daniel@garroterosapp.com'],
+      assignedGuideUserIds: ['user-daniel'],
+    });
+  });
 });
