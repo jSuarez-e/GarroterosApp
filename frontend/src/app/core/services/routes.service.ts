@@ -35,6 +35,8 @@ export class RoutesService {
   public itinerary = signal<IRouteLogEntry[]>([]);
   public isLoading = signal<boolean>(false);
 
+  private loadedRouteId: string | null = null;
+
   /**
    * Carga la lista de Puntos de Interes de la ruta desde el backend o cache, opcionalmente filtrada por routeId.
    * @param routeId Identificador UUID opcional de la ruta.
@@ -42,7 +44,8 @@ export class RoutesService {
    * @returns Observable con la lista de POIs.
    */
   public getWaypoints(routeId?: string, forceRefresh = false): Observable<PoiDto[]> {
-    if (!forceRefresh && !routeId && this.waypoints().length > 0) {
+    const targetRouteKey = routeId || null;
+    if (!forceRefresh && this.waypoints().length > 0 && this.loadedRouteId === targetRouteKey) {
       return of(this.waypoints());
     }
 
@@ -52,9 +55,8 @@ export class RoutesService {
 
     return this.http.get<PoiDto[]>(`${this.apiUrl}/waypoints`, { params }).pipe(
       tap((data) => {
-        if (!routeId) {
-          this.waypoints.set(data);
-        }
+        this.loadedRouteId = targetRouteKey;
+        this.waypoints.set(data);
         this.isLoading.set(false);
       }),
       catchError(() => {
@@ -70,7 +72,8 @@ export class RoutesService {
    * @param forceRefresh Indica si se debe omitir la cache en memoria.
    */
   public getRoutePath(routeId?: string, forceRefresh = false): Observable<RoutePathDto | null> {
-    if (!forceRefresh && !routeId && this.routePath()) {
+    const targetRouteKey = routeId || null;
+    if (!forceRefresh && this.routePath() && this.loadedRouteId === targetRouteKey) {
       return of(this.routePath());
     }
 
@@ -79,9 +82,8 @@ export class RoutesService {
 
     return this.http.get<RoutePathDto>(`${this.apiUrl}/path`, { params }).pipe(
       tap((data) => {
-        if (!routeId) {
-          this.routePath.set(data);
-        }
+        this.loadedRouteId = targetRouteKey;
+        this.routePath.set(data);
       }),
       catchError(() => of(null)),
     );
@@ -98,7 +100,7 @@ export class RoutesService {
 
     return this.http.get<WeatherReportDto>(`${this.apiUrl}/weather`).pipe(
       tap((data) => this.weather.set(data)),
-      catchError((error) => of(null)),
+      catchError(() => of(null)),
     );
   }
 
@@ -109,7 +111,8 @@ export class RoutesService {
    * @returns Observable con la lista de hitos.
    */
   public getItinerary(routeId?: string, forceRefresh = false): Observable<IRouteLogEntry[]> {
-    if (!forceRefresh && !routeId && this.itinerary().length > 0) {
+    const targetRouteKey = routeId || null;
+    if (!forceRefresh && this.itinerary().length > 0 && this.loadedRouteId === targetRouteKey) {
       return of(this.itinerary());
     }
 
@@ -118,7 +121,8 @@ export class RoutesService {
 
     return this.http.get<IRouteLogEntry[]>(`${this.apiUrl}/itinerary`, { params }).pipe(
       tap((data) => {
-        if (!routeId) this.itinerary.set(data);
+        this.loadedRouteId = targetRouteKey;
+        this.itinerary.set(data);
       }),
       catchError(() => of([])),
     );
@@ -145,6 +149,7 @@ export class RoutesService {
    * Invalida y reinicia la caché en memoria de waypoints, trazado de ruta e itinerario.
    */
   public clearCache(): void {
+    this.loadedRouteId = null;
     this.waypoints.set([]);
     this.routePath.set(null);
     this.itinerary.set([]);

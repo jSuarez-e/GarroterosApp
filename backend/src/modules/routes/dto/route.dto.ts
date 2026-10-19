@@ -85,6 +85,18 @@ export interface RoutePathDto {
    *
    */
   coordinates: [number, number][];
+  /**
+   * Hora de inicio programada del recorrido
+   */
+  startTime?: string | null;
+  /**
+   * Fecha de inicio programada (YYYY-MM-DD)
+   */
+  startDate?: string | null;
+  /**
+   * Fecha de finalización programada (YYYY-MM-DD)
+   */
+  endDate?: string | null;
 }
 
 /**

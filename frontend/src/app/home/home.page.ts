@@ -151,13 +151,41 @@ export class HomePage implements OnInit, ViewWillEnter, OnDestroy {
     return this.weather()?.current?.weatherDescription || 'Condiciones favorables para senderismo';
   });
 
+  /**
+   * Formatea una hora en formato de 12 horas con indicador AM/PM.
+   * @param timeString Hora en formato HH:mm o HH:mm AM/PM.
+   * @returns Cadena formateada amigable para la UI.
+   */
+  public formatTimeDisplay(timeString?: string | null): string {
+    if (!timeString) {
+      return '08:30 AM';
+    }
+    const cleaned = timeString.trim();
+    if (/[APap][Mm]/.test(cleaned)) {
+      return cleaned;
+    }
+    const match = cleaned.match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) {
+      return cleaned;
+    }
+    const hours = parseInt(match[1], 10);
+    const minutes = match[2];
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 === 0 ? 12 : hours % 12;
+    return `${String(displayHours).padStart(2, '0')}:${minutes} ${ampm}`;
+  }
+
   public readonly firstDepartureTime = computed(() => {
+    const routeStartTime = this.routePath()?.startTime;
+    if (routeStartTime) {
+      return this.formatTimeDisplay(routeStartTime);
+    }
     const itineraryItems = this.itinerary();
-    return itineraryItems.length > 0 ? itineraryItems[0].plannedTime : '08:30 AM';
+    return itineraryItems.length > 0 ? this.formatTimeDisplay(itineraryItems[0].plannedTime) : '08:30 AM';
   });
 
   public readonly hasActiveRoute = computed(() => {
-    return this.isAdmin() || Boolean(this.currentUser()?.routeId);
+    return this.isAdmin() || Boolean(this.currentUser()?.routeId || this.currentUser()?.route?.id);
   });
 
   /**
@@ -178,7 +206,35 @@ export class HomePage implements OnInit, ViewWillEnter, OnDestroy {
   /**
    * Fecha formateada de la salida programada (ej. '18 Oct 2026').
    */
+  /**
+   * Formatea una cadena de fecha YYYY-MM-DD en formato amigable 'DD Mes YYYY'.
+   * @param dateString Fecha en formato YYYY-MM-DD.
+   * @returns Cadena formateada amigable o texto original.
+   */
+  public formatDateDisplay(dateString?: string | null): string {
+    if (!dateString) {
+      return '';
+    }
+    const parts = dateString.trim().split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const monthIndex = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      const month = months[monthIndex] || '';
+      return `${String(day).padStart(2, '0')} ${month} ${year}`;
+    }
+    return dateString;
+  }
+
+  /**
+   * Fecha formateada de la salida programada (ej. '18 Oct 2026').
+   */
   public readonly startDateFormatted = computed(() => {
+    const routeStartDate = this.routePath()?.startDate;
+    if (routeStartDate) {
+      return this.formatDateDisplay(routeStartDate);
+    }
     const targetDate = this.targetDepartureDate();
     const dateToFormat = targetDate || new Date();
     const day = String(dateToFormat.getDate()).padStart(2, '0');
@@ -186,6 +242,34 @@ export class HomePage implements OnInit, ViewWillEnter, OnDestroy {
     const month = months[dateToFormat.getMonth()];
     const year = dateToFormat.getFullYear();
     return `${day} ${month} ${year}`;
+  });
+
+  /**
+   * Rango de fechas para mostrar en la interfaz (ej. '19 Oct 2026' o '19 Oct - 20 Oct 2026').
+   */
+  public readonly dateDisplayRange = computed(() => {
+    const routeStart = this.routePath()?.startDate;
+    const routeEnd = this.routePath()?.endDate;
+    if (!routeStart) {
+      return this.startDateFormatted();
+    }
+    const formattedStart = this.formatDateDisplay(routeStart);
+    if (routeEnd && routeEnd !== routeStart) {
+      const formattedEnd = this.formatDateDisplay(routeEnd);
+      return `${formattedStart} - ${formattedEnd}`;
+    }
+    return formattedStart;
+  });
+
+  /**
+   * Etiqueta descriptiva según si el recorrido es de un único día o rango de fechas.
+   */
+  public readonly dateLabel = computed(() => {
+    const routeStart = this.routePath()?.startDate;
+    const routeEnd = this.routePath()?.endDate;
+    return routeEnd && routeStart && routeEnd !== routeStart
+      ? 'Fechas del Recorrido'
+      : 'Fecha de Inicio';
   });
 
   /**
@@ -239,8 +323,9 @@ export class HomePage implements OnInit, ViewWillEnter, OnDestroy {
 
     effect(() => {
       const departureTime = this.firstDepartureTime();
+      const scheduledStartDate = this.routePath()?.startDate;
       if (departureTime) {
-        this.targetDepartureDate.set(this.calculateTargetMeetingDate(departureTime));
+        this.targetDepartureDate.set(this.calculateTargetMeetingDate(departureTime, scheduledStartDate));
         this.updateCountdown();
       }
     });
@@ -265,7 +350,9 @@ export class HomePage implements OnInit, ViewWillEnter, OnDestroy {
    */
   public startCountdownTimer(): void {
     this.clearCountdownTimer();
-    this.targetDepartureDate.set(this.calculateTargetMeetingDate(this.firstDepartureTime()));
+    this.targetDepartureDate.set(
+      this.calculateTargetMeetingDate(this.firstDepartureTime(), this.routePath()?.startDate),
+    );
     this.updateCountdown();
     this.countdownTimerId = setInterval(() => {
       this.updateCountdown();
@@ -288,7 +375,9 @@ export class HomePage implements OnInit, ViewWillEnter, OnDestroy {
    */
   public updateCountdown(): void {
     if (!this.targetDepartureDate()) {
-      this.targetDepartureDate.set(this.calculateTargetMeetingDate(this.firstDepartureTime()));
+      this.targetDepartureDate.set(
+        this.calculateTargetMeetingDate(this.firstDepartureTime(), this.routePath()?.startDate),
+      );
     }
 
     const currentTarget = this.targetDepartureDate();
@@ -323,12 +412,13 @@ export class HomePage implements OnInit, ViewWillEnter, OnDestroy {
   }
 
   /**
-   * Resuelve la fecha y hora de la próxima salida a partir de una cadena horaria.
-   * Si la hora ya transcurrió en el día de hoy, proyecta la cita para la jornada siguiente.
+   * Resuelve la fecha y hora de la próxima salida a partir de una cadena horaria y fecha opcional.
+   * Si se provee dateString (YYYY-MM-DD), targetea esa fecha exacta. De lo contrario, proyecta hoy o mañana.
    * @param timeString Hora en formato HH:mm o HH:mm AM/PM.
+   * @param dateString Fecha en formato YYYY-MM-DD opcional.
    * @returns Instancia Date con la hora programada o null si no es válida.
    */
-  public calculateTargetMeetingDate(timeString: string): Date | null {
+  public calculateTargetMeetingDate(timeString: string, dateString?: string | null): Date | null {
     if (!timeString) {
       return null;
     }
@@ -349,6 +439,16 @@ export class HomePage implements OnInit, ViewWillEnter, OnDestroy {
       parsedHours = 0;
     }
 
+    if (dateString) {
+      const dateParts = dateString.trim().split('-');
+      if (dateParts.length === 3) {
+        const year = parseInt(dateParts[0], 10);
+        const monthIndex = parseInt(dateParts[1], 10) - 1;
+        const day = parseInt(dateParts[2], 10);
+        return new Date(year, monthIndex, day, parsedHours, parsedMinutes, 0, 0);
+      }
+    }
+
     const calculatedTarget = new Date();
     calculatedTarget.setHours(parsedHours, parsedMinutes, 0, 0);
 
@@ -367,7 +467,7 @@ export class HomePage implements OnInit, ViewWillEnter, OnDestroy {
    */
   public fetchHomeData(forceRefresh = false): void {
     const user = this.currentUser();
-    const userRouteId = user?.routeId;
+    const userRouteId = user?.routeId || user?.route?.id;
 
     if (!this.isAdmin() && !userRouteId) {
       this.authService
@@ -375,8 +475,9 @@ export class HomePage implements OnInit, ViewWillEnter, OnDestroy {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (updatedUser) => {
-            if (updatedUser?.routeId) {
-              this.loadUserRouteData(updatedUser.routeId, forceRefresh);
+            const resolvedRouteId = updatedUser?.routeId || updatedUser?.route?.id;
+            if (resolvedRouteId) {
+              this.loadUserRouteData(resolvedRouteId, forceRefresh);
             } else {
               this.routesService.routePath.set(null);
               this.routesService.waypoints.set([]);

@@ -103,7 +103,7 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
   public readonly activeSosAlert = this.telemetryService.activeSosAlert;
 
   public readonly hasActiveRoute = computed(() => {
-    return this.authService.isAdmin() || Boolean(this.authService.currentUser()?.routeId);
+    return this.authService.isAdmin() || Boolean(this.authService.currentUser()?.routeId || this.authService.currentUser()?.route?.id);
   });
 
   // Coordenadas oficiales de Piedecuesta, Santander
@@ -242,7 +242,7 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
       return;
     }
 
-    const targetRouteId = this.authService.currentUser()?.routeId || undefined;
+    const targetRouteId = this.authService.currentUser()?.routeId || this.authService.currentUser()?.route?.id || undefined;
 
     this.routesService
       .getRoutePath(targetRouteId, forceRefresh)
@@ -328,7 +328,7 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter, ViewDidLeave {
       return;
     }
 
-    const targetRouteId = this.authService.currentUser()?.routeId || undefined;
+    const targetRouteId = this.authService.currentUser()?.routeId || this.authService.currentUser()?.route?.id || undefined;
 
     this.routesService
       .getWaypoints(targetRouteId, forceRefresh)

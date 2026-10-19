@@ -144,6 +144,7 @@ export class RoutesService implements OnModuleInit {
     await this.seedInitialRouteIfEmpty();
     await this.seedInitialWaypointsIfEmpty();
     await this.linkUnassociatedWaypointsIfAny();
+    await this.syncRouteTimingDefaultsIfMissing();
   }
 
   /**
@@ -206,6 +207,31 @@ export class RoutesService implements OnModuleInit {
   }
 
   /**
+   * Sincroniza valores por defecto de fecha y hora para rutas existentes sin estos campos.
+   */
+  private async syncRouteTimingDefaultsIfMissing(): Promise<void> {
+    const routes = await this.routeRepository.find();
+    for (const route of routes) {
+      let modified = false;
+      if (!route.startTime) {
+        route.startTime = '08:30 AM';
+        modified = true;
+      }
+      if (!route.startDate) {
+        route.startDate = '2026-10-19';
+        modified = true;
+      }
+      if (!route.endDate) {
+        route.endDate = route.startDate;
+        modified = true;
+      }
+      if (modified) {
+        await this.routeRepository.save(route);
+      }
+    }
+  }
+
+  /**
    * Retorna la polilinea oficial del recorrido en formato GeoJSON coordinates [longitud, latitud].
    * Consulta la ruta activa o la ruta especificada por routeId en la base de datos con fallback resiliente.
    * @param routeId UUID opcional de la ruta a consultar.
@@ -239,6 +265,9 @@ export class RoutesService implements OnModuleInit {
           totalDistanceKm: Number(targetRoute.totalDistanceKm) || 0,
           estimatedDurationMinutes: targetRoute.estimatedDurationMinutes || 0,
           coordinates: [],
+          startTime: targetRoute.startTime ?? null,
+          startDate: targetRoute.startDate ?? null,
+          endDate: targetRoute.endDate ?? null,
         };
       }
 
@@ -267,6 +296,9 @@ export class RoutesService implements OnModuleInit {
         totalDistanceKm: Number(targetRoute.totalDistanceKm) || 0,
         estimatedDurationMinutes: targetRoute.estimatedDurationMinutes || 0,
         coordinates,
+        startTime: targetRoute.startTime ?? null,
+        startDate: targetRoute.startDate ?? null,
+        endDate: targetRoute.endDate ?? null,
       };
     }
 
@@ -278,6 +310,9 @@ export class RoutesService implements OnModuleInit {
       totalDistanceKm: 0,
       estimatedDurationMinutes: 0,
       coordinates: [],
+      startTime: null,
+      startDate: null,
+      endDate: null,
     };
   }
 
@@ -357,6 +392,9 @@ export class RoutesService implements OnModuleInit {
         ? dto.coordinates
         : [],
       isActive: dto.isActive ?? false,
+      startTime: dto.startTime ?? null,
+      startDate: dto.startDate ?? null,
+      endDate: dto.endDate ?? null,
       guides: assignedGuides,
     });
 
@@ -387,6 +425,9 @@ export class RoutesService implements OnModuleInit {
       route.estimatedDurationMinutes = dto.estimatedDurationMinutes;
     }
     if (dto.coordinates !== undefined) route.coordinates = dto.coordinates;
+    if (dto.startTime !== undefined) route.startTime = dto.startTime;
+    if (dto.startDate !== undefined) route.startDate = dto.startDate;
+    if (dto.endDate !== undefined) route.endDate = dto.endDate;
 
     if (dto.guideIds !== undefined) {
       if (dto.guideIds.length > 0) {
@@ -794,6 +835,9 @@ export class RoutesService implements OnModuleInit {
       estimatedDurationMinutes: 50,
       coordinates: this.getDefaultCoordinates(),
       isActive: true,
+      startTime: '08:30 AM',
+      startDate: '2026-10-19',
+      endDate: '2026-10-19',
       guides: availableGuides,
     });
 

@@ -7,7 +7,7 @@
 
 // backend/src/modules/medical/medical.service.ts
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MedicalProfile } from './entities/medical-profile.entity.js';
@@ -20,7 +20,7 @@ import { TelemetryGateway } from '../telemetry/gateways/telemetry.gateway.js';
  * Servicio encargado de gestionar fichas medicas y confirmacion de asistencia de excursionistas.
  */
 @Injectable()
-export class MedicalService {
+export class MedicalService implements OnModuleInit {
   /**
    * Instancia de registro para auditoría de fichas médicas y notificaciones.
    */
@@ -44,6 +44,45 @@ export class MedicalService {
   ) {}
 
   /**
+   * Inicialización del módulo de fichas médicas y reconciliación de rutas de usuarios confirmados.
+   */
+  async onModuleInit(): Promise<void> {
+    await this.syncOrphanUserRoutesIfAny();
+  }
+
+  /**
+   * Sincroniza la ruta activa y el routeId de la ficha médica con los usuarios que confirmaron asistencia.
+   */
+  private async syncOrphanUserRoutesIfAny(): Promise<void> {
+    try {
+      const activeRoute = await this.routeRepository.findOne({ where: { isActive: true } });
+      const confirmedProfiles = await this.medicalProfileRepository.find({
+        where: { attendanceConfirmed: true },
+      });
+
+      for (const profile of confirmedProfiles) {
+        let resolvedRouteId = profile.routeId;
+        if (!resolvedRouteId && activeRoute) {
+          resolvedRouteId = activeRoute.id;
+          profile.routeId = resolvedRouteId;
+          await this.medicalProfileRepository.save(profile);
+        }
+
+        if (resolvedRouteId) {
+          const user = await this.userRepository.findOne({ where: { id: profile.userId } });
+          if (user && user.routeId !== resolvedRouteId) {
+            user.routeId = resolvedRouteId;
+            await this.userRepository.save(user);
+            this.logger.log(`Sincronizada ruta ${resolvedRouteId} para el usuario ${user.email}`);
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.warn(`No fue posible sincronizar rutas huérfanas en startup: ${(error as Error).message}`);
+    }
+  }
+
+  /**
    * Obtiene la ficha médica de un usuario por su identificador único cargando la ruta vinculada.
    * @param userId Identificador UUID del usuario.
    * @returns Ficha médica encontrada o null si no se ha registrado.
@@ -62,22 +101,87 @@ export class MedicalService {
    * @param userFullName Nombre completo opcional del excursionista para notificaciones.
    * @returns Ficha médica creada o actualizada.
    */
+  /**
+   * Resuelve el identificador de ruta asignable a la ficha médica y usuario.
+   * @param userId UUID del usuario.
+   * @param dtoRouteId RouteId opcional provisto en el DTO.
+   * @returns UUID de la ruta resuelta o null.
+   */
+  private async resolveTargetRouteId(userId: string, dtoRouteId?: string | null): Promise<string | null> {
+    if (dtoRouteId !== undefined && dtoRouteId !== null) {
+      return dtoRouteId;
+    }
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (user?.routeId) {
+      return user.routeId;
+    }
+    const activeRoute = await this.routeRepository.findOne({ where: { isActive: true } });
+    return activeRoute?.id ?? null;
+  }
+
+  /**
+   * Aplica los valores del DTO a la entidad MedicalProfile existente.
+   * @param profile Entidad a mutar.
+   * @param dto Datos médicos y de asistencia validados.
+   * @param targetRouteId UUID de la ruta resuelta.
+   */
+  private applyProfileData(profile: MedicalProfile, dto: SaveMedicalProfileDto, targetRouteId: string | null): void {
+    profile.attendanceConfirmed = dto.attendanceConfirmed;
+    profile.routeId = targetRouteId;
+    profile.medicalConditions = dto.medicalConditions ?? null;
+    profile.allergies = dto.allergies ?? null;
+    profile.medications = dto.medications ?? null;
+    profile.dietType = dto.dietType;
+    profile.emergencyContactName = dto.emergencyContactName ?? null;
+    profile.emergencyContactPhone = dto.emergencyContactPhone ?? null;
+    profile.bloodType = dto.bloodType ?? null;
+    profile.notes = dto.notes ?? null;
+    if (dto.photoUrl !== undefined) {
+      profile.photoUrl = dto.photoUrl;
+    }
+  }
+
+  /**
+   * Sincroniza la foto y la ruta asociada directamente en la entidad User.
+   * @param userId UUID del usuario.
+   * @param targetRouteId UUID de la ruta a vincular.
+   * @param photoUrl URL opcional de avatar.
+   */
+  private async syncUserEntity(userId: string, targetRouteId: string | null, photoUrl?: string | null): Promise<void> {
+    const userEntity = await this.userRepository.findOne({ where: { id: userId } });
+    if (!userEntity) {
+      return;
+    }
+    let needsUserSave = false;
+    if (photoUrl !== undefined && userEntity.avatarUrl !== photoUrl) {
+      userEntity.avatarUrl = photoUrl ?? null;
+      needsUserSave = true;
+    }
+    if (targetRouteId && userEntity.routeId !== targetRouteId) {
+      userEntity.routeId = targetRouteId;
+      needsUserSave = true;
+    }
+    if (needsUserSave) {
+      await this.userRepository.save(userEntity);
+    }
+  }
+
+  /**
+   * Guarda o actualiza la ficha médica de un usuario de forma idempotente asociando la ruta asignada.
+   * @param userId Identificador UUID del usuario.
+   * @param dto Datos médicos y de asistencia validados.
+   * @param userFullName Nombre completo opcional del excursionista para notificaciones.
+   * @returns Ficha médica creada o actualizada.
+   */
   async saveProfile(
     userId: string,
     dto: SaveMedicalProfileDto,
     userFullName?: string,
   ): Promise<MedicalProfile> {
+    const targetRouteId = await this.resolveTargetRouteId(userId, dto.routeId);
     let profile = await this.medicalProfileRepository.findOne({
       where: { userId },
     });
-
-    let targetRouteId: string | null = null;
-    if (dto.routeId !== undefined) {
-      targetRouteId = dto.routeId;
-    } else {
-      const user = await this.userRepository.findOne({ where: { id: userId } });
-      targetRouteId = user?.routeId ?? null;
-    }
 
     if (!profile) {
       profile = this.medicalProfileRepository.create({
@@ -86,31 +190,11 @@ export class MedicalService {
         ...dto,
       });
     } else {
-      profile.attendanceConfirmed = dto.attendanceConfirmed;
-      profile.routeId = targetRouteId;
-      profile.medicalConditions = dto.medicalConditions ?? null;
-      profile.allergies = dto.allergies ?? null;
-      profile.medications = dto.medications ?? null;
-      profile.dietType = dto.dietType;
-      profile.emergencyContactName = dto.emergencyContactName ?? null;
-      profile.emergencyContactPhone = dto.emergencyContactPhone ?? null;
-      profile.bloodType = dto.bloodType ?? null;
-      profile.notes = dto.notes ?? null;
-      if (dto.photoUrl !== undefined) {
-        profile.photoUrl = dto.photoUrl;
-      }
+      this.applyProfileData(profile, dto, targetRouteId);
     }
 
     await this.medicalProfileRepository.save(profile);
-
-    // Sincronizar fotografía con la entidad User para disponibilidad transversal
-    if (dto.photoUrl !== undefined) {
-      const userEntity = await this.userRepository.findOne({ where: { id: userId } });
-      if (userEntity && userEntity.avatarUrl !== dto.photoUrl) {
-        userEntity.avatarUrl = dto.photoUrl ?? null;
-        await this.userRepository.save(userEntity);
-      }
-    }
+    await this.syncUserEntity(userId, targetRouteId, dto.photoUrl);
 
     if (dto.attendanceConfirmed) {
       await this.notifyAssignedGuidesOfRegistration(userId, userFullName, targetRouteId);

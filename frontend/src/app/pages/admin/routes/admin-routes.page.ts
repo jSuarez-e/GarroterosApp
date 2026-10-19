@@ -47,6 +47,7 @@ import {
   refreshOutline,
   checkmarkOutline,
   personAddOutline,
+  calendarOutline,
 } from 'ionicons/icons';
 import { RoutesService } from '../../../core/services/routes.service';
 import { GuidesService, type IGuideProfile } from '../../../core/services/guides.service';
@@ -104,6 +105,9 @@ export class AdminRoutesPage implements OnInit, ViewWillEnter {
     description: '',
     totalDistanceKm: 2.1,
     estimatedDurationMinutes: 50,
+    startTime: '08:30 AM',
+    startDate: '',
+    endDate: '',
     isActive: false,
   };
   public selectedGuideIds = signal<string[]>([]);
@@ -139,6 +143,7 @@ export class AdminRoutesPage implements OnInit, ViewWillEnter {
       refreshOutline,
       checkmarkOutline,
       personAddOutline,
+      calendarOutline,
     });
   }
 
@@ -185,16 +190,20 @@ export class AdminRoutesPage implements OnInit, ViewWillEnter {
    */
   public openCreateRouteModal(): void {
     this.editingRouteId.set(null);
+    const todayDateString = new Date().toISOString().split('T')[0];
     this.routeForm = {
       name: '',
       municipality: 'Piedecuesta, Santander',
       description: '',
       totalDistanceKm: 2.1,
       estimatedDurationMinutes: 50,
+      startTime: '08:30 AM',
+      startDate: todayDateString,
+      endDate: todayDateString,
       isActive: this.routes().length === 0,
     };
     // Por defecto seleccionar todos los guías activos si es la primera ruta
-    const activeIds = this.availableGuides().map((g) => g.id);
+    const activeIds = this.availableGuides().map((guideItem) => guideItem.id);
     this.selectedGuideIds.set(activeIds);
     this.isRouteModalOpen.set(true);
   }
@@ -211,9 +220,12 @@ export class AdminRoutesPage implements OnInit, ViewWillEnter {
       description: route.description,
       totalDistanceKm: Number(route.totalDistanceKm) || 2.1,
       estimatedDurationMinutes: route.estimatedDurationMinutes || 50,
+      startTime: route.startTime || '08:30 AM',
+      startDate: route.startDate || '',
+      endDate: route.endDate || route.startDate || '',
       isActive: route.isActive,
     };
-    const assignedIds = (route.guides || []).map((g) => g.id);
+    const assignedIds = (route.guides || []).map((guideItem) => guideItem.id);
     this.selectedGuideIds.set(assignedIds);
     this.isRouteModalOpen.set(true);
   }
@@ -271,6 +283,9 @@ export class AdminRoutesPage implements OnInit, ViewWillEnter {
         description: this.routeForm.description,
         totalDistanceKm: Number(this.routeForm.totalDistanceKm),
         estimatedDurationMinutes: Number(this.routeForm.estimatedDurationMinutes),
+        startTime: this.routeForm.startTime ? this.routeForm.startTime.trim() : null,
+        startDate: this.routeForm.startDate ? this.routeForm.startDate.trim() : null,
+        endDate: this.routeForm.endDate ? this.routeForm.endDate.trim() : null,
         isActive: this.routeForm.isActive,
         guideIds: this.selectedGuideIds(),
       };
@@ -297,6 +312,9 @@ export class AdminRoutesPage implements OnInit, ViewWillEnter {
         description: this.routeForm.description,
         totalDistanceKm: Number(this.routeForm.totalDistanceKm),
         estimatedDurationMinutes: Number(this.routeForm.estimatedDurationMinutes),
+        startTime: this.routeForm.startTime ? this.routeForm.startTime.trim() : null,
+        startDate: this.routeForm.startDate ? this.routeForm.startDate.trim() : null,
+        endDate: this.routeForm.endDate ? this.routeForm.endDate.trim() : null,
         isActive: this.routeForm.isActive,
         guideIds: this.selectedGuideIds(),
       };

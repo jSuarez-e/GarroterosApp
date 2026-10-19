@@ -80,6 +80,30 @@ export class CreateRouteDto {
   isActive?: boolean;
 
   /**
+   * Hora de inicio programada del recorrido (formato HH:mm o HH:mm AM/PM).
+   */
+  @ApiPropertyOptional({ description: 'Hora de inicio programada', example: '08:30 AM' })
+  @IsOptional()
+  @IsString()
+  startTime?: string | null;
+
+  /**
+   * Fecha de inicio programada del recorrido (formato YYYY-MM-DD).
+   */
+  @ApiPropertyOptional({ description: 'Fecha de inicio programada (YYYY-MM-DD)', example: '2026-10-25' })
+  @IsOptional()
+  @IsString()
+  startDate?: string | null;
+
+  /**
+   * Fecha de culminación o finalización del recorrido (formato YYYY-MM-DD).
+   */
+  @ApiPropertyOptional({ description: 'Fecha final o de culminación (YYYY-MM-DD)', example: '2026-10-25' })
+  @IsOptional()
+  @IsString()
+  endDate?: string | null;
+
+  /**
    * Lista de identificadores UUID de los guías seleccionados para este recorrido.
    */
   @ApiProperty({ description: 'Arreglo de IDs de guías asignados a la ruta', type: [String] })

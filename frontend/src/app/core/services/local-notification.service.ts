@@ -7,7 +7,7 @@
 
 // frontend/src/app/core/services/local-notification.service.ts
 
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, InjectionToken } from '@angular/core';
 import { Router } from '@angular/router';
 import { LocalNotifications, ActionPerformed } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
@@ -21,6 +21,17 @@ export const EMERGENCY_CHANNEL_ID = 'emergency_channel';
 export const ATTENDANCE_CHANNEL_ID = 'attendance_channel';
 
 /**
+ * Token de inyección para el plugin LocalNotifications de Capacitor.
+ */
+export const LOCAL_NOTIFICATIONS_TOKEN = new InjectionToken<typeof LocalNotifications>(
+  'LOCAL_NOTIFICATIONS_TOKEN',
+  {
+    providedIn: 'root',
+    factory: () => LocalNotifications,
+  },
+);
+
+/**
  * Servicio encargado de inicializar canales nativos y despachar notificaciones locales prioritarias.
  */
 @Injectable({
@@ -30,6 +41,7 @@ export class LocalNotificationService {
   private readonly socketService = inject(SocketService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly localNotifications = inject(LOCAL_NOTIFICATIONS_TOKEN);
 
   private isInitialized = false;
   private readonly notifiedSosAlertIds = new Set<string>();
@@ -54,13 +66,13 @@ export class LocalNotificationService {
   private async setupChannelsAndPermissions(): Promise<void> {
     try {
       if (Capacitor.isNativePlatform()) {
-        const permissionStatus = await LocalNotifications.checkPermissions();
+        const permissionStatus = await this.localNotifications.checkPermissions();
         if (permissionStatus.display !== 'granted') {
-          await LocalNotifications.requestPermissions();
+          await this.localNotifications.requestPermissions();
         }
 
         // Crear canal de emergencia con máxima prioridad y vibración
-        await LocalNotifications.createChannel({
+        await this.localNotifications.createChannel({
           id: EMERGENCY_CHANNEL_ID,
           name: 'Alertas SOS y Emergencias',
           description: 'Canal prioritario con sonido y vibración máxima para emergencias en ruta',
@@ -72,7 +84,7 @@ export class LocalNotificationService {
         });
 
         // Crear canal para confirmación de asistencia de excursionistas
-        await LocalNotifications.createChannel({
+        await this.localNotifications.createChannel({
           id: ATTENDANCE_CHANNEL_ID,
           name: 'Registro de Excursionistas',
           description: 'Notificaciones cuando excursionistas confirman su asistencia a la ruta activa',
@@ -177,7 +189,7 @@ export class LocalNotificationService {
     }
 
     try {
-      await LocalNotifications.schedule({
+      await this.localNotifications.schedule({
         notifications: [
           {
             id: notificationId,
@@ -213,7 +225,7 @@ export class LocalNotificationService {
     const notificationBody = `${attendancePayload.userFullName} confirmó asistencia en "${attendancePayload.routeName}"`;
 
     try {
-      await LocalNotifications.schedule({
+      await this.localNotifications.schedule({
         notifications: [
           {
             id: notificationId,
@@ -241,7 +253,7 @@ export class LocalNotificationService {
    */
   private setupNotificationActionListeners(): void {
     try {
-      void LocalNotifications.addListener(
+      void this.localNotifications.addListener(
         'localNotificationActionPerformed',
         (actionEvent: ActionPerformed) => {
           const extraData = actionEvent.notification.extra as { type?: string } | undefined;

@@ -96,6 +96,12 @@ export interface RoutePathDto {
    *
    */
   coordinates: [number, number][];
+  /** Hora de inicio programada (formato HH:mm o HH:mm AM/PM) */
+  startTime?: string | null;
+  /** Fecha de inicio programada (formato YYYY-MM-DD) */
+  startDate?: string | null;
+  /** Fecha final o de culminación (formato YYYY-MM-DD) */
+  endDate?: string | null;
 }
 
 /**
@@ -258,6 +264,12 @@ export interface RouteEntityDto {
   coordinates: [number, number][];
   /** Indica si es la ruta oficial activa en la app */
   isActive: boolean;
+  /** Hora de inicio programada (formato HH:mm o HH:mm AM/PM) */
+  startTime?: string | null;
+  /** Fecha de inicio programada (formato YYYY-MM-DD) */
+  startDate?: string | null;
+  /** Fecha final o de culminación (formato YYYY-MM-DD) */
+  endDate?: string | null;
   /** Guías oficiales asignados al recorrido */
   guides?: IGuideProfile[];
   /** Fecha de creación */
@@ -284,6 +296,12 @@ export interface CreateRouteDto {
   coordinates?: [number, number][];
   /** Si debe activarse como la ruta oficial */
   isActive?: boolean;
+  /** Hora de inicio programada (formato HH:mm o HH:mm AM/PM) */
+  startTime?: string | null;
+  /** Fecha de inicio programada (formato YYYY-MM-DD) */
+  startDate?: string | null;
+  /** Fecha final o de culminación (formato YYYY-MM-DD) */
+  endDate?: string | null;
   /** Lista de UUIDs de los guías asignados a este recorrido */
   guideIds: string[];
 }

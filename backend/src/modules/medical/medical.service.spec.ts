@@ -36,6 +36,7 @@ describe('MedicalService', () => {
 
     mockUserRepo = {
       findOne: vi.fn(),
+      save: vi.fn().mockResolvedValue({}),
     };
 
     mockTelemetryGateway = {
@@ -121,6 +122,7 @@ describe('MedicalService', () => {
   it('no debe emitir broadcast si attendanceConfirmed es false', async () => {
     const dto: SaveMedicalProfileDto = {
       attendanceConfirmed: false,
+      routeId: 'route-assigned-2',
       dietType: DietType.VEGETARIAN,
     };
 

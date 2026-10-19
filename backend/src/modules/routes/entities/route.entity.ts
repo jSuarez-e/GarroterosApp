@@ -76,6 +76,24 @@ export class Route {
   isActive: boolean;
 
   /**
+   * Hora de inicio programada del recorrido (ej: '08:30 AM').
+   */
+  @Column({ name: 'start_time', type: 'varchar', length: 20, nullable: true })
+  startTime: string | null;
+
+  /**
+   * Fecha de inicio programada del recorrido (formato YYYY-MM-DD).
+   */
+  @Column({ name: 'start_date', type: 'varchar', length: 30, nullable: true })
+  startDate: string | null;
+
+  /**
+   * Fecha de culminación o finalización del recorrido (formato YYYY-MM-DD).
+   */
+  @Column({ name: 'end_date', type: 'varchar', length: 30, nullable: true })
+  endDate: string | null;
+
+  /**
    * Guías turísticos asignados a este recorrido.
    */
   @ManyToMany(() => Guide, (guide: Guide) => guide.routes)

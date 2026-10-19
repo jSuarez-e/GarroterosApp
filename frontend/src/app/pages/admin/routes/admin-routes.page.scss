@@ -451,6 +451,18 @@
 .form-row {
   display: flex;
   gap: 12px;
+
+  .form-group {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &--timing {
+    @media (width <= 480px) {
+      flex-direction: column;
+      gap: 0;
+    }
+  }
 }
 
 .form-label {

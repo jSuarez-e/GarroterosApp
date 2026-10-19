@@ -44,6 +44,34 @@
   --ion-card-background: #fff;
   --ion-font-family: -apple-system, blinkmacsystemfont, "Segoe UI", roboto, "Helvetica Neue", arial, sans-serif;
   --ion-safe-area-top: env(safe-area-inset-top, 0);
+
+  /* Variables nativas de diseno GarroterosApp */
+  --app-primary: #{$color-primary};
+  --app-primary-dark: #{$color-primary-dark};
+  --app-primary-light: #{$color-primary-light};
+  --app-primary-tint: #{$color-primary-tint};
+  --app-surface: #{$color-surface};
+  --app-canvas: #{$color-canvas};
+  --app-card: #{$color-card};
+  --app-card-muted: #{$color-card-muted};
+  --app-text-main: #{$color-text-main};
+  --app-text-secondary: #{$color-text-secondary};
+  --app-text-muted: #{$color-text-muted};
+  --app-text-inverse: #{$color-text-inverse};
+  --app-success: #{$color-success};
+  --app-success-tint: #{$color-success-tint};
+  --app-warning: #{$color-warning};
+  --app-warning-tint: #{$color-warning-tint};
+  --app-danger: #{$color-danger};
+  --app-danger-tint: #{$color-danger-tint};
+  --app-radius-sm: #{$radius-sm};
+  --app-radius-md: #{$radius-md};
+  --app-radius-lg: #{$radius-lg};
+  --app-radius-xl: #{$radius-xl};
+  --app-radius-pill: #{$radius-pill};
+  --app-shadow-card: #{$shadow-card};
+  --app-shadow-float: #{$shadow-float};
+  --app-shadow-primary: #{$shadow-primary};
 }
 
 /* Soporte para que la cabecera no se solape con la barra de estado (StatusBar) */

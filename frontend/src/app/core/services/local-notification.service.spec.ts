@@ -10,10 +10,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { LocalNotificationService, EMERGENCY_CHANNEL_ID, ATTENDANCE_CHANNEL_ID } from './local-notification.service';
-import { SocketService } from './socket.service';
-import { AuthService, UserRole, UserStatus } from './auth.service';
-import { LocalNotifications } from '@capacitor/local-notifications';
 
 vi.mock('@capacitor/local-notifications', () => ({
   LocalNotifications: {
@@ -34,6 +30,15 @@ vi.mock('@capacitor/haptics', () => ({
   },
 }));
 
+import {
+  LocalNotificationService,
+  LOCAL_NOTIFICATIONS_TOKEN,
+  EMERGENCY_CHANNEL_ID,
+  ATTENDANCE_CHANNEL_ID,
+} from './local-notification.service';
+import { SocketService } from './socket.service';
+import { AuthService, UserRole, UserStatus } from './auth.service';
+
 describe('LocalNotificationService', () => {
   let service: LocalNotificationService;
   let mockAuthService: {
@@ -46,13 +51,24 @@ describe('LocalNotificationService', () => {
   let mockRouter: {
     navigate: ReturnType<typeof vi.fn>;
   };
+  let mockLocalNotifications: {
+    checkPermissions: ReturnType<typeof vi.fn>;
+    requestPermissions: ReturnType<typeof vi.fn>;
+    createChannel: ReturnType<typeof vi.fn>;
+    schedule: ReturnType<typeof vi.fn>;
+    addListener: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(LocalNotifications, 'checkPermissions').mockResolvedValue({ display: 'granted' });
-    vi.spyOn(LocalNotifications, 'requestPermissions').mockResolvedValue({ display: 'granted' });
-    vi.spyOn(LocalNotifications, 'createChannel').mockResolvedValue(undefined as never);
-    vi.spyOn(LocalNotifications, 'schedule').mockResolvedValue(undefined as never);
+
+    mockLocalNotifications = {
+      checkPermissions: vi.fn().mockResolvedValue({ display: 'granted' }),
+      requestPermissions: vi.fn().mockResolvedValue({ display: 'granted' }),
+      createChannel: vi.fn().mockResolvedValue(undefined),
+      schedule: vi.fn().mockResolvedValue(undefined),
+      addListener: vi.fn().mockResolvedValue({ remove: vi.fn() }),
+    };
 
     mockAuthService = {
       currentUser: vi.fn().mockReturnValue(null),
@@ -70,6 +86,7 @@ describe('LocalNotificationService', () => {
     TestBed.configureTestingModule({
       providers: [
         LocalNotificationService,
+        { provide: LOCAL_NOTIFICATIONS_TOKEN, useValue: mockLocalNotifications },
         { provide: AuthService, useValue: mockAuthService },
         { provide: SocketService, useValue: mockSocketService },
         { provide: Router, useValue: mockRouter },
@@ -153,7 +170,7 @@ describe('LocalNotificationService', () => {
 
       await service.scheduleEmergencySosNotification(alertPayload);
 
-      expect(LocalNotifications.schedule).toHaveBeenCalledWith({
+      expect(mockLocalNotifications.schedule).toHaveBeenCalledWith({
         notifications: [
           expect.objectContaining({
             channelId: EMERGENCY_CHANNEL_ID,
@@ -178,7 +195,7 @@ describe('LocalNotificationService', () => {
 
       await service.scheduleAttendanceNotification(attendancePayload);
 
-      expect(LocalNotifications.schedule).toHaveBeenCalledWith({
+      expect(mockLocalNotifications.schedule).toHaveBeenCalledWith({
         notifications: [
           expect.objectContaining({
             channelId: ATTENDANCE_CHANNEL_ID,
@@ -227,7 +244,7 @@ describe('LocalNotificationService', () => {
       await sosBroadcastHandler!(alertPayload);
 
       // Debe haberse llamado a LocalNotifications.schedule exactamente 1 vez
-      expect(LocalNotifications.schedule).toHaveBeenCalledTimes(1);
+      expect(mockLocalNotifications.schedule).toHaveBeenCalledTimes(1);
     });
   });
 });

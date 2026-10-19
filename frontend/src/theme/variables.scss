@@ -53,38 +53,6 @@ $shadow-card: 0 10px 25px -5px rgb(59 91 219 / 8%), 0 6px 12px -4px rgb(59 91 21
 $shadow-float: 0 14px 30px -4px rgb(59 91 219 / 16%);
 $shadow-primary: 0 8px 20px rgb(59 91 219 / 28%);
 
-// =============================================================================
-// 3. VARIABLES CSS NATIVAS (Expuestas para runtime e Ionic)
-// =============================================================================
-
-:root {
-  --app-primary: #{$color-primary};
-  --app-primary-dark: #{$color-primary-dark};
-  --app-primary-light: #{$color-primary-light};
-  --app-primary-tint: #{$color-primary-tint};
-  --app-surface: #{$color-surface};
-  --app-canvas: #{$color-canvas};
-  --app-card: #{$color-card};
-  --app-card-muted: #{$color-card-muted};
-  --app-text-main: #{$color-text-main};
-  --app-text-secondary: #{$color-text-secondary};
-  --app-text-muted: #{$color-text-muted};
-  --app-text-inverse: #{$color-text-inverse};
-  --app-success: #{$color-success};
-  --app-success-tint: #{$color-success-tint};
-  --app-warning: #{$color-warning};
-  --app-warning-tint: #{$color-warning-tint};
-  --app-danger: #{$color-danger};
-  --app-danger-tint: #{$color-danger-tint};
-  --app-radius-sm: #{$radius-sm};
-  --app-radius-md: #{$radius-md};
-  --app-radius-lg: #{$radius-lg};
-  --app-radius-xl: #{$radius-xl};
-  --app-radius-pill: #{$radius-pill};
-  --app-shadow-card: #{$shadow-card};
-  --app-shadow-float: #{$shadow-float};
-  --app-shadow-primary: #{$shadow-primary};
-}
 
 // =============================================================================
 // 4. MIXINS SCSS REUTILIZABLES
